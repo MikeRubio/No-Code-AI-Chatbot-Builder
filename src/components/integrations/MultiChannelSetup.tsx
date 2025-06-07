@@ -10,12 +10,17 @@ import {
   ExternalLink,
   Settings,
   Plus,
-  Trash2
+  Trash2,
+  Copy,
+  Code
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Modal } from '../ui/Modal';
 import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../hooks/useAuth';
+import { FacebookMessengerSetup } from './FacebookMessengerSetup';
+import { WhatsAppBusinessSetup } from './WhatsAppBusinessSetup';
 import toast from 'react-hot-toast';
 
 interface MultiChannelSetupProps {
@@ -48,7 +53,7 @@ const channelTypes = [
     name: 'WhatsApp Business',
     icon: MessageCircle,
     color: 'from-green-500 to-green-600',
-    description: 'Connect via WhatsApp Business API',
+    description: 'Connect via WhatsApp Business API (No Twilio needed)',
     free: false
   },
   {
@@ -78,10 +83,14 @@ const channelTypes = [
 ];
 
 export function MultiChannelSetup({ chatbotId, isOpen, onClose }: MultiChannelSetupProps) {
+  const { user } = useAuth();
   const [channels, setChannels] = useState<Channel[]>([]);
   const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showChannelConfig, setShowChannelConfig] = useState(false);
+  const [showEmbedCode, setShowEmbedCode] = useState(false);
+  const [showFacebookSetup, setShowFacebookSetup] = useState(false);
+  const [showWhatsAppSetup, setShowWhatsAppSetup] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -104,6 +113,22 @@ export function MultiChannelSetup({ chatbotId, isOpen, onClose }: MultiChannelSe
   };
 
   const addChannel = async (channelType: string) => {
+    if (!user) {
+      toast.error('You must be logged in to add channels');
+      return;
+    }
+
+    // Handle special setup flows
+    if (channelType === 'facebook') {
+      setShowFacebookSetup(true);
+      return;
+    }
+
+    if (channelType === 'whatsapp') {
+      setShowWhatsAppSetup(true);
+      return;
+    }
+
     setIsLoading(true);
     try {
       const channelConfig = getDefaultConfig(channelType);
@@ -176,17 +201,28 @@ export function MultiChannelSetup({ chatbotId, isOpen, onClose }: MultiChannelSe
       // Update sync status to syncing
       await updateChannel(channelId, { sync_status: 'syncing' });
 
+      // Check if environment variables are configured
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      if (!supabaseUrl || !supabaseKey || supabaseUrl.includes('your_') || supabaseKey.includes('your_')) {
+        throw new Error('Supabase environment variables are not configured. Please check your .env file.');
+      }
+
       // Call deployment function
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/deploy-channel`, {
+      const response = await fetch(`${supabaseUrl}/functions/v1/deploy-channel`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${supabaseKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ channelId }),
       });
 
-      if (!response.ok) throw new Error('Deployment failed');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
+      }
 
       const result = await response.json();
       
@@ -198,11 +234,19 @@ export function MultiChannelSetup({ chatbotId, isOpen, onClose }: MultiChannelSe
 
       toast.success('Channel deployed successfully!');
     } catch (error: any) {
+      console.error('Deployment error:', error);
       await updateChannel(channelId, { 
         sync_status: 'error',
         error_message: error.message
       });
-      toast.error('Deployment failed: ' + error.message);
+      
+      if (error.message.includes('environment variables')) {
+        toast.error('Configuration Error: ' + error.message);
+      } else if (error.message.includes('Failed to fetch')) {
+        toast.error('Network Error: Unable to connect to deployment service. Please check your internet connection and Supabase configuration.');
+      } else {
+        toast.error('Deployment failed: ' + error.message);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -216,18 +260,6 @@ export function MultiChannelSetup({ chatbotId, isOpen, onClose }: MultiChannelSe
           widget_color: '#3B82F6',
           welcome_message: 'Hello! How can I help you?',
           placeholder_text: 'Type your message...'
-        };
-      case 'whatsapp':
-        return {
-          phone_number: '',
-          webhook_url: '',
-          verify_token: ''
-        };
-      case 'facebook':
-        return {
-          page_id: '',
-          access_token: '',
-          verify_token: ''
         };
       case 'telegram':
         return {
@@ -261,6 +293,16 @@ export function MultiChannelSetup({ chatbotId, isOpen, onClose }: MultiChannelSe
       case 'syncing': return 'text-yellow-600 bg-yellow-100';
       case 'error': return 'text-red-600 bg-red-100';
       default: return 'text-gray-600 bg-gray-100';
+    }
+  };
+
+  const copyEmbedCode = (channel: Channel) => {
+    const embedCode = channel.channel_config?.embed_code;
+    if (embedCode) {
+      navigator.clipboard.writeText(embedCode);
+      toast.success('Embed code copied to clipboard!');
+    } else {
+      toast.error('Embed code not available. Please deploy the channel first.');
     }
   };
 
@@ -352,6 +394,17 @@ export function MultiChannelSetup({ chatbotId, isOpen, onClose }: MultiChannelSe
                       </div>
                       
                       <div className="flex items-center space-x-2">
+                        {channel.channel_type === 'web' && channel.sync_status === 'synced' && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => copyEmbedCode(channel)}
+                            title="Copy embed code"
+                          >
+                            <Code className="w-4 h-4" />
+                          </Button>
+                        )}
+                        
                         {channel.deployment_url && (
                           <Button
                             variant="ghost"
@@ -366,8 +419,14 @@ export function MultiChannelSetup({ chatbotId, isOpen, onClose }: MultiChannelSe
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            setSelectedChannel(channel.id);
-                            setShowChannelConfig(true);
+                            if (channel.channel_type === 'facebook') {
+                              setShowFacebookSetup(true);
+                            } else if (channel.channel_type === 'whatsapp') {
+                              setShowWhatsAppSetup(true);
+                            } else {
+                              setSelectedChannel(channel.id);
+                              setShowChannelConfig(true);
+                            }
                           }}
                         >
                           <Settings className="w-4 h-4" />
@@ -397,6 +456,11 @@ export function MultiChannelSetup({ chatbotId, isOpen, onClose }: MultiChannelSe
                     {channel.error_message && (
                       <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
                         <p className="text-sm text-red-700">{channel.error_message}</p>
+                        {channel.error_message.includes('environment variables') && (
+                          <p className="text-xs text-red-600 mt-1">
+                            Please configure your Supabase URL and API key in the .env file
+                          </p>
+                        )}
                       </div>
                     )}
                   </Card>
@@ -417,6 +481,26 @@ export function MultiChannelSetup({ chatbotId, isOpen, onClose }: MultiChannelSe
             }}
           />
         )}
+
+        {/* Facebook Messenger Setup Modal */}
+        <FacebookMessengerSetup
+          chatbotId={chatbotId}
+          isOpen={showFacebookSetup}
+          onClose={() => {
+            setShowFacebookSetup(false);
+            loadChannels(); // Reload channels after Facebook setup
+          }}
+        />
+
+        {/* WhatsApp Business Setup Modal */}
+        <WhatsAppBusinessSetup
+          chatbotId={chatbotId}
+          isOpen={showWhatsAppSetup}
+          onClose={() => {
+            setShowWhatsAppSetup(false);
+            loadChannels(); // Reload channels after WhatsApp setup
+          }}
+        />
       </div>
     </Modal>
   );
@@ -478,60 +562,31 @@ function ChannelConfigModal({ channel, onUpdate, onClose }: ChannelConfigModalPr
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
-          </div>
-        );
-        
-      case 'whatsapp':
-        return (
-          <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                value={config.phone_number}
-                onChange={(e) => setConfig(prev => ({ ...prev, phone_number: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="+1234567890"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Verify Token
+                Placeholder Text
               </label>
               <input
                 type="text"
-                value={config.verify_token}
-                onChange={(e) => setConfig(prev => ({ ...prev, verify_token: e.target.value }))}
+                value={config.placeholder_text}
+                onChange={(e) => setConfig(prev => ({ ...prev, placeholder_text: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>
           </div>
         );
         
-      case 'facebook':
+      case 'telegram':
         return (
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Page ID
-              </label>
-              <input
-                type="text"
-                value={config.page_id}
-                onChange={(e) => setConfig(prev => ({ ...prev, page_id: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Access Token
+                Bot Token
               </label>
               <input
                 type="password"
-                value={config.access_token}
-                onChange={(e) => setConfig(prev => ({ ...prev, access_token: e.target.value }))}
+                value={config.bot_token}
+                onChange={(e) => setConfig(prev => ({ ...prev, bot_token: e.target.value }))}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
             </div>

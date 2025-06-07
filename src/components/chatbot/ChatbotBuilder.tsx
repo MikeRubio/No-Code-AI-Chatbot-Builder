@@ -41,7 +41,8 @@ import {
   FileUp,
   BarChart3,
   Users,
-  Headphones
+  Headphones,
+  Sparkles
 } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
@@ -56,6 +57,8 @@ import { MultiChannelSetup } from '../integrations/MultiChannelSetup';
 import { ABTestManager } from '../analytics/ABTestManager';
 import { CustomNode } from './nodes/CustomNode';
 import { NodePropertiesPanel } from './NodePropertiesPanel';
+import { TemplateSelector } from './TemplateSelector';
+import { ChatbotTemplate } from '../../data/chatbotTemplates';
 import toast from 'react-hot-toast';
 
 // Custom node types for React Flow
@@ -205,6 +208,7 @@ function ChatbotBuilderContent() {
   const [showWhatsAppSetup, setShowWhatsAppSetup] = useState(false);
   const [showMultiChannelSetup, setShowMultiChannelSetup] = useState(false);
   const [showABTestManager, setShowABTestManager] = useState(false);
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [chatbotName, setChatbotName] = useState('');
   const [chatbotDescription, setChatbotDescription] = useState('');
   const [isDragging, setIsDragging] = useState(false);
@@ -214,6 +218,13 @@ function ChatbotBuilderContent() {
   const { profile } = useProfile();
 
   const currentChatbot = id ? chatbots.find(bot => bot.id === id) : null;
+
+  // Show template selector for new chatbots
+  useEffect(() => {
+    if (!id && nodes.length === 0 && !showTemplateSelector) {
+      setShowTemplateSelector(true);
+    }
+  }, [id, nodes.length, showTemplateSelector]);
 
   // Load chatbot data on mount
   useEffect(() => {
@@ -249,6 +260,31 @@ function ChatbotBuilderContent() {
       setSelectedNode(null);
     }
   }, [currentChatbot, id]);
+
+  // Handle template selection
+  const handleTemplateSelect = useCallback((template: ChatbotTemplate) => {
+    setChatbotName(template.name);
+    setChatbotDescription(template.description);
+    
+    // Convert template nodes to React Flow format
+    const templateNodes = template.flow.nodes.map((node: any) => ({
+      id: node.id,
+      type: 'custom',
+      position: node.position,
+      data: {
+        ...node.data,
+        onEdit: handleNodeEdit,
+        onDelete: handleNodeDelete,
+        isSelected: false,
+      },
+    }));
+    
+    setNodes(templateNodes);
+    setEdges(template.flow.edges);
+    setShowTemplateSelector(false);
+    
+    toast.success(`${template.name} template loaded successfully!`);
+  }, [setNodes, setEdges]);
 
   // Handle node selection
   const onNodeClick = useCallback((event: React.MouseEvent, node: Node) => {
@@ -498,6 +534,20 @@ function ChatbotBuilderContent() {
             </div>
           </div>
 
+          {/* Template Button */}
+          {!id && (
+            <div>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => setShowTemplateSelector(true)}
+              >
+                <Sparkles className="w-4 h-4 mr-2" />
+                Choose Template
+              </Button>
+            </div>
+          )}
+
           {/* Node Types */}
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Nodes</h3>
@@ -660,8 +710,17 @@ function ChatbotBuilderContent() {
                   Start Building Your Advanced Chatbot
                 </h3>
                 <p className="text-gray-600 mb-4 max-w-md">
-                  Drag and drop nodes from the sidebar to create sophisticated conversation flows with conditional logic, API integrations, and more
+                  Choose from professional templates or drag and drop nodes to create sophisticated conversation flows
                 </p>
+                <div className="flex space-x-3 justify-center">
+                  <Button onClick={() => setShowTemplateSelector(true)}>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Browse Templates
+                  </Button>
+                  <Button variant="outline">
+                    Start from Scratch
+                  </Button>
+                </div>
               </div>
             </Panel>
           )}
@@ -687,6 +746,13 @@ function ChatbotBuilderContent() {
           }}
         />
       )}
+
+      {/* Template Selector */}
+      <TemplateSelector
+        isOpen={showTemplateSelector}
+        onClose={() => setShowTemplateSelector(false)}
+        onSelectTemplate={handleTemplateSelect}
+      />
 
       {/* Modals */}
       {currentChatbot && (
