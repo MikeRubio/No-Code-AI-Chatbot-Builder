@@ -1,0 +1,10 @@
+public/*
+dist/*
+hooks/*
+lib/*
+supabase/migrations/*
+src/components/analytic/*
+src/components/auth/*
+src/components/onboarding/*
+src/components/subscription/*
+src/components/ui/*

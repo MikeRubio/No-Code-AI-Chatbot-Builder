@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
+import { personalFAQTemplate } from './personalFAQTemplate';
 
 export interface ChatbotTemplate {
   id: string;
@@ -17,6 +18,9 @@ export interface ChatbotTemplate {
 }
 
 export const chatbotTemplates: ChatbotTemplate[] = [
+  // Add the personal FAQ template first
+  personalFAQTemplate,
+  
   {
     id: 'business-info',
     name: 'Business Information Collector',
@@ -39,65 +43,21 @@ export const chatbotTemplates: ChatbotTemplate[] = [
           data: {
             nodeType: 'start',
             label: 'Welcome',
-            content: 'Hello! I\'m here to learn more about your business. This will help us provide you with the best possible service. Shall we get started?'
-          }
-        },
-        {
-          id: 'question-1',
-          type: 'question',
-          position: { x: 100, y: 250 },
-          data: {
-            nodeType: 'question',
-            label: 'Ready to Start?',
-            content: 'Are you ready to share some information about your business?',
-            options: ['Yes, let\'s start!', 'I need more information first', 'Maybe later']
-          }
-        },
-        {
-          id: 'conditional-1',
-          type: 'conditional',
-          position: { x: 100, y: 400 },
-          data: {
-            nodeType: 'conditional',
-            label: 'Check Response',
-            conditions: [
-              {
-                variable: 'user_response',
-                operator: 'contains',
-                value: 'yes',
-                action: 'continue'
-              },
-              {
-                variable: 'user_response',
-                operator: 'contains',
-                value: 'information',
-                action: 'explain'
-              }
-            ]
-          }
-        },
-        {
-          id: 'message-1',
-          type: 'message',
-          position: { x: 400, y: 400 },
-          data: {
-            nodeType: 'message',
-            label: 'Explanation',
-            content: 'I understand! This information helps us:\n• Provide relevant recommendations\n• Connect you with the right team\n• Customize our services for your needs\n\nAll information is kept confidential. Ready to proceed?'
+            content: 'Hello! I\'m here to learn more about your business. This will help us provide you with the best possible service. Let\'s start with some basic information.'
           }
         },
         {
           id: 'lead-capture-1',
           type: 'lead_capture',
-          position: { x: 100, y: 550 },
+          position: { x: 100, y: 250 },
           data: {
             nodeType: 'lead_capture',
             label: 'Business Details',
-            content: 'Great! Let\'s start with your business information:',
+            content: 'First, let\'s get your business information:',
             fields: [
               { name: 'business_name', type: 'text', required: true, label: 'Business Name' },
               { name: 'industry', type: 'text', required: true, label: 'Industry' },
-              { name: 'business_size', type: 'text', required: false, label: 'Company Size' },
+              { name: 'business_size', type: 'text', required: false, label: 'Company Size (employees)' },
               { name: 'location', type: 'text', required: true, label: 'Location (City, State)' }
             ]
           }
@@ -105,11 +65,11 @@ export const chatbotTemplates: ChatbotTemplate[] = [
         {
           id: 'lead-capture-2',
           type: 'lead_capture',
-          position: { x: 100, y: 700 },
+          position: { x: 100, y: 400 },
           data: {
             nodeType: 'lead_capture',
             label: 'Contact Information',
-            content: 'Now, let\'s get your contact details:',
+            content: 'Great! Now let\'s get your contact details:',
             fields: [
               { name: 'contact_name', type: 'text', required: true, label: 'Your Name' },
               { name: 'email', type: 'email', required: true, label: 'Email Address' },
@@ -119,17 +79,54 @@ export const chatbotTemplates: ChatbotTemplate[] = [
           }
         },
         {
+          id: 'question-1',
+          type: 'question',
+          position: { x: 100, y: 550 },
+          data: {
+            nodeType: 'question',
+            label: 'Business Goals',
+            content: 'What\'s your main business goal right now?',
+            options: [
+              'Increase sales and revenue',
+              'Improve customer service',
+              'Reduce operational costs',
+              'Scale the business',
+              'Improve team productivity',
+              'Other'
+            ]
+          }
+        },
+        {
           id: 'lead-capture-3',
           type: 'lead_capture',
-          position: { x: 100, y: 850 },
+          position: { x: 100, y: 700 },
           data: {
             nodeType: 'lead_capture',
-            label: 'Business Hours & Services',
-            content: 'Finally, tell us about your operations:',
+            label: 'Business Operations',
+            content: 'Tell us more about your operations:',
             fields: [
               { name: 'business_hours', type: 'text', required: false, label: 'Business Hours' },
               { name: 'services', type: 'text', required: false, label: 'Main Services/Products' },
-              { name: 'target_audience', type: 'text', required: false, label: 'Target Customers' }
+              { name: 'target_audience', type: 'text', required: false, label: 'Target Customers' },
+              { name: 'current_challenges', type: 'text', required: false, label: 'Current Challenges' }
+            ]
+          }
+        },
+        {
+          id: 'question-2',
+          type: 'question',
+          position: { x: 100, y: 850 },
+          data: {
+            nodeType: 'question',
+            label: 'Budget Range',
+            content: 'What\'s your monthly budget for business solutions?',
+            options: [
+              'Under $500',
+              '$500 - $2,000',
+              '$2,000 - $5,000',
+              '$5,000 - $10,000',
+              'Over $10,000',
+              'Not sure yet'
             ]
           }
         },
@@ -150,19 +147,55 @@ export const chatbotTemplates: ChatbotTemplate[] = [
           }
         },
         {
-          id: 'message-2',
+          id: 'message-1',
           type: 'message',
           position: { x: 100, y: 1150 },
           data: {
             nodeType: 'message',
             label: 'Thank You',
-            content: 'Perfect! Thank you for sharing your business information with us. Our team will review your details and get back to you within 24 hours with personalized recommendations.\n\nIs there anything specific you\'d like to know about our services?'
+            content: 'Perfect! Thank you for sharing your business information with us. Our team will review your details and get back to you within 24 hours with personalized recommendations.\n\nBased on what you\'ve told us, we can definitely help you achieve your goals!'
+          }
+        },
+        {
+          id: 'question-3',
+          type: 'question',
+          position: { x: 100, y: 1300 },
+          data: {
+            nodeType: 'question',
+            label: 'Next Steps',
+            content: 'What would you like to do next?',
+            options: [
+              'Schedule a consultation call',
+              'Receive our information packet',
+              'Get a custom quote',
+              'Just wait for your team to contact me'
+            ]
+          }
+        },
+        {
+          id: 'appointment-1',
+          type: 'appointment',
+          position: { x: 400, y: 1300 },
+          data: {
+            nodeType: 'appointment',
+            label: 'Schedule Consultation',
+            content: 'Excellent! Let\'s schedule a 30-minute consultation to discuss your specific needs and how we can help your business grow.'
+          }
+        },
+        {
+          id: 'message-2',
+          type: 'message',
+          position: { x: 700, y: 1300 },
+          data: {
+            nodeType: 'message',
+            label: 'Information Packet',
+            content: 'Great choice! We\'ll send you our comprehensive information packet within the next hour. It includes case studies, pricing details, and success stories from businesses like yours.'
           }
         },
         {
           id: 'survey-1',
           type: 'survey',
-          position: { x: 100, y: 1300 },
+          position: { x: 100, y: 1450 },
           data: {
             nodeType: 'survey',
             label: 'Quick Feedback',
@@ -186,16 +219,19 @@ export const chatbotTemplates: ChatbotTemplate[] = [
         }
       ],
       edges: [
-        { id: 'e1', source: 'start-1', target: 'question-1' },
-        { id: 'e2', source: 'question-1', target: 'conditional-1' },
-        { id: 'e3', source: 'conditional-1', target: 'message-1', condition: 'explain' },
-        { id: 'e4', source: 'conditional-1', target: 'lead-capture-1', condition: 'continue' },
-        { id: 'e5', source: 'message-1', target: 'lead-capture-1' },
-        { id: 'e6', source: 'lead-capture-1', target: 'lead-capture-2' },
-        { id: 'e7', source: 'lead-capture-2', target: 'lead-capture-3' },
-        { id: 'e8', source: 'lead-capture-3', target: 'api-webhook-1' },
-        { id: 'e9', source: 'api-webhook-1', target: 'message-2' },
-        { id: 'e10', source: 'message-2', target: 'survey-1' }
+        { id: 'e1', source: 'start-1', target: 'lead-capture-1' },
+        { id: 'e2', source: 'lead-capture-1', target: 'lead-capture-2' },
+        { id: 'e3', source: 'lead-capture-2', target: 'question-1' },
+        { id: 'e4', source: 'question-1', target: 'lead-capture-3' },
+        { id: 'e5', source: 'lead-capture-3', target: 'question-2' },
+        { id: 'e6', source: 'question-2', target: 'api-webhook-1' },
+        { id: 'e7', source: 'api-webhook-1', target: 'message-1' },
+        { id: 'e8', source: 'message-1', target: 'question-3' },
+        { id: 'e9', source: 'question-3', target: 'appointment-1', condition: 'consultation' },
+        { id: 'e10', source: 'question-3', target: 'message-2', condition: 'packet' },
+        { id: 'e11', source: 'question-3', target: 'survey-1', condition: 'wait' },
+        { id: 'e12', source: 'appointment-1', target: 'survey-1' },
+        { id: 'e13', source: 'message-2', target: 'survey-1' }
       ]
     }
   },
@@ -225,13 +261,21 @@ export const chatbotTemplates: ChatbotTemplate[] = [
           }
         },
         {
-          id: 'ai-response-1',
-          type: 'ai_response',
+          id: 'question-1',
+          type: 'question',
           position: { x: 100, y: 250 },
           data: {
-            nodeType: 'ai_response',
-            label: 'AI FAQ Search',
-            systemPrompt: 'You are a helpful FAQ assistant. Search through the knowledge base to answer user questions accurately. If you cannot find a specific answer, politely say so and offer to connect them with a human agent. Keep responses concise but helpful.'
+            nodeType: 'question',
+            label: 'FAQ Categories',
+            content: 'What topic would you like to explore?',
+            options: [
+              'Product Information',
+              'Pricing & Billing',
+              'Technical Support',
+              'Account Management',
+              'Shipping & Returns',
+              'Ask a specific question'
+            ]
           }
         },
         {
@@ -240,56 +284,73 @@ export const chatbotTemplates: ChatbotTemplate[] = [
           position: { x: 100, y: 400 },
           data: {
             nodeType: 'conditional',
-            label: 'Check Confidence',
+            label: 'Route by Category',
             conditions: [
               {
-                variable: 'ai_confidence',
-                operator: 'greater_than',
-                value: '0.8',
-                action: 'confident'
+                variable: 'selected_category',
+                operator: 'contains',
+                value: 'Product',
+                action: 'product'
               },
               {
-                variable: 'ai_confidence',
-                operator: 'less_than',
-                value: '0.5',
-                action: 'uncertain'
+                variable: 'selected_category',
+                operator: 'contains',
+                value: 'Pricing',
+                action: 'pricing'
+              },
+              {
+                variable: 'selected_category',
+                operator: 'contains',
+                value: 'Technical',
+                action: 'technical'
+              },
+              {
+                variable: 'selected_category',
+                operator: 'contains',
+                value: 'specific',
+                action: 'ai_search'
               }
             ]
           }
         },
         {
-          id: 'question-1',
-          type: 'question',
-          position: { x: 100, y: 550 },
-          data: {
-            nodeType: 'question',
-            label: 'Was this helpful?',
-            content: 'Did this answer your question?',
-            options: ['Yes, that helped!', 'Partially helpful', 'No, I need more help', 'I have another question']
-          }
-        },
-        {
-          id: 'message-1',
+          id: 'message-product',
           type: 'message',
           position: { x: 400, y: 400 },
           data: {
             nodeType: 'message',
-            label: 'Clarification Needed',
-            content: 'I want to make sure I give you the most accurate information. Could you provide a bit more detail about what you\'re looking for?'
+            label: 'Product Information',
+            content: '📦 **Product Information:**\n\n• **Features:** Our platform includes advanced analytics, automation tools, and 24/7 monitoring\n• **Compatibility:** Works with all major browsers and mobile devices\n• **Updates:** Regular feature updates and security patches\n• **Support:** Comprehensive documentation and video tutorials\n\nWhat specific product feature would you like to know more about?'
           }
         },
         {
-          id: 'human-handoff-1',
-          type: 'human_handoff',
+          id: 'message-pricing',
+          type: 'message',
           position: { x: 700, y: 400 },
           data: {
-            nodeType: 'human_handoff',
-            label: 'Connect to Agent',
-            handoffConfig: {
-              reason: 'Complex question requiring human assistance',
-              priority: 'medium',
-              department: 'support'
-            }
+            nodeType: 'message',
+            label: 'Pricing Information',
+            content: '💰 **Pricing & Billing:**\n\n• **Starter:** $29/month - Perfect for small teams\n• **Professional:** $79/month - For growing businesses\n• **Enterprise:** $199/month - Advanced features\n\n✨ **All plans include:**\n• 30-day free trial\n• No setup fees\n• Cancel anytime\n• 24/7 support\n\nWould you like to start a free trial?'
+          }
+        },
+        {
+          id: 'message-technical',
+          type: 'message',
+          position: { x: 1000, y: 400 },
+          data: {
+            nodeType: 'message',
+            label: 'Technical Support',
+            content: '🔧 **Technical Support:**\n\n**Common Issues:**\n• Login problems → Reset password or clear browser cache\n• Slow performance → Check internet connection\n• Feature not working → Try refreshing the page\n\n**Need more help?**\n• Check our knowledge base\n• Contact technical support\n• Schedule a screen share session\n\nWhat technical issue are you experiencing?'
+          }
+        },
+        {
+          id: 'ai-response-1',
+          type: 'ai_response',
+          position: { x: 100, y: 550 },
+          data: {
+            nodeType: 'ai_response',
+            label: 'AI FAQ Search',
+            systemPrompt: 'You are a helpful FAQ assistant. Search through the knowledge base to answer user questions accurately. If you cannot find a specific answer, politely say so and offer to connect them with a human agent. Keep responses concise but helpful.'
           }
         },
         {
@@ -298,16 +359,9 @@ export const chatbotTemplates: ChatbotTemplate[] = [
           position: { x: 100, y: 700 },
           data: {
             nodeType: 'question',
-            label: 'Browse Categories',
-            content: 'What topic would you like to explore?',
-            options: [
-              'Product Information',
-              'Pricing & Billing',
-              'Technical Support',
-              'Account Management',
-              'Shipping & Returns',
-              'Other'
-            ]
+            label: 'Was this helpful?',
+            content: 'Did this answer your question?',
+            options: ['Yes, that helped!', 'Partially helpful', 'No, I need more help', 'I have another question']
           }
         },
         {
@@ -316,31 +370,52 @@ export const chatbotTemplates: ChatbotTemplate[] = [
           position: { x: 100, y: 850 },
           data: {
             nodeType: 'conditional',
-            label: 'Route by Category',
+            label: 'Follow-up Action',
             conditions: [
               {
-                variable: 'selected_category',
-                operator: 'equals',
-                value: 'Technical Support',
-                action: 'technical'
+                variable: 'helpful_response',
+                operator: 'contains',
+                value: 'Yes',
+                action: 'satisfied'
               },
               {
-                variable: 'selected_category',
-                operator: 'equals',
-                value: 'Other',
-                action: 'handoff'
+                variable: 'helpful_response',
+                operator: 'contains',
+                value: 'another question',
+                action: 'more_questions'
+              },
+              {
+                variable: 'helpful_response',
+                operator: 'contains',
+                value: 'need more help',
+                action: 'human_help'
               }
             ]
           }
         },
         {
-          id: 'message-2',
+          id: 'message-satisfied',
           type: 'message',
           position: { x: 400, y: 850 },
           data: {
             nodeType: 'message',
-            label: 'Technical Support',
-            content: 'For technical issues, I can help with:\n• Login problems\n• Feature questions\n• Basic troubleshooting\n• Account setup\n\nWhat specific technical issue are you experiencing?'
+            label: 'Glad to Help',
+            content: 'Wonderful! I\'m glad I could help you today. If you need anything else in the future, just come back and ask. Have a great day! 😊'
+          }
+        },
+        {
+          id: 'human-handoff-1',
+          type: 'human_handoff',
+          position: { x: 700, y: 850 },
+          data: {
+            nodeType: 'human_handoff',
+            label: 'Connect to Agent',
+            content: 'No problem! Let me connect you with one of our support specialists who can provide more detailed assistance.',
+            handoffConfig: {
+              reason: 'Complex question requiring human assistance',
+              priority: 'medium',
+              department: 'support'
+            }
           }
         },
         {
@@ -370,18 +445,22 @@ export const chatbotTemplates: ChatbotTemplate[] = [
         }
       ],
       edges: [
-        { id: 'e1', source: 'start-1', target: 'ai-response-1' },
-        { id: 'e2', source: 'ai-response-1', target: 'conditional-1' },
-        { id: 'e3', source: 'conditional-1', target: 'question-1', condition: 'confident' },
-        { id: 'e4', source: 'conditional-1', target: 'message-1', condition: 'uncertain' },
-        { id: 'e5', source: 'conditional-1', target: 'human-handoff-1', condition: 'no_answer' },
-        { id: 'e6', source: 'message-1', target: 'ai-response-1' },
-        { id: 'e7', source: 'question-1', target: 'question-2' },
-        { id: 'e8', source: 'question-2', target: 'conditional-2' },
-        { id: 'e9', source: 'conditional-2', target: 'message-2', condition: 'technical' },
-        { id: 'e10', source: 'conditional-2', target: 'human-handoff-1', condition: 'handoff' },
-        { id: 'e11', source: 'message-2', target: 'survey-1' },
-        { id: 'e12', source: 'human-handoff-1', target: 'survey-1' }
+        { id: 'e1', source: 'start-1', target: 'question-1' },
+        { id: 'e2', source: 'question-1', target: 'conditional-1' },
+        { id: 'e3', source: 'conditional-1', target: 'message-product', condition: 'product' },
+        { id: 'e4', source: 'conditional-1', target: 'message-pricing', condition: 'pricing' },
+        { id: 'e5', source: 'conditional-1', target: 'message-technical', condition: 'technical' },
+        { id: 'e6', source: 'conditional-1', target: 'ai-response-1', condition: 'ai_search' },
+        { id: 'e7', source: 'message-product', target: 'question-2' },
+        { id: 'e8', source: 'message-pricing', target: 'question-2' },
+        { id: 'e9', source: 'message-technical', target: 'question-2' },
+        { id: 'e10', source: 'ai-response-1', target: 'question-2' },
+        { id: 'e11', source: 'question-2', target: 'conditional-2' },
+        { id: 'e12', source: 'conditional-2', target: 'message-satisfied', condition: 'satisfied' },
+        { id: 'e13', source: 'conditional-2', target: 'question-1', condition: 'more_questions' },
+        { id: 'e14', source: 'conditional-2', target: 'human-handoff-1', condition: 'human_help' },
+        { id: 'e15', source: 'message-satisfied', target: 'survey-1' },
+        { id: 'e16', source: 'human-handoff-1', target: 'survey-1' }
       ]
     }
   },
@@ -407,7 +486,7 @@ export const chatbotTemplates: ChatbotTemplate[] = [
           data: {
             nodeType: 'start',
             label: 'Welcome',
-            content: 'Welcome! I\'m here to help you discover how our solutions can benefit your business. This will only take a few minutes.'
+            content: 'Welcome! I\'m here to help you discover how our solutions can benefit your business. This will only take a few minutes to understand your needs better.'
           }
         },
         {
@@ -497,6 +576,23 @@ export const chatbotTemplates: ChatbotTemplate[] = [
           position: { x: 100, y: 850 },
           data: {
             nodeType: 'question',
+            label: 'Timeline',
+            content: 'When are you looking to implement a solution?',
+            options: [
+              'Immediately (within 1 month)',
+              'Soon (1-3 months)',
+              'Planning ahead (3-6 months)',
+              'Just researching (6+ months)',
+              'Not sure yet'
+            ]
+          }
+        },
+        {
+          id: 'question-5',
+          type: 'question',
+          position: { x: 100, y: 1000 },
+          data: {
+            nodeType: 'question',
             label: 'Budget Range',
             content: 'What\'s your monthly budget for this type of solution?',
             options: [
@@ -512,7 +608,7 @@ export const chatbotTemplates: ChatbotTemplate[] = [
         {
           id: 'conditional-2',
           type: 'conditional',
-          position: { x: 100, y: 1000 },
+          position: { x: 100, y: 1150 },
           data: {
             nodeType: 'conditional',
             label: 'Lead Scoring',
@@ -522,6 +618,12 @@ export const chatbotTemplates: ChatbotTemplate[] = [
                 operator: 'contains',
                 value: '2,000',
                 action: 'qualified'
+              },
+              {
+                variable: 'timeline',
+                operator: 'contains',
+                value: 'Immediately',
+                action: 'hot_lead'
               },
               {
                 variable: 'budget',
@@ -535,11 +637,11 @@ export const chatbotTemplates: ChatbotTemplate[] = [
         {
           id: 'lead-capture-1',
           type: 'lead_capture',
-          position: { x: 100, y: 1150 },
+          position: { x: 100, y: 1300 },
           data: {
             nodeType: 'lead_capture',
             label: 'Contact Information',
-            content: 'Great! I\'d love to connect you with our team. Please share your contact details:',
+            content: 'Great! Based on your answers, I think we can definitely help you. Let me get your contact details so our team can reach out:',
             fields: [
               { name: 'name', type: 'text', required: true, label: 'Full Name' },
               { name: 'email', type: 'email', required: true, label: 'Business Email' },
@@ -549,19 +651,33 @@ export const chatbotTemplates: ChatbotTemplate[] = [
           }
         },
         {
-          id: 'message-1',
+          id: 'message-nurture',
           type: 'message',
-          position: { x: 400, y: 1000 },
+          position: { x: 400, y: 1150 },
           data: {
             nodeType: 'message',
             label: 'Nurture Message',
-            content: 'Thanks for your interest! While our premium solutions might be outside your current budget, we have some great resources that can help you get started. Would you like me to send you our free guide?'
+            content: 'Thanks for your interest! While our premium solutions might be outside your current budget, we have some great resources that can help you get started. Would you like me to send you our free guide and keep you updated on special offers?'
+          }
+        },
+        {
+          id: 'lead-capture-nurture',
+          type: 'lead_capture',
+          position: { x: 400, y: 1300 },
+          data: {
+            nodeType: 'lead_capture',
+            label: 'Nurture Contact',
+            content: 'Please share your email to receive our free resources:',
+            fields: [
+              { name: 'email', type: 'email', required: true, label: 'Email Address' },
+              { name: 'name', type: 'text', required: false, label: 'First Name (optional)' }
+            ]
           }
         },
         {
           id: 'api-webhook-1',
           type: 'api_webhook',
-          position: { x: 100, y: 1300 },
+          position: { x: 100, y: 1450 },
           data: {
             nodeType: 'api_webhook',
             label: 'Send to CRM',
@@ -575,13 +691,70 @@ export const chatbotTemplates: ChatbotTemplate[] = [
           }
         },
         {
+          id: 'conditional-3',
+          type: 'conditional',
+          position: { x: 100, y: 1600 },
+          data: {
+            nodeType: 'conditional',
+            label: 'Next Action',
+            conditions: [
+              {
+                variable: 'lead_score',
+                operator: 'equals',
+                value: 'hot_lead',
+                action: 'immediate_call'
+              },
+              {
+                variable: 'lead_score',
+                operator: 'equals',
+                value: 'qualified',
+                action: 'schedule_demo'
+              }
+            ]
+          }
+        },
+        {
+          id: 'message-immediate',
+          type: 'message',
+          position: { x: 400, y: 1600 },
+          data: {
+            nodeType: 'message',
+            label: 'Immediate Follow-up',
+            content: 'Perfect! Since you\'re looking to implement a solution immediately, I\'ve marked your inquiry as high priority. Someone from our team will call you within the next 2 hours to discuss your specific needs.'
+          }
+        },
+        {
           id: 'appointment-1',
           type: 'appointment',
-          position: { x: 100, y: 1450 },
+          position: { x: 700, y: 1600 },
           data: {
             nodeType: 'appointment',
             label: 'Schedule Demo',
-            content: 'Perfect! Based on your needs, I think a personalized demo would be valuable. Our sales team can show you exactly how we can help with your specific challenges. Would you like to schedule a 30-minute demo?'
+            content: 'Excellent! Based on your needs, I think a personalized demo would be valuable. Our sales team can show you exactly how we can help with your specific challenges. Would you like to schedule a 30-minute demo?'
+          }
+        },
+        {
+          id: 'survey-1',
+          type: 'survey',
+          position: { x: 100, y: 1750 },
+          data: {
+            nodeType: 'survey',
+            label: 'Lead Quality Feedback',
+            surveyConfig: {
+              title: 'Quick feedback',
+              questions: [
+                {
+                  type: 'rating',
+                  question: 'How relevant were the questions we asked?',
+                  required: true
+                },
+                {
+                  type: 'text',
+                  question: 'What other information would have been helpful to provide?',
+                  required: false
+                }
+              ]
+            }
           }
         }
       ],
@@ -591,11 +764,18 @@ export const chatbotTemplates: ChatbotTemplate[] = [
         { id: 'e3', source: 'conditional-1', target: 'question-2' },
         { id: 'e4', source: 'question-2', target: 'question-3' },
         { id: 'e5', source: 'question-3', target: 'question-4' },
-        { id: 'e6', source: 'question-4', target: 'conditional-2' },
-        { id: 'e7', source: 'conditional-2', target: 'lead-capture-1', condition: 'qualified' },
-        { id: 'e8', source: 'conditional-2', target: 'message-1', condition: 'nurture' },
-        { id: 'e9', source: 'lead-capture-1', target: 'api-webhook-1' },
-        { id: 'e10', source: 'api-webhook-1', target: 'appointment-1' }
+        { id: 'e6', source: 'question-4', target: 'question-5' },
+        { id: 'e7', source: 'question-5', target: 'conditional-2' },
+        { id: 'e8', source: 'conditional-2', target: 'lead-capture-1', condition: 'qualified' },
+        { id: 'e9', source: 'conditional-2', target: 'message-nurture', condition: 'nurture' },
+        { id: 'e10', source: 'message-nurture', target: 'lead-capture-nurture' },
+        { id: 'e11', source: 'lead-capture-1', target: 'api-webhook-1' },
+        { id: 'e12', source: 'lead-capture-nurture', target: 'api-webhook-1' },
+        { id: 'e13', source: 'api-webhook-1', target: 'conditional-3' },
+        { id: 'e14', source: 'conditional-3', target: 'message-immediate', condition: 'immediate_call' },
+        { id: 'e15', source: 'conditional-3', target: 'appointment-1', condition: 'schedule_demo' },
+        { id: 'e16', source: 'message-immediate', target: 'survey-1' },
+        { id: 'e17', source: 'appointment-1', target: 'survey-1' }
       ]
     }
   },
@@ -633,7 +813,7 @@ export const chatbotTemplates: ChatbotTemplate[] = [
             label: 'Service Selection',
             content: 'What type of service are you looking for?',
             options: [
-              'Consultation (30 min)',
+              'Initial Consultation (30 min)',
               'Strategy Session (60 min)',
               'Full Assessment (90 min)',
               'Follow-up Meeting (30 min)',
@@ -665,7 +845,7 @@ export const chatbotTemplates: ChatbotTemplate[] = [
           }
         },
         {
-          id: 'lead-capture-1',
+          id: 'lead-capture-custom',
           type: 'lead_capture',
           position: { x: 400, y: 400 },
           data: {
@@ -728,9 +908,26 @@ export const chatbotTemplates: ChatbotTemplate[] = [
           }
         },
         {
-          id: 'lead-capture-2',
-          type: 'lead_capture',
+          id: 'question-5',
+          type: 'question',
           position: { x: 100, y: 1000 },
+          data: {
+            nodeType: 'question',
+            label: 'Urgency',
+            content: 'How soon do you need this appointment?',
+            options: [
+              'This week',
+              'Next week',
+              'Within 2 weeks',
+              'Within a month',
+              'I\'m flexible'
+            ]
+          }
+        },
+        {
+          id: 'lead-capture-contact',
+          type: 'lead_capture',
+          position: { x: 100, y: 1150 },
           data: {
             nodeType: 'lead_capture',
             label: 'Contact Information',
@@ -744,9 +941,9 @@ export const chatbotTemplates: ChatbotTemplate[] = [
           }
         },
         {
-          id: 'api-webhook-1',
+          id: 'api-webhook-availability',
           type: 'api_webhook',
-          position: { x: 100, y: 1150 },
+          position: { x: 100, y: 1300 },
           data: {
             nodeType: 'api_webhook',
             label: 'Check Availability',
@@ -762,7 +959,7 @@ export const chatbotTemplates: ChatbotTemplate[] = [
         {
           id: 'appointment-1',
           type: 'appointment',
-          position: { x: 100, y: 1300 },
+          position: { x: 100, y: 1450 },
           data: {
             nodeType: 'appointment',
             label: 'Schedule Appointment',
@@ -770,9 +967,9 @@ export const chatbotTemplates: ChatbotTemplate[] = [
           }
         },
         {
-          id: 'api-webhook-2',
+          id: 'api-webhook-confirm',
           type: 'api_webhook',
-          position: { x: 100, y: 1450 },
+          position: { x: 100, y: 1600 },
           data: {
             nodeType: 'api_webhook',
             label: 'Confirm Booking',
@@ -786,19 +983,35 @@ export const chatbotTemplates: ChatbotTemplate[] = [
           }
         },
         {
-          id: 'message-1',
+          id: 'message-confirmation',
           type: 'message',
-          position: { x: 100, y: 1600 },
+          position: { x: 100, y: 1750 },
           data: {
             nodeType: 'message',
             label: 'Confirmation',
-            content: 'Excellent! Your appointment has been confirmed. You\'ll receive a confirmation email shortly with:\n\n• Meeting details and location\n• Calendar invite\n• Preparation materials\n• Contact information\n\nIs there anything else you\'d like to know about your upcoming appointment?'
+            content: 'Excellent! Your appointment has been confirmed. You\'ll receive a confirmation email shortly with:\n\n• Meeting details and location\n• Calendar invite\n• Preparation materials\n• Contact information\n\nWe\'re looking forward to meeting with you!'
+          }
+        },
+        {
+          id: 'question-6',
+          type: 'question',
+          position: { x: 100, y: 1900 },
+          data: {
+            nodeType: 'question',
+            label: 'Additional Services',
+            content: 'Is there anything else I can help you with today?',
+            options: [
+              'Book another appointment',
+              'Get more information about our services',
+              'Speak with someone now',
+              'That\'s all for now'
+            ]
           }
         },
         {
           id: 'survey-1',
           type: 'survey',
-          position: { x: 100, y: 1750 },
+          position: { x: 100, y: 2050 },
           data: {
             nodeType: 'survey',
             label: 'Booking Experience',
@@ -823,17 +1036,19 @@ export const chatbotTemplates: ChatbotTemplate[] = [
       edges: [
         { id: 'e1', source: 'start-1', target: 'question-1' },
         { id: 'e2', source: 'question-1', target: 'conditional-1' },
-        { id: 'e3', source: 'conditional-1', target: 'lead-capture-1', condition: 'custom' },
+        { id: 'e3', source: 'conditional-1', target: 'lead-capture-custom', condition: 'custom' },
         { id: 'e4', source: 'conditional-1', target: 'question-2', condition: 'standard' },
-        { id: 'e5', source: 'lead-capture-1', target: 'question-2' },
+        { id: 'e5', source: 'lead-capture-custom', target: 'question-2' },
         { id: 'e6', source: 'question-2', target: 'question-3' },
         { id: 'e7', source: 'question-3', target: 'question-4' },
-        { id: 'e8', source: 'question-4', target: 'lead-capture-2' },
-        { id: 'e9', source: 'lead-capture-2', target: 'api-webhook-1' },
-        { id: 'e10', source: 'api-webhook-1', target: 'appointment-1' },
-        { id: 'e11', source: 'appointment-1', target: 'api-webhook-2' },
-        { id: 'e12', source: 'api-webhook-2', target: 'message-1' },
-        { id: 'e13', source: 'message-1', target: 'survey-1' }
+        { id: 'e8', source: 'question-4', target: 'question-5' },
+        { id: 'e9', source: 'question-5', target: 'lead-capture-contact' },
+        { id: 'e10', source: 'lead-capture-contact', target: 'api-webhook-availability' },
+        { id: 'e11', source: 'api-webhook-availability', target: 'appointment-1' },
+        { id: 'e12', source: 'appointment-1', target: 'api-webhook-confirm' },
+        { id: 'e13', source: 'api-webhook-confirm', target: 'message-confirmation' },
+        { id: 'e14', source: 'message-confirmation', target: 'question-6' },
+        { id: 'e15', source: 'question-6', target: 'survey-1' }
       ]
     }
   }

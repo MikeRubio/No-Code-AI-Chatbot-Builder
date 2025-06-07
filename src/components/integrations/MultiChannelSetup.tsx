@@ -20,7 +20,7 @@ import { Modal } from '../ui/Modal';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../hooks/useAuth';
 import { FacebookMessengerSetup } from './FacebookMessengerSetup';
-import { WhatsAppBusinessSetup } from './WhatsAppBusinessSetup';
+import { WhatsAppOAuthSetup } from './WhatsAppOAuthSetup';
 import toast from 'react-hot-toast';
 
 interface MultiChannelSetupProps {
@@ -53,7 +53,7 @@ const channelTypes = [
     name: 'WhatsApp Business',
     icon: MessageCircle,
     color: 'from-green-500 to-green-600',
-    description: 'Connect via WhatsApp Business API (No Twilio needed)',
+    description: 'Connect via WhatsApp Business API (Seamless Setup)',
     free: false
   },
   {
@@ -492,8 +492,8 @@ export function MultiChannelSetup({ chatbotId, isOpen, onClose }: MultiChannelSe
           }}
         />
 
-        {/* WhatsApp Business Setup Modal */}
-        <WhatsAppBusinessSetup
+        {/* WhatsApp OAuth Setup Modal */}
+        <WhatsAppOAuthSetup
           chatbotId={chatbotId}
           isOpen={showWhatsAppSetup}
           onClose={() => {

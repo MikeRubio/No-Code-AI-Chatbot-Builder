@@ -1,79 +1,101 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { 
-  Building2, 
-  HelpCircle, 
-  Target, 
-  Calendar, 
-  Star, 
-  Clock, 
-  Users, 
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import {
+  Building2,
+  HelpCircle,
+  Target,
+  Calendar,
+  Star,
+  Clock,
+  Users,
   ArrowRight,
   Check,
   Filter,
-  Search
-} from 'lucide-react';
-import { Card } from '../ui/Card';
-import { Button } from '../ui/Button';
-import { Modal } from '../ui/Modal';
-import { chatbotTemplates, ChatbotTemplate } from '../../data/chatbotTemplates';
+  Search,
+} from "lucide-react";
+import { Card } from "../ui/Card";
+import { Button } from "../ui/Button";
+import { Modal } from "../ui/Modal";
+import { chatbotTemplates, ChatbotTemplate } from "../../data/chatbotTemplates";
 
 interface TemplateSelectorProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectTemplate: (template: ChatbotTemplate) => void;
+  setSkippedTemplate: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const iconMap = {
   Building2,
   HelpCircle,
   Target,
-  Calendar
-};
-
-const categoryColors = {
-  business: 'from-blue-500 to-blue-600',
-  support: 'from-green-500 to-green-600',
-  sales: 'from-purple-500 to-purple-600',
-  general: 'from-gray-500 to-gray-600'
+  Calendar,
 };
 
 const difficultyColors = {
-  beginner: 'text-green-600 bg-green-100',
-  intermediate: 'text-yellow-600 bg-yellow-100',
-  advanced: 'text-red-600 bg-red-100'
+  beginner: "text-green-600 bg-green-100",
+  intermediate: "text-yellow-600 bg-yellow-100",
+  advanced: "text-red-600 bg-red-100",
 };
 
-export function TemplateSelector({ isOpen, onClose, onSelectTemplate }: TemplateSelectorProps) {
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedTemplate, setSelectedTemplate] = useState<ChatbotTemplate | null>(null);
+export function TemplateSelector({
+  isOpen,
+  onClose,
+  onSelectTemplate,
+  setSkippedTemplate,
+}: TemplateSelectorProps) {
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>("all");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<ChatbotTemplate | null>(null);
   const [showPreview, setShowPreview] = useState(false);
 
   const categories = [
-    { id: 'all', name: 'All Templates', count: chatbotTemplates.length },
-    { id: 'business', name: 'Business', count: chatbotTemplates.filter(t => t.category === 'business').length },
-    { id: 'support', name: 'Support', count: chatbotTemplates.filter(t => t.category === 'support').length },
-    { id: 'sales', name: 'Sales', count: chatbotTemplates.filter(t => t.category === 'sales').length },
-    { id: 'general', name: 'General', count: chatbotTemplates.filter(t => t.category === 'general').length }
+    { id: "all", name: "All Templates", count: chatbotTemplates.length },
+    {
+      id: "business",
+      name: "Business",
+      count: chatbotTemplates.filter((t) => t.category === "business").length,
+    },
+    {
+      id: "support",
+      name: "Support",
+      count: chatbotTemplates.filter((t) => t.category === "support").length,
+    },
+    {
+      id: "sales",
+      name: "Sales",
+      count: chatbotTemplates.filter((t) => t.category === "sales").length,
+    },
+    {
+      id: "general",
+      name: "General",
+      count: chatbotTemplates.filter((t) => t.category === "general").length,
+    },
   ];
 
   const difficulties = [
-    { id: 'all', name: 'All Levels' },
-    { id: 'beginner', name: 'Beginner' },
-    { id: 'intermediate', name: 'Intermediate' },
-    { id: 'advanced', name: 'Advanced' }
+    { id: "all", name: "All Levels" },
+    { id: "beginner", name: "Beginner" },
+    { id: "intermediate", name: "Intermediate" },
+    { id: "advanced", name: "Advanced" },
   ];
 
-  const filteredTemplates = chatbotTemplates.filter(template => {
-    const matchesCategory = selectedCategory === 'all' || template.category === selectedCategory;
-    const matchesDifficulty = selectedDifficulty === 'all' || template.difficulty === selectedDifficulty;
-    const matchesSearch = searchTerm === '' || 
+  const filteredTemplates = chatbotTemplates.filter((template) => {
+    const matchesCategory =
+      selectedCategory === "all" || template.category === selectedCategory;
+    const matchesDifficulty =
+      selectedDifficulty === "all" ||
+      template.difficulty === selectedDifficulty;
+    const matchesSearch =
+      searchTerm === "" ||
       template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       template.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      template.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    
+      template.tags.some((tag) =>
+        tag.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+
     return matchesCategory && matchesDifficulty && matchesSearch;
   });
 
@@ -102,7 +124,8 @@ export function TemplateSelector({ isOpen, onClose, onSelectTemplate }: Template
               Start with a Professional Template
             </h3>
             <p className="text-gray-600">
-              Choose from our collection of proven chatbot templates designed for different use cases
+              Choose from our collection of proven chatbot templates designed
+              for different use cases
             </p>
           </div>
 
@@ -130,7 +153,7 @@ export function TemplateSelector({ isOpen, onClose, onSelectTemplate }: Template
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  {categories.map(category => (
+                  {categories.map((category) => (
                     <option key={category.id} value={category.id}>
                       {category.name} ({category.count})
                     </option>
@@ -146,7 +169,7 @@ export function TemplateSelector({ isOpen, onClose, onSelectTemplate }: Template
                   onChange={(e) => setSelectedDifficulty(e.target.value)}
                   className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
-                  {difficulties.map(difficulty => (
+                  {difficulties.map((difficulty) => (
                     <option key={difficulty.id} value={difficulty.id}>
                       {difficulty.name}
                     </option>
@@ -159,8 +182,9 @@ export function TemplateSelector({ isOpen, onClose, onSelectTemplate }: Template
           {/* Templates Grid */}
           <div className="grid md:grid-cols-2 gap-6 max-h-96 overflow-y-auto">
             {filteredTemplates.map((template, index) => {
-              const IconComponent = iconMap[template.icon as keyof typeof iconMap] || Building2;
-              
+              const IconComponent =
+                iconMap[template.icon as keyof typeof iconMap] || Building2;
+
               return (
                 <motion.div
                   key={template.id}
@@ -170,14 +194,20 @@ export function TemplateSelector({ isOpen, onClose, onSelectTemplate }: Template
                 >
                   <Card hover className="p-6 h-full">
                     <div className="flex items-start justify-between mb-4">
-                      <div className={`w-12 h-12 bg-gradient-to-r ${template.color} rounded-xl flex items-center justify-center`}>
+                      <div
+                        className={`w-12 h-12 bg-gradient-to-r ${template.color} rounded-xl flex items-center justify-center`}
+                      >
                         <IconComponent className="w-6 h-6 text-white" />
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span className={`text-xs px-2 py-1 rounded-full ${difficultyColors[template.difficulty]}`}>
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full ${
+                            difficultyColors[template.difficulty]
+                          }`}
+                        >
                           {template.difficulty}
                         </span>
-                        {template.difficulty === 'beginner' && (
+                        {template.difficulty === "beginner" && (
                           <Star className="w-4 h-4 text-yellow-500" />
                         )}
                       </div>
@@ -186,14 +216,14 @@ export function TemplateSelector({ isOpen, onClose, onSelectTemplate }: Template
                     <h4 className="text-lg font-semibold text-gray-900 mb-2">
                       {template.name}
                     </h4>
-                    
+
                     <p className="text-gray-600 text-sm mb-4 line-clamp-3">
                       {template.description}
                     </p>
 
                     {/* Tags */}
                     <div className="flex flex-wrap gap-1 mb-4">
-                      {template.tags.slice(0, 3).map(tag => (
+                      {template.tags.slice(0, 3).map((tag) => (
                         <span
                           key={tag}
                           className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded"
@@ -251,16 +281,18 @@ export function TemplateSelector({ isOpen, onClose, onSelectTemplate }: Template
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Search className="w-8 h-8 text-gray-400" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No templates found</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                No templates found
+              </h3>
               <p className="text-gray-600">
                 Try adjusting your search criteria or browse all templates
               </p>
               <Button
                 variant="outline"
                 onClick={() => {
-                  setSearchTerm('');
-                  setSelectedCategory('all');
-                  setSelectedDifficulty('all');
+                  setSearchTerm("");
+                  setSelectedCategory("all");
+                  setSelectedDifficulty("all");
                 }}
                 className="mt-4"
               >
@@ -275,7 +307,13 @@ export function TemplateSelector({ isOpen, onClose, onSelectTemplate }: Template
               <p className="text-sm text-gray-600">
                 All templates are fully customizable after selection
               </p>
-              <Button variant="outline" onClick={onClose}>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSkippedTemplate(true);
+                  onClose();
+                }}
+              >
                 Start from Scratch
               </Button>
             </div>
@@ -301,32 +339,40 @@ interface TemplatePreviewModalProps {
   onSelect: () => void;
 }
 
-function TemplatePreviewModal({ template, onClose, onSelect }: TemplatePreviewModalProps) {
-  const IconComponent = iconMap[template.icon as keyof typeof iconMap] || Building2;
+function TemplatePreviewModal({
+  template,
+  onClose,
+  onSelect,
+}: TemplatePreviewModalProps) {
+  const IconComponent =
+    iconMap[template.icon as keyof typeof iconMap] || Building2;
 
   return (
-    <Modal
-      isOpen={true}
-      onClose={onClose}
-      title="Template Preview"
-      size="xl"
-    >
+    <Modal isOpen={true} onClose={onClose} title="Template Preview" size="xl">
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-start space-x-4">
-          <div className={`w-16 h-16 bg-gradient-to-r ${template.color} rounded-xl flex items-center justify-center flex-shrink-0`}>
+          <div
+            className={`w-16 h-16 bg-gradient-to-r ${template.color} rounded-xl flex items-center justify-center flex-shrink-0`}
+          >
             <IconComponent className="w-8 h-8 text-white" />
           </div>
           <div className="flex-1">
             <div className="flex items-center space-x-2 mb-2">
-              <h3 className="text-xl font-semibold text-gray-900">{template.name}</h3>
-              <span className={`text-xs px-2 py-1 rounded-full ${difficultyColors[template.difficulty]}`}>
+              <h3 className="text-xl font-semibold text-gray-900">
+                {template.name}
+              </h3>
+              <span
+                className={`text-xs px-2 py-1 rounded-full ${
+                  difficultyColors[template.difficulty]
+                }`}
+              >
                 {template.difficulty}
               </span>
             </div>
             <p className="text-gray-600 mb-3">{template.description}</p>
             <div className="flex flex-wrap gap-1">
-              {template.tags.map(tag => (
+              {template.tags.map((tag) => (
                 <span
                   key={tag}
                   className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded"
@@ -343,24 +389,38 @@ function TemplatePreviewModal({ template, onClose, onSelect }: TemplatePreviewMo
           <h4 className="font-medium text-gray-900 mb-3">Flow Overview</h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{template.flow.nodes.length}</div>
+              <div className="text-2xl font-bold text-blue-600">
+                {template.flow.nodes.length}
+              </div>
               <div className="text-sm text-gray-600">Total Nodes</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600">
-                {template.flow.nodes.filter(n => n.data.nodeType === 'lead_capture').length}
+                {
+                  template.flow.nodes.filter(
+                    (n) => n.data.nodeType === "lead_capture"
+                  ).length
+                }
               </div>
               <div className="text-sm text-gray-600">Lead Capture</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-600">
-                {template.flow.nodes.filter(n => n.data.nodeType === 'conditional').length}
+                {
+                  template.flow.nodes.filter(
+                    (n) => n.data.nodeType === "conditional"
+                  ).length
+                }
               </div>
               <div className="text-sm text-gray-600">Conditions</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-orange-600">
-                {template.flow.nodes.filter(n => n.data.nodeType === 'api_webhook').length}
+                {
+                  template.flow.nodes.filter(
+                    (n) => n.data.nodeType === "api_webhook"
+                  ).length
+                }
               </div>
               <div className="text-sm text-gray-600">Integrations</div>
             </div>
@@ -371,11 +431,16 @@ function TemplatePreviewModal({ template, onClose, onSelect }: TemplatePreviewMo
         <div>
           <h4 className="font-medium text-gray-900 mb-3">Included Features</h4>
           <div className="grid grid-cols-2 gap-3">
-            {Array.from(new Set(template.flow.nodes.map(n => n.data.nodeType))).map(nodeType => (
-              <div key={nodeType} className="flex items-center space-x-2 text-sm">
+            {Array.from(
+              new Set(template.flow.nodes.map((n) => n.data.nodeType))
+            ).map((nodeType) => (
+              <div
+                key={nodeType}
+                className="flex items-center space-x-2 text-sm"
+              >
                 <Check className="w-4 h-4 text-green-500" />
                 <span className="text-gray-700 capitalize">
-                  {nodeType.replace('_', ' ')} Node
+                  {nodeType.replace("_", " ")} Node
                 </span>
               </div>
             ))}
@@ -384,7 +449,9 @@ function TemplatePreviewModal({ template, onClose, onSelect }: TemplatePreviewMo
 
         {/* Sample Flow */}
         <div>
-          <h4 className="font-medium text-gray-900 mb-3">Sample Conversation Flow</h4>
+          <h4 className="font-medium text-gray-900 mb-3">
+            Sample Conversation Flow
+          </h4>
           <div className="bg-gray-50 rounded-lg p-4 space-y-3 max-h-48 overflow-y-auto">
             {template.flow.nodes.slice(0, 5).map((node, index) => (
               <div key={node.id} className="flex items-start space-x-3">
@@ -392,10 +459,12 @@ function TemplatePreviewModal({ template, onClose, onSelect }: TemplatePreviewMo
                   {index + 1}
                 </div>
                 <div>
-                  <div className="font-medium text-sm text-gray-900">{node.data.label}</div>
+                  <div className="font-medium text-sm text-gray-900">
+                    {node.data.label}
+                  </div>
                   <div className="text-xs text-gray-600 mt-1">
                     {node.data.content?.substring(0, 100)}
-                    {node.data.content?.length > 100 && '...'}
+                    {node.data.content?.length > 100 && "..."}
                   </div>
                 </div>
               </div>

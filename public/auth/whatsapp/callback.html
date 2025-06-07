@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WhatsApp Integration</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 400px;
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #25D366;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .success {
+            color: #25D366;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        .error {
+            color: #dc3545;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="spinner"></div>
+        <h2>Connecting WhatsApp Business...</h2>
+        <p>Please wait while we set up your integration.</p>
+    </div>
+
+    <script>
+        // Parse URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        const state = urlParams.get('state');
+        const error = urlParams.get('error');
+        const errorDescription = urlParams.get('error_description');
+
+        if (error) {
+            // Handle OAuth error
+            document.querySelector('.container').innerHTML = `
+                <div class="error">
+                    <h2>Connection Failed</h2>
+                    <p>${errorDescription || error}</p>
+                    <button onclick="window.close()">Close</button>
+                </div>
+            `;
+            
+            // Send error to parent window
+            if (window.opener) {
+                window.opener.postMessage({
+                    type: 'WHATSAPP_OAUTH_ERROR',
+                    error: errorDescription || error
+                }, window.location.origin);
+            }
+        } else if (code && state) {
+            // Handle successful OAuth
+            document.querySelector('.container').innerHTML = `
+                <div class="success">
+                    <h2>✓ Connected Successfully!</h2>
+                    <p>Setting up your WhatsApp Business integration...</p>
+                </div>
+            `;
+
+            // Send success to parent window
+            if (window.opener) {
+                window.opener.postMessage({
+                    type: 'WHATSAPP_OAUTH_SUCCESS',
+                    payload: { code, state }
+                }, window.location.origin);
+            }
+
+            // Close window after a short delay
+            setTimeout(() => {
+                window.close();
+            }, 2000);
+        } else {
+            // Handle unexpected state
+            document.querySelector('.container').innerHTML = `
+                <div class="error">
+                    <h2>Invalid Response</h2>
+                    <p>The authentication response was invalid.</p>
+                    <button onclick="window.close()">Close</button>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

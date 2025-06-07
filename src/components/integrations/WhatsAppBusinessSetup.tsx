@@ -1,24 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { 
-  MessageCircle, 
-  Phone, 
-  Key, 
-  Globe, 
-  CheckCircle, 
-  ExternalLink, 
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import {
+  MessageCircle,
+  Phone,
+  Key,
+  Globe,
+  CheckCircle,
+  ExternalLink,
   Copy,
   AlertCircle,
   QrCode,
   Smartphone,
   Building2,
-  Shield
-} from 'lucide-react';
-import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
-import { Modal } from '../ui/Modal';
-import { supabase } from '../../lib/supabase';
-import toast from 'react-hot-toast';
+  Shield,
+} from "lucide-react";
+import { Button } from "../ui/Button";
+import { Card } from "../ui/Card";
+import { Modal } from "../ui/Modal";
+import { supabase } from "../../lib/supabase";
+import toast from "react-hot-toast";
 
 interface WhatsAppBusinessSetupProps {
   chatbotId: string;
@@ -35,97 +35,104 @@ interface WhatsAppConfig {
   phoneNumber: string;
   displayName: string;
   isConnected: boolean;
-  setupMethod: 'cloud_api' | 'on_premise' | 'partner';
+  setupMethod: "cloud_api" | "on_premise" | "partner";
 }
 
-export function WhatsAppBusinessSetup({ chatbotId, isOpen, onClose }: WhatsAppBusinessSetupProps) {
+export function WhatsAppBusinessSetup({
+  chatbotId,
+  isOpen,
+  onClose,
+}: WhatsAppBusinessSetupProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [config, setConfig] = useState<WhatsAppConfig>({
-    businessAccountId: '',
-    phoneNumberId: '',
-    accessToken: '',
+    businessAccountId: "",
+    phoneNumberId: "",
+    accessToken: "",
     webhookVerifyToken: generateVerifyToken(),
-    webhookUrl: '',
-    phoneNumber: '',
-    displayName: '',
+    webhookUrl: "",
+    phoneNumber: "",
+    displayName: "",
     isConnected: false,
-    setupMethod: 'cloud_api'
+    setupMethod: "cloud_api",
   });
   const [isConnecting, setIsConnecting] = useState(false);
   const [isTestingWebhook, setIsTestingWebhook] = useState(false);
-  const [webhookStatus, setWebhookStatus] = useState<'pending' | 'verified' | 'failed'>('pending');
+  const [webhookStatus, setWebhookStatus] = useState<
+    "pending" | "verified" | "failed"
+  >("pending");
 
   const steps = [
     {
       id: 1,
-      title: 'Choose Setup Method',
-      description: 'Select how you want to integrate WhatsApp'
+      title: "Choose Setup Method",
+      description: "Select how you want to integrate WhatsApp",
     },
     {
       id: 2,
-      title: 'Business Account Setup',
-      description: 'Configure your WhatsApp Business Account'
+      title: "Business Account Setup",
+      description: "Configure your WhatsApp Business Account",
     },
     {
       id: 3,
-      title: 'Phone Number Setup',
-      description: 'Add and verify your business phone number'
+      title: "Phone Number Setup",
+      description: "Add and verify your business phone number",
     },
     {
       id: 4,
-      title: 'Webhook Configuration',
-      description: 'Set up real-time message handling'
+      title: "Webhook Configuration",
+      description: "Set up real-time message handling",
     },
     {
       id: 5,
-      title: 'Test & Activate',
-      description: 'Test the integration and go live'
-    }
+      title: "Test & Activate",
+      description: "Test the integration and go live",
+    },
   ];
 
   const setupMethods = [
     {
-      id: 'cloud_api',
-      name: 'WhatsApp Cloud API',
-      description: 'Free, hosted by Meta (Facebook). Best for most businesses.',
+      id: "cloud_api",
+      name: "WhatsApp Cloud API",
+      description: "Free, hosted by Meta (Facebook). Best for most businesses.",
       icon: Globe,
       features: [
-        'Free to use (pay only for messages)',
-        'Hosted by Meta',
-        'Easy setup',
-        'Automatic scaling',
-        'Built-in reliability'
+        "Free to use (pay only for messages)",
+        "Hosted by Meta",
+        "Easy setup",
+        "Automatic scaling",
+        "Built-in reliability",
       ],
-      recommended: true
+      recommended: true,
     },
     {
-      id: 'on_premise',
-      name: 'On-Premises API',
-      description: 'Self-hosted solution for enterprise customers.',
+      id: "on_premise",
+      name: "On-Premises API",
+      description: "Self-hosted solution for enterprise customers.",
       icon: Building2,
       features: [
-        'Full control over infrastructure',
-        'Custom security policies',
-        'Higher message volume limits',
-        'Requires technical setup',
-        'Enterprise pricing'
+        "Full control over infrastructure",
+        "Custom security policies",
+        "Higher message volume limits",
+        "Requires technical setup",
+        "Enterprise pricing",
       ],
-      recommended: false
+      recommended: false,
     },
     {
-      id: 'partner',
-      name: 'Business Solution Provider',
-      description: 'Use a WhatsApp BSP partner like 360Dialog, MessageBird, etc.',
+      id: "partner",
+      name: "Business Solution Provider",
+      description:
+        "Use a WhatsApp BSP partner like 360Dialog, MessageBird, etc.",
       icon: Shield,
       features: [
-        'Managed service',
-        'Additional features',
-        'Support included',
-        'Third-party pricing',
-        'Quick setup'
+        "Managed service",
+        "Additional features",
+        "Support included",
+        "Third-party pricing",
+        "Quick setup",
       ],
-      recommended: false
-    }
+      recommended: false,
+    },
   ];
 
   useEffect(() => {
@@ -138,36 +145,38 @@ export function WhatsAppBusinessSetup({ chatbotId, isOpen, onClose }: WhatsAppBu
   const loadExistingConfig = async () => {
     try {
       const { data, error } = await supabase
-        .from('deployment_channels')
-        .select('*')
-        .eq('chatbot_id', chatbotId)
-        .eq('channel_type', 'whatsapp')
+        .from("deployment_channels")
+        .select("*")
+        .eq("chatbot_id", chatbotId)
+        .eq("channel_type", "whatsapp")
         .single();
 
       if (data && !error) {
-        setConfig(prev => ({
+        setConfig((prev) => ({
           ...prev,
           ...data.channel_config,
-          isConnected: data.is_active
+          isConnected: data.is_active,
         }));
-        
+
         if (data.is_active) {
           setCurrentStep(5);
-          setWebhookStatus('verified');
+          setWebhookStatus("verified");
         }
       }
     } catch (error) {
-      console.log('No existing WhatsApp configuration found');
+      console.log("No existing WhatsApp configuration found");
     }
   };
 
   const generateWebhookUrl = () => {
-    const webhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/whatsapp-webhook?chatbot=${chatbotId}`;
-    setConfig(prev => ({ ...prev, webhookUrl }));
+    const webhookUrl = `${
+      import.meta.env.VITE_SUPABASE_URL
+    }/functions/v1/whatsapp-webhook?chatbot=${chatbotId}`;
+    setConfig((prev) => ({ ...prev, webhookUrl }));
   };
 
   const handleInputChange = (field: keyof WhatsAppConfig, value: string) => {
-    setConfig(prev => ({ ...prev, [field]: value }));
+    setConfig((prev) => ({ ...prev, [field]: value }));
   };
 
   const validateStep = (step: number): boolean => {
@@ -179,7 +188,7 @@ export function WhatsAppBusinessSetup({ chatbotId, isOpen, onClose }: WhatsAppBu
       case 3:
         return !!(config.phoneNumberId && config.phoneNumber);
       case 4:
-        return webhookStatus === 'verified';
+        return webhookStatus === "verified";
       default:
         return true;
     }
@@ -201,30 +210,35 @@ export function WhatsAppBusinessSetup({ chatbotId, isOpen, onClose }: WhatsAppBu
     setIsTestingWebhook(true);
     try {
       await saveConfiguration();
-      
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/test-whatsapp-webhook`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          chatbotId,
-          verifyToken: config.webhookVerifyToken,
-          accessToken: config.accessToken,
-          phoneNumberId: config.phoneNumberId
-        }),
-      });
+
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_SUPABASE_URL
+        }/functions/v1/test-whatsapp-webhook`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            chatbotId,
+            verifyToken: config.webhookVerifyToken,
+            accessToken: config.accessToken,
+            phoneNumberId: config.phoneNumberId,
+          }),
+        }
+      );
 
       if (response.ok) {
-        setWebhookStatus('verified');
-        toast.success('Webhook verified successfully!');
+        setWebhookStatus("verified");
+        toast.success("Webhook verified successfully!");
       } else {
-        throw new Error('Webhook verification failed');
+        throw new Error("Webhook verification failed");
       }
     } catch (error: any) {
-      setWebhookStatus('failed');
-      toast.error('Webhook verification failed: ' + error.message);
+      setWebhookStatus("failed");
+      toast.error("Webhook verification failed: " + error.message);
     } finally {
       setIsTestingWebhook(false);
     }
@@ -240,44 +254,42 @@ export function WhatsAppBusinessSetup({ chatbotId, isOpen, onClose }: WhatsAppBu
         webhookVerifyToken: config.webhookVerifyToken,
         webhookUrl: config.webhookUrl,
         phoneNumber: config.phoneNumber,
-        displayName: config.displayName
+        displayName: config.displayName,
       };
 
       const { data: existingChannel } = await supabase
-        .from('deployment_channels')
-        .select('id')
-        .eq('chatbot_id', chatbotId)
-        .eq('channel_type', 'whatsapp')
+        .from("deployment_channels")
+        .select("id")
+        .eq("chatbot_id", chatbotId)
+        .eq("channel_type", "whatsapp")
         .single();
 
       if (existingChannel) {
         const { error } = await supabase
-          .from('deployment_channels')
+          .from("deployment_channels")
           .update({
             channel_config: channelConfig,
-            sync_status: 'synced',
-            is_active: true
+            sync_status: "synced",
+            is_active: true,
           })
-          .eq('id', existingChannel.id);
+          .eq("id", existingChannel.id);
 
         if (error) throw error;
       } else {
-        const { error } = await supabase
-          .from('deployment_channels')
-          .insert({
-            chatbot_id: chatbotId,
-            channel_type: 'whatsapp',
-            channel_config: channelConfig,
-            sync_status: 'synced',
-            is_active: true
-          });
+        const { error } = await supabase.from("deployment_channels").insert({
+          chatbot_id: chatbotId,
+          channel_type: "whatsapp",
+          channel_config: channelConfig,
+          sync_status: "synced",
+          is_active: true,
+        });
 
         if (error) throw error;
       }
 
-      toast.success('WhatsApp configuration saved!');
+      toast.success("WhatsApp configuration saved!");
     } catch (error: any) {
-      toast.error('Failed to save configuration: ' + error.message);
+      toast.error("Failed to save configuration: " + error.message);
       throw error;
     }
   };
@@ -286,11 +298,11 @@ export function WhatsAppBusinessSetup({ chatbotId, isOpen, onClose }: WhatsAppBu
     setIsConnecting(true);
     try {
       await saveConfiguration();
-      setConfig(prev => ({ ...prev, isConnected: true }));
-      toast.success('WhatsApp Business integration activated!');
+      setConfig((prev) => ({ ...prev, isConnected: true }));
+      toast.success("WhatsApp Business integration activated!");
       onClose();
     } catch (error: any) {
-      toast.error('Failed to connect WhatsApp: ' + error.message);
+      toast.error("Failed to connect WhatsApp: " + error.message);
     } finally {
       setIsConnecting(false);
     }
@@ -313,11 +325,13 @@ export function WhatsAppBusinessSetup({ chatbotId, isOpen, onClose }: WhatsAppBu
         <div className="flex items-center justify-between">
           {steps.map((step, index) => (
             <div key={step.id} className="flex items-center">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                currentStep >= step.id 
-                  ? 'bg-green-600 text-white' 
-                  : 'bg-gray-200 text-gray-600'
-              }`}>
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                  currentStep >= step.id
+                    ? "bg-green-600 text-white"
+                    : "bg-gray-200 text-gray-600"
+                }`}
+              >
                 {currentStep > step.id ? (
                   <CheckCircle className="w-4 h-4" />
                 ) : (
@@ -325,9 +339,11 @@ export function WhatsAppBusinessSetup({ chatbotId, isOpen, onClose }: WhatsAppBu
                 )}
               </div>
               {index < steps.length - 1 && (
-                <div className={`w-12 h-1 mx-2 ${
-                  currentStep > step.id ? 'bg-green-600' : 'bg-gray-200'
-                }`} />
+                <div
+                  className={`w-12 h-1 mx-2 ${
+                    currentStep > step.id ? "bg-green-600" : "bg-gray-200"
+                  }`}
+                />
               )}
             </div>
           ))}
@@ -357,43 +373,54 @@ export function WhatsAppBusinessSetup({ chatbotId, isOpen, onClose }: WhatsAppBu
                       key={method.id}
                       className={`relative p-4 border-2 rounded-lg cursor-pointer transition-all ${
                         config.setupMethod === method.id
-                          ? 'border-green-500 bg-green-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? "border-green-500 bg-green-50"
+                          : "border-gray-200 hover:border-gray-300"
                       }`}
-                      onClick={() => handleInputChange('setupMethod', method.id)}
+                      onClick={() =>
+                        handleInputChange("setupMethod", method.id)
+                      }
                     >
                       {method.recommended && (
-                        <div className="absolute -top-2 left-4">
+                        <div className="absolute bottom-2 right-4">
                           <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
                             Recommended
                           </span>
                         </div>
                       )}
-                      
+
                       <div className="flex items-start space-x-4">
                         <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center">
                           <Icon className="w-6 h-6 text-white" />
                         </div>
-                        
+
                         <div className="flex-1">
-                          <h4 className="font-semibold text-gray-900 mb-1">{method.name}</h4>
-                          <p className="text-gray-600 text-sm mb-3">{method.description}</p>
-                          
+                          <h4 className="font-semibold text-gray-900 mb-1">
+                            {method.name}
+                          </h4>
+                          <p className="text-gray-600 text-sm mb-3">
+                            {method.description}
+                          </p>
+
                           <ul className="space-y-1">
                             {method.features.map((feature, index) => (
-                              <li key={index} className="text-sm text-gray-600 flex items-center">
+                              <li
+                                key={index}
+                                className="text-sm text-gray-600 flex items-center"
+                              >
                                 <CheckCircle className="w-3 h-3 text-green-500 mr-2 flex-shrink-0" />
                                 {feature}
                               </li>
                             ))}
                           </ul>
                         </div>
-                        
-                        <div className={`w-4 h-4 rounded-full border-2 ${
-                          config.setupMethod === method.id
-                            ? 'border-green-500 bg-green-500'
-                            : 'border-gray-300'
-                        }`}>
+
+                        <div
+                          className={`w-4 h-4 rounded-full border-2 ${
+                            config.setupMethod === method.id
+                              ? "border-green-500 bg-green-500"
+                              : "border-gray-300"
+                          }`}
+                        >
                           {config.setupMethod === method.id && (
                             <div className="w-2 h-2 bg-white rounded-full m-0.5" />
                           )}
@@ -409,18 +436,34 @@ export function WhatsAppBusinessSetup({ chatbotId, isOpen, onClose }: WhatsAppBu
           {currentStep === 2 && (
             <div className="space-y-4">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                {config.setupMethod === 'cloud_api' ? 'WhatsApp Cloud API Setup' : 'Business Account Setup'}
+                {config.setupMethod === "cloud_api"
+                  ? "WhatsApp Cloud API Setup"
+                  : "Business Account Setup"}
               </h3>
 
-              {config.setupMethod === 'cloud_api' && (
+              {config.setupMethod === "cloud_api" && (
                 <div className="bg-blue-50 rounded-lg p-4">
-                  <h4 className="font-medium text-blue-900 mb-2">Cloud API Setup Steps:</h4>
+                  <h4 className="font-medium text-blue-900 mb-2">
+                    Cloud API Setup Steps:
+                  </h4>
                   <ol className="list-decimal list-inside space-y-1 text-sm text-blue-800">
-                    <li>Go to <a href="https://developers.facebook.com/" target="_blank" rel="noopener noreferrer" className="underline">Facebook Developers</a></li>
+                    <li>
+                      Go to
+                      <a
+                        href="https://developers.facebook.com/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline"
+                      >
+                        Facebook Developers
+                      </a>
+                    </li>
                     <li>Create a new app or use an existing one</li>
                     <li>Add the "WhatsApp" product to your app</li>
                     <li>Go to WhatsApp → Getting Started</li>
-                    <li>Copy your temporary access token and phone number ID</li>
+                    <li>
+                      Copy your temporary access token and phone number ID
+                    </li>
                     <li>Note your WhatsApp Business Account ID</li>
                   </ol>
                 </div>
@@ -434,12 +477,14 @@ export function WhatsAppBusinessSetup({ chatbotId, isOpen, onClose }: WhatsAppBu
                   <input
                     type="text"
                     value={config.businessAccountId}
-                    onChange={(e) => handleInputChange('businessAccountId', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("businessAccountId", e.target.value)
+                    }
                     placeholder="Your WhatsApp Business Account ID"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Access Token
@@ -447,32 +492,41 @@ export function WhatsAppBusinessSetup({ chatbotId, isOpen, onClose }: WhatsAppBu
                   <input
                     type="password"
                     value={config.accessToken}
-                    onChange={(e) => handleInputChange('accessToken', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("accessToken", e.target.value)
+                    }
                     placeholder="Your WhatsApp API Access Token"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    {config.setupMethod === 'cloud_api' 
-                      ? 'Use the temporary token for testing, then generate a permanent token'
-                      : 'Your permanent access token from your BSP or on-premises setup'
-                    }
+                    {config.setupMethod === "cloud_api"
+                      ? "Use the temporary token for testing, then generate a permanent token"
+                      : "Your permanent access token from your BSP or on-premises setup"}
                   </p>
                 </div>
               </div>
 
               <div className="bg-yellow-50 rounded-lg p-4">
-                <h4 className="font-medium text-yellow-900 mb-2">Important Notes:</h4>
+                <h4 className="font-medium text-yellow-900 mb-2">
+                  Important Notes:
+                </h4>
                 <ul className="text-sm text-yellow-800 space-y-1">
                   <li>• The temporary token expires in 24 hours</li>
-                  <li>• You'll need to generate a permanent token for production</li>
-                  <li>• Keep your access token secure and never share it publicly</li>
+                  <li>
+                    • You'll need to generate a permanent token for production
+                  </li>
+                  <li>
+                    • Keep your access token secure and never share it publicly
+                  </li>
                 </ul>
               </div>
 
               <div className="flex justify-center">
                 <Button
                   variant="outline"
-                  onClick={() => window.open('https://developers.facebook.com/', '_blank')}
+                  onClick={() =>
+                    window.open("https://developers.facebook.com/", "_blank")
+                  }
                 >
                   <ExternalLink className="w-4 h-4 mr-2" />
                   Open Facebook Developers
@@ -488,9 +542,13 @@ export function WhatsAppBusinessSetup({ chatbotId, isOpen, onClose }: WhatsAppBu
               </h3>
 
               <div className="bg-green-50 rounded-lg p-4">
-                <h4 className="font-medium text-green-900 mb-2">Phone Number Setup:</h4>
+                <h4 className="font-medium text-green-900 mb-2">
+                  Phone Number Setup:
+                </h4>
                 <ol className="list-decimal list-inside space-y-1 text-sm text-green-800">
-                  <li>In your Facebook App, go to WhatsApp → Getting Started</li>
+                  <li>
+                    In your Facebook App, go to WhatsApp → Getting Started
+                  </li>
                   <li>Add a phone number or use the test number provided</li>
                   <li>Verify your phone number with the SMS code</li>
                   <li>Copy the Phone Number ID from the dashboard</li>
@@ -506,12 +564,14 @@ export function WhatsAppBusinessSetup({ chatbotId, isOpen, onClose }: WhatsAppBu
                   <input
                     type="text"
                     value={config.phoneNumberId}
-                    onChange={(e) => handleInputChange('phoneNumberId', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("phoneNumberId", e.target.value)
+                    }
                     placeholder="Phone Number ID from Facebook"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Phone Number
@@ -519,7 +579,9 @@ export function WhatsAppBusinessSetup({ chatbotId, isOpen, onClose }: WhatsAppBu
                   <input
                     type="tel"
                     value={config.phoneNumber}
-                    onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("phoneNumber", e.target.value)
+                    }
                     placeholder="+1234567890"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                   />
@@ -533,7 +595,9 @@ export function WhatsAppBusinessSetup({ chatbotId, isOpen, onClose }: WhatsAppBu
                 <input
                   type="text"
                   value={config.displayName}
-                  onChange={(e) => handleInputChange('displayName', e.target.value)}
+                  onChange={(e) =>
+                    handleInputChange("displayName", e.target.value)
+                  }
                   placeholder="Your Business Name"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 />
@@ -543,7 +607,9 @@ export function WhatsAppBusinessSetup({ chatbotId, isOpen, onClose }: WhatsAppBu
               </div>
 
               <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="font-medium text-gray-900 mb-2">Test Number vs Production:</h4>
+                <h4 className="font-medium text-gray-900 mb-2">
+                  Test Number vs Production:
+                </h4>
                 <div className="grid md:grid-cols-2 gap-4 text-sm">
                   <div>
                     <h5 className="font-medium text-gray-700">Test Number</h5>
@@ -555,7 +621,9 @@ export function WhatsAppBusinessSetup({ chatbotId, isOpen, onClose }: WhatsAppBu
                     </ul>
                   </div>
                   <div>
-                    <h5 className="font-medium text-gray-700">Production Number</h5>
+                    <h5 className="font-medium text-gray-700">
+                      Production Number
+                    </h5>
                     <ul className="text-gray-600 space-y-1">
                       <li>• Your own business number</li>
                       <li>• Unlimited recipients</li>
@@ -583,7 +651,9 @@ export function WhatsAppBusinessSetup({ chatbotId, isOpen, onClose }: WhatsAppBu
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => copyToClipboard(config.webhookUrl, 'Webhook URL')}
+                    onClick={() =>
+                      copyToClipboard(config.webhookUrl, "Webhook URL")
+                    }
                   >
                     <Copy className="w-4 h-4" />
                   </Button>
@@ -599,7 +669,9 @@ export function WhatsAppBusinessSetup({ chatbotId, isOpen, onClose }: WhatsAppBu
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => copyToClipboard(config.webhookVerifyToken, 'Verify Token')}
+                    onClick={() =>
+                      copyToClipboard(config.webhookVerifyToken, "Verify Token")
+                    }
                   >
                     <Copy className="w-4 h-4" />
                   </Button>
@@ -607,7 +679,9 @@ export function WhatsAppBusinessSetup({ chatbotId, isOpen, onClose }: WhatsAppBu
               </div>
 
               <div className="bg-blue-50 rounded-lg p-4">
-                <h4 className="font-medium text-blue-900 mb-2">Webhook Setup Steps:</h4>
+                <h4 className="font-medium text-blue-900 mb-2">
+                  Webhook Setup Steps:
+                </h4>
                 <ol className="list-decimal list-inside space-y-1 text-sm text-blue-800">
                   <li>In your Facebook App, go to WhatsApp → Configuration</li>
                   <li>Click "Edit" next to Webhook</li>
@@ -621,26 +695,35 @@ export function WhatsAppBusinessSetup({ chatbotId, isOpen, onClose }: WhatsAppBu
               <div className="flex justify-center">
                 <Button
                   onClick={testWebhook}
-                  disabled={isTestingWebhook || !config.accessToken || !config.phoneNumberId}
+                  disabled={
+                    isTestingWebhook ||
+                    !config.accessToken ||
+                    !config.phoneNumberId
+                  }
                 >
-                  {isTestingWebhook ? 'Testing...' : 'Test Webhook'}
+                  {isTestingWebhook ? "Testing..." : "Test Webhook"}
                 </Button>
               </div>
 
-              {webhookStatus === 'verified' && (
+              {webhookStatus === "verified" && (
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <div className="flex items-center">
                     <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
-                    <span className="text-green-800 font-medium">Webhook verified successfully!</span>
+                    <span className="text-green-800 font-medium">
+                      Webhook verified successfully!
+                    </span>
                   </div>
                 </div>
               )}
 
-              {webhookStatus === 'failed' && (
+              {webhookStatus === "failed" && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                   <div className="flex items-center">
                     <AlertCircle className="w-5 h-5 text-red-600 mr-2" />
-                    <span className="text-red-800 font-medium">Webhook verification failed. Please check your configuration.</span>
+                    <span className="text-red-800 font-medium">
+                      Webhook verification failed. Please check your
+                      configuration.
+                    </span>
                   </div>
                 </div>
               )}
@@ -652,17 +735,21 @@ export function WhatsAppBusinessSetup({ chatbotId, isOpen, onClose }: WhatsAppBu
               <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto">
                 <CheckCircle className="w-8 h-8 text-white" />
               </div>
-              
+
               <h3 className="text-xl font-semibold text-gray-900">
                 WhatsApp Integration Complete!
               </h3>
-              
+
               <p className="text-gray-600">
-                Your chatbot is now connected to WhatsApp Business. Customers can message your business number and receive automated responses.
+                Your chatbot is now connected to WhatsApp Business. Customers
+                can message your business number and receive automated
+                responses.
               </p>
 
               <div className="bg-green-50 rounded-lg p-4">
-                <h4 className="font-medium text-green-900 mb-2">What's working now:</h4>
+                <h4 className="font-medium text-green-900 mb-2">
+                  What's working now:
+                </h4>
                 <ul className="text-sm text-green-800 space-y-1">
                   <li>✓ WhatsApp Business API connected</li>
                   <li>✓ Webhook receiving messages</li>
@@ -672,14 +759,20 @@ export function WhatsAppBusinessSetup({ chatbotId, isOpen, onClose }: WhatsAppBu
               </div>
 
               <div className="bg-blue-50 rounded-lg p-4">
-                <h4 className="font-medium text-blue-900 mb-2">Testing your integration:</h4>
+                <h4 className="font-medium text-blue-900 mb-2">
+                  Testing your integration:
+                </h4>
                 <p className="text-sm text-blue-800">
-                  Send a WhatsApp message to <strong>{config.phoneNumber}</strong> from a different phone to test the integration.
+                  Send a WhatsApp message to{" "}
+                  <strong>{config.phoneNumber}</strong> from a different phone
+                  to test the integration.
                 </p>
               </div>
 
               <div className="bg-yellow-50 rounded-lg p-4">
-                <h4 className="font-medium text-yellow-900 mb-2">Next steps for production:</h4>
+                <h4 className="font-medium text-yellow-900 mb-2">
+                  Next steps for production:
+                </h4>
                 <ul className="text-sm text-yellow-800 space-y-1">
                   <li>• Generate a permanent access token</li>
                   <li>• Complete business verification if needed</li>
@@ -700,21 +793,15 @@ export function WhatsAppBusinessSetup({ chatbotId, isOpen, onClose }: WhatsAppBu
           >
             Previous
           </Button>
-          
+
           <div className="flex space-x-2">
             {currentStep < steps.length ? (
-              <Button
-                onClick={nextStep}
-                disabled={!validateStep(currentStep)}
-              >
+              <Button onClick={nextStep} disabled={!validateStep(currentStep)}>
                 Next
               </Button>
             ) : (
-              <Button
-                onClick={connectWhatsApp}
-                disabled={isConnecting}
-              >
-                {isConnecting ? 'Activating...' : 'Activate Integration'}
+              <Button onClick={connectWhatsApp} disabled={isConnecting}>
+                {isConnecting ? "Activating..." : "Activate Integration"}
               </Button>
             )}
           </div>
@@ -725,5 +812,9 @@ export function WhatsAppBusinessSetup({ chatbotId, isOpen, onClose }: WhatsAppBu
 }
 
 function generateVerifyToken(): string {
-  return 'whatsapp_verify_' + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  return (
+    "whatsapp_verify_" +
+    Math.random().toString(36).substring(2, 15) +
+    Math.random().toString(36).substring(2, 15)
+  );
 }

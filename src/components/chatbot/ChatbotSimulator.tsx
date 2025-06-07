@@ -1,14 +1,22 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Bot, User, ThumbsUp, ThumbsDown, RotateCcw, Star } from 'lucide-react';
-import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
-import { useConversationLogger } from '../../hooks/useConversationLogger';
-import { v4 as uuidv4 } from 'uuid';
+import React, { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Send,
+  Bot,
+  User,
+  ThumbsUp,
+  ThumbsDown,
+  RotateCcw,
+  Star,
+} from "lucide-react";
+import { Button } from "../ui/Button";
+import { Card } from "../ui/Card";
+import { useConversationLogger } from "../../hooks/useConversationLogger";
+import { v4 as uuidv4 } from "uuid";
 
 interface Message {
   id: string;
-  sender: 'user' | 'bot';
+  sender: "user" | "bot";
   content: string;
   timestamp: Date;
   nodeId?: string;
@@ -23,9 +31,14 @@ interface ChatbotSimulatorProps {
   onClose: () => void;
 }
 
-export function ChatbotSimulator({ chatbot, flow, isOpen, onClose }: ChatbotSimulatorProps) {
+export function ChatbotSimulator({
+  chatbot,
+  flow,
+  isOpen,
+  onClose,
+}: ChatbotSimulatorProps) {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [currentNodeId, setCurrentNodeId] = useState<string | null>(null);
   const [conversationState, setConversationState] = useState<any>({});
@@ -34,7 +47,7 @@ export function ChatbotSimulator({ chatbot, flow, isOpen, onClose }: ChatbotSimu
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackGiven, setFeedbackGiven] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  
+
   const logger = useConversationLogger();
 
   useEffect(() => {
@@ -48,7 +61,48 @@ export function ChatbotSimulator({ chatbot, flow, isOpen, onClose }: ChatbotSimu
   }, [messages]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Enhanced variable substitution function
+  const substituteVariables = (content: string, variables: any = {}) => {
+    let substitutedContent = content;
+
+    // Replace all variable patterns
+    Object.keys(variables).forEach((key) => {
+      const value = variables[key] || "";
+      const patterns = [
+        new RegExp(`\\{${key}\\}`, "g"),
+        new RegExp(`\\{\\{${key}\\}\\}`, "g"),
+      ];
+
+      patterns.forEach((pattern) => {
+        substitutedContent = substitutedContent.replace(pattern, value);
+      });
+    });
+
+    // Also handle common variable names
+    const commonMappings = {
+      user_name:
+        variables.user_name || variables.first_name || variables.name || "",
+      first_name:
+        variables.first_name || variables.user_name || variables.name || "",
+      name: variables.name || variables.first_name || variables.user_name || "",
+    };
+
+    Object.keys(commonMappings).forEach((key) => {
+      const value = commonMappings[key];
+      const patterns = [
+        new RegExp(`\\{${key}\\}`, "g"),
+        new RegExp(`\\{\\{${key}\\}\\}`, "g"),
+      ];
+
+      patterns.forEach((pattern) => {
+        substitutedContent = substitutedContent.replace(pattern, value);
+      });
+    });
+
+    return substitutedContent;
   };
 
   const initializeChat = async () => {
@@ -57,40 +111,40 @@ export function ChatbotSimulator({ chatbot, flow, isOpen, onClose }: ChatbotSimu
       conversationId,
       chatbot.id,
       userIdentifier,
-      'web',
+      "web",
       { simulator: true, chatbotName: chatbot.name }
     );
 
     // Find the start node
-    const startNode = flow.nodes.find((node: any) => node.data.nodeType === 'start');
-    
+    const startNode = flow.nodes.find(
+      (node: any) => node.data.nodeType === "start"
+    );
+
     if (startNode) {
       const welcomeMessage: Message = {
         id: Date.now().toString(),
-        sender: 'bot',
-        content: startNode.data.content || 'Hello! How can I help you today?',
+        sender: "bot",
+        content: substituteVariables(
+          startNode.data.content || "Hello! How can I help you today?",
+          conversationState
+        ),
         timestamp: new Date(),
         nodeId: startNode.id,
-        responseTimeMs: 100
+        responseTimeMs: 100,
       };
-      
+
       setMessages([welcomeMessage]);
       setCurrentNodeId(startNode.id);
-      
+
       // Log the welcome message
-      await logger.logMessage(
-        conversationId,
-        chatbot.id,
-        userIdentifier,
-        {
-          sender: 'bot',
-          content: welcomeMessage.content,
-          messageType: 'text',
-          nodeId: startNode.id,
-          responseTimeMs: 100
-        }
-      );
-      
+      await logger.logMessage(conversationId, chatbot.id, userIdentifier, {
+        sender: "bot",
+        content: welcomeMessage.content,
+        messageType: "text",
+        nodeId: startNode.id,
+        responseTimeMs: 100,
+      });
+
       // Move to next node automatically
       setTimeout(() => {
         moveToNextNode(startNode.id);
@@ -104,17 +158,17 @@ export function ChatbotSimulator({ chatbot, flow, isOpen, onClose }: ChatbotSimu
       conversationId,
       chatbot.id,
       userIdentifier,
-      'reset',
-      { reason: 'user_reset', messageCount: messages.length }
+      "reset",
+      { reason: "user_reset", messageCount: messages.length }
     );
 
     setMessages([]);
     setCurrentNodeId(null);
-    setInputValue('');
+    setInputValue("");
     setConversationState({});
     setShowFeedback(false);
     setFeedbackGiven(false);
-    
+
     // Start new conversation
     setTimeout(() => {
       initializeChat();
@@ -128,26 +182,21 @@ export function ChatbotSimulator({ chatbot, flow, isOpen, onClose }: ChatbotSimu
     const startTime = Date.now();
     const userMessage: Message = {
       id: Date.now().toString(),
-      sender: 'user',
+      sender: "user",
       content: text,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
-    setInputValue('');
+    setMessages((prev) => [...prev, userMessage]);
+    setInputValue("");
     setIsTyping(true);
 
     // Log user message
-    await logger.logMessage(
-      conversationId,
-      chatbot.id,
-      userIdentifier,
-      {
-        sender: 'user',
-        content: text,
-        messageType: 'text'
-      }
-    );
+    await logger.logMessage(conversationId, chatbot.id, userIdentifier, {
+      sender: "user",
+      content: text,
+      messageType: "text",
+    });
 
     // Process the user input
     setTimeout(async () => {
@@ -157,245 +206,385 @@ export function ChatbotSimulator({ chatbot, flow, isOpen, onClose }: ChatbotSimu
     }, 1000);
   };
 
-  const processUserMessage = async (userInput: string, responseTime: number) => {
+  const processUserMessage = async (
+    userInput: string,
+    responseTime: number
+  ) => {
     if (!currentNodeId) return;
 
-    const currentNode = flow.nodes.find((node: any) => node.id === currentNodeId);
+    const currentNode = flow.nodes.find(
+      (node: any) => node.id === currentNodeId
+    );
     if (!currentNode) return;
 
-    let botResponse = '';
+    let botResponse = "";
     let fallbackTriggered = false;
     let intentDetected = null;
     let confidenceScore = null;
 
+    // Store user input in conversation state for all node types
+    const updatedState = {
+      ...conversationState,
+      last_user_input: userInput,
+    };
+
     // Handle different node types
     switch (currentNode.data.nodeType) {
-      case 'question':
+      case "lead_capture": {
+        // Store the captured information with multiple key mappings
+        const fieldName = currentNode.data.fields?.[0]?.name || "user_input";
+        const newState = {
+          ...updatedState,
+          [fieldName]: userInput,
+          user_name: userInput,
+          first_name: userInput,
+          name: userInput,
+        };
+        setConversationState(newState);
+
+        botResponse = `Thank you, ${userInput}!`;
+        intentDetected = "information_provided";
+        confidenceScore = 0.9;
+        break;
+      }
+
+      case "question": {
         // Check if user input matches any option
-        const selectedOption = currentNode.data.options?.find((option: string) => 
-          userInput.toLowerCase().includes(option.toLowerCase()) ||
-          option.toLowerCase().includes(userInput.toLowerCase())
+        const selectedOption = currentNode.data.options?.find(
+          (option: string) =>
+            userInput.toLowerCase().includes(option.toLowerCase()) ||
+            option.toLowerCase().includes(userInput.toLowerCase())
         );
-        
+
         if (selectedOption) {
-          // Store the selection in conversation state
-          setConversationState(prev => ({
-            ...prev,
-            [currentNode.id]: selectedOption
-          }));
+          // Store the selection in conversation state with multiple mappings
+          const questionState = {
+            ...updatedState,
+            [currentNode.id]: selectedOption,
+            selected_option: selectedOption,
+            visitor_type: selectedOption, // For lead capture template
+            company_size: selectedOption,
+            current_challenge: selectedOption,
+            timeline: selectedOption,
+            budget: selectedOption,
+          };
+          setConversationState(questionState);
+
           botResponse = `You selected: ${selectedOption}`;
-          intentDetected = 'option_selected';
+          intentDetected = "option_selected";
           confidenceScore = 0.9;
         } else {
-          botResponse = "I didn't understand your selection. Please choose one of the available options.";
+          botResponse =
+            "I didn't understand your selection. Please choose one of the available options.";
           fallbackTriggered = true;
         }
         break;
-        
-      case 'lead_capture':
-        // Store lead information
-        setConversationState(prev => ({
-          ...prev,
-          [currentNode.id]: userInput
-        }));
-        botResponse = "Thank you for providing that information!";
-        intentDetected = 'information_provided';
-        confidenceScore = 0.8;
-        break;
-        
-      case 'ai_response':
+      }
+
+      case "ai_response":
         // Generate AI response
         const aiResponse = await generateAIResponse(userInput, currentNode);
         botResponse = aiResponse.response;
         intentDetected = aiResponse.intent;
         confidenceScore = aiResponse.confidence;
+        setConversationState(updatedState);
         break;
-        
+
       default:
         botResponse = "I understand. Let me help you with that.";
-        intentDetected = 'general_inquiry';
+        intentDetected = "general_inquiry";
         confidenceScore = 0.7;
+        setConversationState(updatedState);
     }
 
     if (botResponse) {
+      // Substitute variables in the bot response
+      const substitutedResponse = substituteVariables(
+        botResponse,
+        conversationState
+      );
+
       const botMessage: Message = {
         id: Date.now().toString(),
-        sender: 'bot',
-        content: botResponse,
+        sender: "bot",
+        content: substitutedResponse,
         timestamp: new Date(),
         nodeId: currentNode.id,
-        responseTimeMs: responseTime
+        responseTimeMs: responseTime,
       };
-      
-      setMessages(prev => [...prev, botMessage]);
+
+      setMessages((prev) => [...prev, botMessage]);
 
       // Log bot response
-      await logger.logMessage(
-        conversationId,
-        chatbot.id,
-        userIdentifier,
-        {
-          sender: 'bot',
-          content: botResponse,
-          messageType: 'text',
-          nodeId: currentNode.id,
-          responseTimeMs: responseTime,
-          intentDetected,
-          confidenceScore,
-          fallbackTriggered
-        }
-      );
+      await logger.logMessage(conversationId, chatbot.id, userIdentifier, {
+        sender: "bot",
+        content: substitutedResponse,
+        messageType: "text",
+        nodeId: currentNode.id,
+        responseTimeMs: responseTime,
+        intentDetected: intentDetected ?? undefined,
+        confidenceScore: confidenceScore ?? undefined,
+        fallbackTriggered,
+      });
     }
 
     // Move to next node
-    moveToNextNode(currentNodeId, userInput);
+    setTimeout(() => {
+      moveToNextNode(currentNodeId, userInput);
+    }, 500);
   };
 
   const moveToNextNode = (fromNodeId: string, userInput?: string) => {
     // Find outgoing edges from current node
-    const outgoingEdges = flow.edges.filter((edge: any) => edge.source === fromNodeId);
-    
+    const outgoingEdges = flow.edges.filter(
+      (edge: any) => edge.source === fromNodeId
+    );
+
     if (outgoingEdges.length === 0) {
       // End of conversation
       const endMessage: Message = {
         id: Date.now().toString(),
-        sender: 'bot',
-        content: "Thank you for chatting with me! Is there anything else I can help you with?",
+        sender: "bot",
+        content: substituteVariables(
+          "Thank you for chatting with me! Is there anything else I can help you with?",
+          conversationState
+        ),
         timestamp: new Date(),
-        responseTimeMs: 200
+        responseTimeMs: 200,
       };
-      setMessages(prev => [...prev, endMessage]);
-      
+      setMessages((prev) => [...prev, endMessage]);
+
       // Show feedback form
       setTimeout(() => {
         setShowFeedback(true);
       }, 2000);
-      
+
       return;
     }
 
     // For simplicity, take the first edge (in a real implementation, you'd handle conditions)
     const nextEdge = outgoingEdges[0];
-    const nextNode = flow.nodes.find((node: any) => node.id === nextEdge.target);
-    
+    const nextNode = flow.nodes.find(
+      (node: any) => node.id === nextEdge.target
+    );
+
     if (!nextNode) return;
 
     setCurrentNodeId(nextNode.id);
 
     // Generate response based on next node type
-    let botResponse = '';
+    let botResponse = "";
     let options: string[] | undefined;
 
     switch (nextNode.data.nodeType) {
-      case 'message':
-        botResponse = nextNode.data.content || 'Hello!';
+      case "message":
+        botResponse = nextNode.data.content || "Hello!";
         break;
-        
-      case 'question':
-        botResponse = nextNode.data.content || 'Please choose an option:';
+
+      case "question":
+        botResponse = nextNode.data.content || "Please choose an option:";
         options = nextNode.data.options;
         if (options && options.length > 0) {
-          botResponse += '\n\n' + options.map((option: string, index: number) => 
-            `${index + 1}. ${option}`
-          ).join('\n');
+          botResponse +=
+            "\n\n" +
+            options
+              .map((option: string, index: number) => `${index + 1}. ${option}`)
+              .join("\n");
         }
         break;
-        
-      case 'lead_capture':
+
+      case "lead_capture": {
         const fields = nextNode.data.fields || [];
         if (fields.length > 0) {
-          botResponse = `I'd like to collect some information. Please provide your ${fields[0].name}:`;
+          botResponse =
+            nextNode.data.content || `Please provide your ${fields[0].name}:`;
         } else {
-          botResponse = 'Please provide your contact information:';
+          botResponse =
+            nextNode.data.content || "Please provide your information:";
         }
         break;
-        
-      case 'appointment':
-        botResponse = nextNode.data.content || 'I can help you book an appointment. Please let me know your preferred time.';
+      }
+
+      case "conditional": { // Handle conditional logic - this is where the flow was breaking
+        const conditions = nextNode.data.conditions || [];
+        let conditionMet = false;
+
+        for (const condition of conditions) {
+          const variableValue = conversationState[condition.variable] || "";
+          const checkValue = condition.value.toLowerCase();
+          const actualValue = variableValue.toLowerCase();
+
+          let matches = false;
+          switch (condition.operator) {
+            case "contains":
+              matches =
+                actualValue.includes(checkValue) ||
+                checkValue.includes(actualValue);
+              break;
+            case "equals":
+              matches = actualValue === checkValue;
+              break;
+            case "not_equals":
+              matches = actualValue !== checkValue;
+              break;
+            case "greater_than":
+              matches = parseFloat(actualValue) > parseFloat(checkValue);
+              break;
+            case "less_than":
+              matches = parseFloat(actualValue) < parseFloat(checkValue);
+              break;
+          }
+
+          if (matches) {
+            conditionMet = true;
+            break;
+          }
+        }
+
+        // If conditional node, immediately move to next node without showing a message
+        setTimeout(() => {
+          moveToNextNode(nextNode.id);
+        }, 100);
+        return;
+      }
+
+      case "appointment":
+        botResponse =
+          nextNode.data.content ||
+          "I can help you book an appointment. Please let me know your preferred time.";
         break;
-        
-      case 'action':
-        botResponse = `Action executed: ${nextNode.data.content || 'Processing your request...'}`;
+
+      case "action":
+        botResponse = `Action executed: ${
+          nextNode.data.content || "Processing your request..."
+        }`;
         break;
-        
+
+      case "human_handoff":
+        botResponse =
+          nextNode.data.content ||
+          "Let me connect you with a human agent who can help you.";
+        break;
+
+      case "api_webhook":
+        botResponse = "Processing your information...";
+        // Simulate API call delay
+        setTimeout(() => {
+          moveToNextNode(nextNode.id);
+        }, 1500);
+        break;
+
+      case "survey": {
+        botResponse =
+          nextNode.data.surveyConfig?.title || "Please provide your feedback:";
+        const questions = nextNode.data.surveyConfig?.questions || [];
+        if (questions.length > 0) {
+          botResponse += "\n\n" + questions[0].question;
+        }
+        break;
+      }
+
       default:
-        botResponse = nextNode.data.content || 'How can I help you?';
+        botResponse = nextNode.data.content || "How can I help you?";
     }
 
     if (botResponse) {
+      // Substitute variables in the response
+      const substitutedResponse = substituteVariables(
+        botResponse,
+        conversationState
+      );
+
       const botMessage: Message = {
         id: Date.now().toString(),
-        sender: 'bot',
-        content: botResponse,
+        sender: "bot",
+        content: substitutedResponse,
         timestamp: new Date(),
         nodeId: nextNode.id,
         options,
-        responseTimeMs: 300
+        responseTimeMs: 300,
       };
-      
+
       setTimeout(async () => {
-        setMessages(prev => [...prev, botMessage]);
-        
+        setMessages((prev) => [...prev, botMessage]);
+
         // Log bot message
-        await logger.logMessage(
-          conversationId,
-          chatbot.id,
-          userIdentifier,
-          {
-            sender: 'bot',
-            content: botResponse,
-            messageType: 'text',
-            nodeId: nextNode.id,
-            responseTimeMs: 300
-          }
-        );
+        await logger.logMessage(conversationId, chatbot.id, userIdentifier, {
+          sender: "bot",
+          content: substitutedResponse,
+          messageType: "text",
+          nodeId: nextNode.id,
+          responseTimeMs: 300,
+        });
       }, 500);
     }
   };
 
-  const generateAIResponse = async (userInput: string, node: any): Promise<{
+  const generateAIResponse = async (
+    userInput: string,
+    node: any
+  ): Promise<{
     response: string;
     intent: string;
     confidence: number;
   }> => {
     // Simulate AI processing delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     // In a real implementation, this would call OpenAI API
     const systemPrompt = node.data.systemPrompt || node.data.content;
-    
+
     // Simple keyword-based responses for simulation
     const input = userInput.toLowerCase();
-    
-    if (input.includes('hello') || input.includes('hi')) {
+    const userName =
+      conversationState.user_name ||
+      conversationState.first_name ||
+      conversationState.name ||
+      "";
+
+    if (input.includes("hello") || input.includes("hi")) {
       return {
-        response: "Hello! I'm here to help you. What can I do for you today?",
-        intent: 'greeting',
-        confidence: 0.95
+        response: `Hello${
+          userName ? `, ${userName}` : ""
+        }! I'm here to help you. What can I do for you today?`,
+        intent: "greeting",
+        confidence: 0.95,
       };
-    } else if (input.includes('help')) {
+    } else if (input.includes("help")) {
       return {
-        response: "I'd be happy to help! You can ask me about our services, pricing, or any other questions you might have.",
-        intent: 'help_request',
-        confidence: 0.9
+        response: `I'd be happy to help you${
+          userName ? `, ${userName}` : ""
+        }! You can ask me about our services, pricing, or any other questions you might have.`,
+        intent: "help_request",
+        confidence: 0.9,
       };
-    } else if (input.includes('price') || input.includes('cost')) {
+    } else if (input.includes("price") || input.includes("cost")) {
       return {
-        response: "Our pricing is very competitive! We offer different plans to suit your needs. Would you like me to show you our pricing options?",
-        intent: 'pricing_inquiry',
-        confidence: 0.85
+        response: `Our pricing is very competitive${
+          userName ? `, ${userName}` : ""
+        }! We offer different plans to suit your needs. Would you like me to show you our pricing options?`,
+        intent: "pricing_inquiry",
+        confidence: 0.85,
       };
-    } else if (input.includes('thank')) {
+    } else if (input.includes("thank")) {
       return {
-        response: "You're very welcome! Is there anything else I can help you with?",
-        intent: 'gratitude',
-        confidence: 0.9
+        response: `You're very welcome${
+          userName ? `, ${userName}` : ""
+        }! Is there anything else I can help you with?`,
+        intent: "gratitude",
+        confidence: 0.9,
       };
     } else {
       return {
-        response: `I understand you're asking about "${userInput}". ${systemPrompt ? `Based on my instructions: ${systemPrompt}` : 'Let me help you with that.'} In a real implementation, this would be powered by OpenAI for more intelligent responses.`,
-        intent: 'general_inquiry',
-        confidence: 0.7
+        response: `I understand you're asking about "${userInput}"${
+          userName ? `, ${userName}` : ""
+        }. ${
+          systemPrompt
+            ? `Based on my instructions: ${systemPrompt}`
+            : "Let me help you with that."
+        } In a real implementation, this would be powered by OpenAI for more intelligent responses.`,
+        intent: "general_inquiry",
+        confidence: 0.7,
       };
     }
   };
@@ -405,36 +594,32 @@ export function ChatbotSimulator({ chatbot, flow, isOpen, onClose }: ChatbotSimu
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
   };
 
   const submitFeedback = async (rating: number, feedback?: string) => {
-    await logger.logFeedback(
-      conversationId,
-      chatbot.id,
-      userIdentifier,
-      {
-        type: 'rating',
-        ratingValue: rating,
-        feedbackText: feedback,
-        sentiment: rating >= 4 ? 'positive' : rating <= 2 ? 'negative' : 'neutral'
-      }
-    );
+    await logger.logFeedback(conversationId, chatbot.id, userIdentifier, {
+      type: "rating",
+      ratingValue: rating,
+      feedbackText: feedback,
+      sentiment:
+        rating >= 4 ? "positive" : rating <= 2 ? "negative" : "neutral",
+    });
 
     // Log conversation end with feedback
     await logger.logConversationEnd(
       conversationId,
       chatbot.id,
       userIdentifier,
-      'completed',
+      "completed",
       {
         satisfactionScore: rating,
         feedbackText: feedback,
         goalAchieved: rating >= 4,
-        messageCount: messages.length
+        messageCount: messages.length,
       }
     );
 
@@ -472,12 +657,7 @@ export function ChatbotSimulator({ chatbot, flow, isOpen, onClose }: ChatbotSimu
             >
               <RotateCcw className="w-4 h-4" />
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="p-2"
-            >
+            <Button variant="ghost" size="sm" onClick={onClose} className="p-2">
               ×
             </Button>
           </div>
@@ -491,51 +671,74 @@ export function ChatbotSimulator({ chatbot, flow, isOpen, onClose }: ChatbotSimu
                 key={message.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+                className={`flex ${
+                  message.sender === "user" ? "justify-end" : "justify-start"
+                }`}
               >
-                <div className={`flex items-start space-x-2 max-w-[80%] ${
-                  message.sender === 'user' ? 'flex-row-reverse space-x-reverse' : ''
-                }`}>
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    message.sender === 'user' 
-                      ? 'bg-blue-500' 
-                      : 'bg-gradient-to-r from-blue-500 to-purple-600'
-                  }`}>
-                    {message.sender === 'user' ? (
+                <div
+                  className={`flex items-start space-x-2 max-w-[80%] ${
+                    message.sender === "user"
+                      ? "flex-row-reverse space-x-reverse"
+                      : ""
+                  }`}
+                >
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      message.sender === "user"
+                        ? "bg-blue-500"
+                        : "bg-gradient-to-r from-blue-500 to-purple-600"
+                    }`}
+                  >
+                    {message.sender === "user" ? (
                       <User className="w-4 h-4 text-white" />
                     ) : (
                       <Bot className="w-4 h-4 text-white" />
                     )}
                   </div>
-                  <div className={`rounded-lg p-3 ${
-                    message.sender === 'user'
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 text-gray-900'
-                  }`}>
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                    <div className={`flex items-center justify-between mt-2 text-xs ${
-                      message.sender === 'user' ? 'text-blue-100' : 'text-gray-500'
-                    }`}>
-                      <span>{message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  <div
+                    className={`rounded-lg p-3 ${
+                      message.sender === "user"
+                        ? "bg-blue-500 text-white"
+                        : "bg-gray-100 text-gray-900"
+                    }`}
+                  >
+                    <p className="text-sm whitespace-pre-wrap">
+                      {message.content}
+                    </p>
+                    <div
+                      className={`flex items-center justify-between mt-2 text-xs ${
+                        message.sender === "user"
+                          ? "text-blue-100"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      <span>
+                        {message.timestamp.toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </span>
                       {message.responseTimeMs && (
                         <span>{message.responseTimeMs}ms</span>
                       )}
                     </div>
-                    
+
                     {/* Quick Reply Options */}
-                    {message.sender === 'bot' && message.options && message.options.length > 0 && (
-                      <div className="mt-2 space-y-1">
-                        {message.options.map((option, index) => (
-                          <button
-                            key={index}
-                            onClick={() => handleOptionClick(option)}
-                            className="block w-full text-left px-3 py-2 text-sm bg-white text-gray-700 rounded border hover:bg-gray-50 transition-colors"
-                          >
-                            {option}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                    {message.sender === "bot" &&
+                      message.options &&
+                      message.options.length > 0 && (
+                        <div className="mt-2 space-y-1">
+                          {message.options.map((option, index) => (
+                            <button
+                              key={index}
+                              onClick={() => handleOptionClick(option)}
+                              className="block w-full text-left px-3 py-2 text-sm bg-white text-gray-700 rounded border hover:bg-gray-50 transition-colors"
+                            >
+                              {option}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                   </div>
                 </div>
               </motion.div>
@@ -556,14 +759,20 @@ export function ChatbotSimulator({ chatbot, flow, isOpen, onClose }: ChatbotSimu
                 <div className="bg-gray-100 rounded-lg p-3">
                   <div className="flex space-x-1">
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                    <div
+                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                      style={{ animationDelay: "0.1s" }}
+                    />
+                    <div
+                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                      style={{ animationDelay: "0.2s" }}
+                    />
                   </div>
                 </div>
               </div>
             </motion.div>
           )}
-          
+
           <div ref={messagesEndRef} />
         </div>
 
@@ -609,7 +818,7 @@ interface FeedbackModalProps {
 
 function FeedbackModal({ onSubmit, onClose }: FeedbackModalProps) {
   const [rating, setRating] = useState(0);
-  const [feedback, setFeedback] = useState('');
+  const [feedback, setFeedback] = useState("");
 
   const handleSubmit = () => {
     if (rating > 0) {
@@ -624,20 +833,24 @@ function FeedbackModal({ onSubmit, onClose }: FeedbackModalProps) {
         animate={{ opacity: 1, scale: 1 }}
         className="bg-white rounded-lg p-6 w-full max-w-sm"
       >
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">How was your experience?</h3>
-        
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          How was your experience?
+        </h3>
+
         <div className="flex justify-center space-x-2 mb-4">
           {[1, 2, 3, 4, 5].map((star) => (
             <button
               key={star}
               onClick={() => setRating(star)}
-              className={`p-1 ${rating >= star ? 'text-yellow-500' : 'text-gray-300'}`}
+              className={`p-1 ${
+                rating >= star ? "text-yellow-500" : "text-gray-300"
+              }`}
             >
               <Star className="w-6 h-6 fill-current" />
             </button>
           ))}
         </div>
-        
+
         <textarea
           value={feedback}
           onChange={(e) => setFeedback(e.target.value)}
@@ -645,12 +858,16 @@ function FeedbackModal({ onSubmit, onClose }: FeedbackModalProps) {
           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4"
           rows={3}
         />
-        
+
         <div className="flex space-x-3">
           <Button variant="outline" onClick={onClose} className="flex-1">
             Skip
           </Button>
-          <Button onClick={handleSubmit} disabled={rating === 0} className="flex-1">
+          <Button
+            onClick={handleSubmit}
+            disabled={rating === 0}
+            className="flex-1"
+          >
             Submit
           </Button>
         </div>
