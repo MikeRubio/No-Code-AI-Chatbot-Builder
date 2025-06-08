@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '../lib/supabase';
-import { useAuth } from './useAuth';
-import toast from 'react-hot-toast';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "../lib/supabase";
+import { useAuth } from "./useAuth";
+import toast from "react-hot-toast";
 
 export interface Chatbot {
   id: string;
@@ -25,15 +25,15 @@ export function useChatbots() {
   const queryClient = useQueryClient();
 
   const chatbotsQuery = useQuery({
-    queryKey: ['chatbots', user?.id],
+    queryKey: ["chatbots", user?.id],
     queryFn: async () => {
-      if (!user) throw new Error('User not authenticated');
-      
+      if (!user) throw new Error("User not authenticated");
+
       const { data, error } = await supabase
-        .from('chatbots')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
+        .from("chatbots")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data as Chatbot[];
@@ -43,18 +43,19 @@ export function useChatbots() {
 
   const createChatbotMutation = useMutation({
     mutationFn: async (chatbot: Partial<Chatbot>) => {
-      if (!user) throw new Error('User not authenticated');
+      if (!user) throw new Error("User not authenticated");
 
       const { data, error } = await supabase
-        .from('chatbots')
+        .from("chatbots")
         .insert({
           user_id: user.id,
-          name: chatbot.name || 'New Chatbot',
+          name: chatbot.name || "New Chatbot",
           description: chatbot.description,
           flow_data: chatbot.flow_data || { nodes: [], connections: [] },
           settings: chatbot.settings || {},
-          openai_model: 'gpt-3.5-turbo',
-          fallback_message: "I'm sorry, I didn't understand that. Can you please rephrase?",
+          openai_model: "gpt-3.5-turbo",
+          fallback_message:
+            "I'm sorry, I didn't understand that. Can you please rephrase?",
         })
         .select()
         .single();
@@ -63,20 +64,26 @@ export function useChatbots() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['chatbots'] });
-      toast.success('Chatbot created successfully!');
+      queryClient.invalidateQueries({ queryKey: ["chatbots"] });
+      toast.success("Chatbot created successfully!");
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Failed to create chatbot');
+      toast.error(error.message || "Failed to create chatbot");
     },
   });
 
   const updateChatbotMutation = useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Chatbot> }) => {
+    mutationFn: async ({
+      id,
+      updates,
+    }: {
+      id: string;
+      updates: Partial<Chatbot>;
+    }) => {
       const { data, error } = await supabase
-        .from('chatbots')
+        .from("chatbots")
         .update(updates)
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
 
@@ -84,38 +91,35 @@ export function useChatbots() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['chatbots'] });
-      toast.success('Chatbot updated successfully!');
+      queryClient.invalidateQueries({ queryKey: ["chatbots"] });
+      toast.success("Chatbot updated successfully!");
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Failed to update chatbot');
+      toast.error(error.message || "Failed to update chatbot");
     },
   });
 
   const deleteChatbotMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('chatbots')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from("chatbots").delete().eq("id", id);
 
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['chatbots'] });
-      toast.success('Chatbot deleted successfully!');
+      queryClient.invalidateQueries({ queryKey: ["chatbots"] });
+      toast.success("Chatbot deleted successfully!");
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Failed to delete chatbot');
+      toast.error(error.message || "Failed to delete chatbot");
     },
   });
 
   const publishChatbotMutation = useMutation({
     mutationFn: async (id: string) => {
       const { data, error } = await supabase
-        .from('chatbots')
+        .from("chatbots")
         .update({ is_published: true, is_active: true })
-        .eq('id', id)
+        .eq("id", id)
         .select()
         .single();
 
@@ -123,11 +127,11 @@ export function useChatbots() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['chatbots'] });
-      toast.success('Chatbot published successfully!');
+      queryClient.invalidateQueries({ queryKey: ["chatbots"] });
+      toast.success("Chatbot published successfully!");
     },
     onError: (error: any) => {
-      toast.error(error.message || 'Failed to publish chatbot');
+      toast.error(error.message || "Failed to publish chatbot");
     },
   });
 
@@ -136,6 +140,7 @@ export function useChatbots() {
     isLoading: chatbotsQuery.isLoading,
     error: chatbotsQuery.error,
     createChatbot: createChatbotMutation.mutate,
+    createChatbotAsync: createChatbotMutation.mutateAsync,
     updateChatbot: updateChatbotMutation.mutate,
     deleteChatbot: deleteChatbotMutation.mutate,
     publishChatbot: publishChatbotMutation.mutate,
