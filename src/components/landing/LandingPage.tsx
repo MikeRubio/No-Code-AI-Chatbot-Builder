@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Bot, MessageCircle, Zap, Shield, BarChart3, Globe, Check, Star } from 'lucide-react';
+import { Bot, MessageCircle, Zap, Shield, BarChart3, Globe, Check, Star, BookOpen } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { Link } from 'react-router-dom';
@@ -103,6 +103,10 @@ export function LandingPage() {
               </span>
             </div>
             <div className="flex items-center space-x-4">
+              <Link to="/docs" className="text-gray-600 hover:text-gray-900 font-medium flex items-center">
+                <BookOpen className="w-4 h-4 mr-1" />
+                Documentation
+              </Link>
               <Link to="/auth" className="text-gray-600 hover:text-gray-900 font-medium">
                 Sign In
               </Link>
@@ -138,9 +142,11 @@ export function LandingPage() {
                   Start Building Free
                 </Button>
               </Link>
-              <Button variant="outline" size="lg" className="text-lg px-8 py-4">
-                Watch Demo
-              </Button>
+              <Link to="/docs">
+                <Button variant="outline" size="lg" className="text-lg px-8 py-4">
+                  View Documentation
+                </Button>
+              </Link>
             </div>
           </motion.div>
         </div>
@@ -252,11 +258,18 @@ export function LandingPage() {
           <p className="text-xl text-blue-100 mb-8">
             Join thousands of businesses already using BotBuilder Pro to improve customer satisfaction
           </p>
-          <Link to="/auth">
-            <Button variant="secondary" size="lg" className="text-lg px-8 py-4 bg-white text-blue-600 hover:bg-gray-100">
-              Start Your Free Trial
-            </Button>
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/auth">
+              <Button variant="secondary" size="lg" className="text-lg px-8 py-4 bg-white text-blue-600 hover:bg-gray-100">
+                Start Your Free Trial
+              </Button>
+            </Link>
+            <Link to="/docs">
+              <Button variant="outline" size="lg" className="text-lg px-8 py-4 border-white text-white hover:bg-white/10">
+                View Documentation
+              </Button>
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -270,9 +283,14 @@ export function LandingPage() {
               </div>
               <span className="text-xl font-bold">BotBuilder Pro</span>
             </div>
-            <p className="text-gray-400">
-              © 2024 BotBuilder Pro. All rights reserved.
-            </p>
+            <div className="flex items-center space-x-6">
+              <Link to="/docs" className="text-gray-400 hover:text-white transition-colors">
+                Documentation
+              </Link>
+              <p className="text-gray-400">
+                © 2024 BotBuilder Pro. All rights reserved.
+              </p>
+            </div>
           </div>
         </div>
       </footer>

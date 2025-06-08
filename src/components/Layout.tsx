@@ -1,9 +1,16 @@
-import React from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
-import { Bot, Home, Settings, BarChart3, Plus, User, LogOut } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
-import { useProfile } from '../hooks/useProfile';
-import { motion } from 'framer-motion';
+import { Outlet, Link, useLocation } from "react-router-dom";
+import {
+  Bot,
+  Home,
+  Settings,
+  BarChart3,
+  Plus,
+  User,
+  LogOut,
+  BookOpen,
+} from "lucide-react";
+import { useAuth } from "../hooks/useAuth";
+import { useProfile } from "../hooks/useProfile";
 
 export function Layout() {
   const { user, signOut } = useAuth();
@@ -11,10 +18,10 @@ export function Layout() {
   const location = useLocation();
 
   const navigation = [
-    { name: 'Dashboard', href: '/dashboard', icon: Home },
-    { name: 'Chatbots', href: '/chatbots', icon: Bot },
-    { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-    { name: 'Settings', href: '/settings', icon: Settings },
+    { name: "Dashboard", href: "/dashboard", icon: Home },
+    { name: "Chatbots", href: "/chatbots", icon: Bot },
+    { name: "Analytics", href: "/analytics", icon: BarChart3 },
+    { name: "Settings", href: "/settings", icon: Settings },
   ];
 
   const handleSignOut = async () => {
@@ -46,8 +53,8 @@ export function Layout() {
                   to={item.href}
                   className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
                     isActive
-                      ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      ? "bg-blue-50 text-blue-700 border border-blue-200"
+                      : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                   }`}
                 >
                   <item.icon className="mr-3 h-5 w-5" />
@@ -55,6 +62,15 @@ export function Layout() {
                 </Link>
               );
             })}
+
+            {/* Documentation Link */}
+            <Link
+              to="/docs"
+              className="flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+            >
+              <BookOpen className="mr-3 h-5 w-5" />
+              Documentation
+            </Link>
           </nav>
 
           {/* Plan Status */}
@@ -62,9 +78,10 @@ export function Layout() {
             <div className="mx-4 mt-6 p-3 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-gray-700">
-                  {profile.plan.charAt(0).toUpperCase() + profile.plan.slice(1)} Plan
+                  {profile.plan.charAt(0).toUpperCase() + profile.plan.slice(1)}{" "}
+                  Plan
                 </span>
-                {profile.plan === 'free' && (
+                {profile.plan === "free" && (
                   <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">
                     Limited
                   </span>
@@ -74,10 +91,13 @@ export function Layout() {
                 {profile.messages_used} / {profile.message_quota} messages
               </div>
               <div className="w-full bg-gray-200 rounded-full h-1 mt-1">
-                <div 
+                <div
                   className="bg-blue-600 h-1 rounded-full transition-all duration-300"
-                  style={{ 
-                    width: `${Math.min((profile.messages_used / profile.message_quota) * 100, 100)}%` 
+                  style={{
+                    width: `${Math.min(
+                      (profile.messages_used / profile.message_quota) * 100,
+                      100
+                    )}%`,
                   }}
                 />
               </div>
@@ -102,7 +122,8 @@ export function Layout() {
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <h1 className="text-2xl font-semibold text-gray-900">
-                  {navigation.find((item) => item.href === location.pathname)?.name || 'Dashboard'}
+                  {navigation.find((item) => item.href === location.pathname)
+                    ?.name || "Dashboard"}
                 </h1>
               </div>
               <div className="flex items-center space-x-4">

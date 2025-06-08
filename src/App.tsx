@@ -13,6 +13,8 @@ import { Dashboard } from './components/dashboard/Dashboard';
 import { ChatbotBuilder } from './components/chatbot/ChatbotBuilder';
 import { Analytics } from './components/analytics/Analytics';
 import { SubscriptionManager } from './components/subscription/SubscriptionManager';
+import { DocumentationPage } from './components/help/DocumentationPage';
+import { HelpButton } from './components/help/HelpButton';
 import { Button } from './components/ui/Button';
 import { Card } from './components/ui/Card';
 
@@ -40,6 +42,7 @@ function App() {
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<LandingPage />} />
+            <Route path="/docs" element={<DocumentationPage />} />
             <Route 
               path="/auth" 
               element={
@@ -82,6 +85,9 @@ function App() {
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/\" replace />} />
           </Routes>
+          
+          {/* Help Button - Show on all authenticated pages */}
+          {user && <HelpButton />}
           
           <Toaster
             position="top-right"

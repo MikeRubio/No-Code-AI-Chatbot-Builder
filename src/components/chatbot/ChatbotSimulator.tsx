@@ -1,14 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Send,
-  Bot,
-  User,
-  ThumbsUp,
-  ThumbsDown,
-  RotateCcw,
-  Star,
-} from "lucide-react";
+import { Send, Bot, User, RotateCcw, Star } from "lucide-react";
 import { Button } from "../ui/Button";
 import { useConversationLogger } from "../../hooks/useConversationLogger";
 import { openAIService } from "../../lib/openai";
