@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 import { personalFAQTemplate } from './personalFAQTemplate';
+import { aiFAQTemplate } from './aiFAQTemplate';
 
 export interface ChatbotTemplate {
   id: string;
@@ -18,7 +19,10 @@ export interface ChatbotTemplate {
 }
 
 export const chatbotTemplates: ChatbotTemplate[] = [
-  // Add the personal FAQ template first
+  // Add the AI FAQ template first (featured)
+  aiFAQTemplate,
+  
+  // Add the personal FAQ template
   personalFAQTemplate,
   
   {

@@ -1,7 +1,5 @@
 public/*
 dist/*
-hooks/*
-lib/*
 supabase/migrations/*
 src/components/analytic/*
 src/components/auth/*

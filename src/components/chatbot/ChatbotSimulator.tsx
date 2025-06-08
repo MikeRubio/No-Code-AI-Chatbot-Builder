@@ -10,8 +10,8 @@ import {
   Star,
 } from "lucide-react";
 import { Button } from "../ui/Button";
-import { Card } from "../ui/Card";
 import { useConversationLogger } from "../../hooks/useConversationLogger";
+import { openAIService } from "../../lib/openai";
 import { v4 as uuidv4 } from "uuid";
 
 interface Message {
@@ -46,6 +46,9 @@ export function ChatbotSimulator({
   const [userIdentifier] = useState(() => `simulator_${Date.now()}`);
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackGiven, setFeedbackGiven] = useState(false);
+  const [conversationHistory, setConversationHistory] = useState<
+    Array<{ sender: string; content: string }>
+  >([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const logger = useConversationLogger();
@@ -60,6 +63,70 @@ export function ChatbotSimulator({
     scrollToBottom();
   }, [messages]);
 
+  useEffect(() => {
+    // Initialize OpenAI service with chatbot context
+    if (chatbot) {
+      openAIService.setChatbotContext(
+        `Business: ${chatbot.name}. ${chatbot.description || ""}`
+      );
+
+      // Load FAQ context if available
+      loadFAQContext();
+    }
+  }, [chatbot]);
+
+  const loadFAQContext = async () => {
+    try {
+      // In a real implementation, this would load from the database
+      // For now, we'll use some sample FAQ data
+      const sampleFAQ = [
+        {
+          question: "What are your business hours?",
+          answer:
+            "We're open Monday-Friday 9AM-6PM, Saturday 10AM-4PM, and closed on Sunday.",
+          keywords: [
+            "hours",
+            "open",
+            "schedule",
+            "time",
+            "monday",
+            "friday",
+            "weekend",
+          ],
+        },
+        {
+          question: "How can I contact support?",
+          answer:
+            "You can reach our support team at support@company.com or call (555) 123-4567.",
+          keywords: [
+            "contact",
+            "support",
+            "help",
+            "email",
+            "phone",
+            "assistance",
+          ],
+        },
+        {
+          question: "What services do you offer?",
+          answer:
+            "We offer consulting, implementation, and ongoing support services for businesses of all sizes.",
+          keywords: [
+            "services",
+            "consulting",
+            "implementation",
+            "support",
+            "business",
+          ],
+        },
+      ];
+
+      openAIService.setFAQContext(sampleFAQ);
+    } catch (error) {
+      console.error("Failed to load FAQ context:", error);
+    }
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -68,38 +135,50 @@ export function ChatbotSimulator({
   const substituteVariables = (content: string, variables: any = {}) => {
     let substitutedContent = content;
 
-    // Replace all variable patterns
-    Object.keys(variables).forEach((key) => {
-      const value = variables[key] || "";
-      const patterns = [
-        new RegExp(`\\{${key}\\}`, "g"),
-        new RegExp(`\\{\\{${key}\\}\\}`, "g"),
-      ];
-
-      patterns.forEach((pattern) => {
-        substitutedContent = substitutedContent.replace(pattern, value);
-      });
-    });
-
-    // Also handle common variable names
-    const commonMappings = {
+    // Create a comprehensive mapping of all possible variable names
+    const allVariables = {
+      ...variables,
+      // Common name mappings
       user_name:
-        variables.user_name || variables.first_name || variables.name || "",
+        variables.user_name ||
+        variables.first_name ||
+        variables.name ||
+        variables.contact_name ||
+        "",
       first_name:
-        variables.first_name || variables.user_name || variables.name || "",
-      name: variables.name || variables.first_name || variables.user_name || "",
+        variables.first_name ||
+        variables.user_name ||
+        variables.name ||
+        variables.contact_name ||
+        "",
+      name:
+        variables.name ||
+        variables.first_name ||
+        variables.user_name ||
+        variables.contact_name ||
+        "",
+      contact_name:
+        variables.contact_name ||
+        variables.name ||
+        variables.first_name ||
+        variables.user_name ||
+        "",
     };
 
-    Object.keys(commonMappings).forEach((key) => {
-      const value = commonMappings[key];
-      const patterns = [
-        new RegExp(`\\{${key}\\}`, "g"),
-        new RegExp(`\\{\\{${key}\\}\\}`, "g"),
-      ];
+    // Replace all variable patterns
+    Object.keys(allVariables).forEach((key) => {
+      const value = allVariables[key] || "";
+      if (value) {
+        // Only substitute if we have a value
+        const patterns = [
+          new RegExp(`\\{${key}\\}`, "g"),
+          new RegExp(`\\{\\{${key}\\}\\}`, "g"),
+        ];
 
-      patterns.forEach((pattern) => {
-        substitutedContent = substitutedContent.replace(pattern, value);
-      });
+        patterns.forEach((pattern) => {
+          substitutedContent = substitutedContent.replace(pattern, value);
+        });
+      }
     });
 
     return substitutedContent;
@@ -136,6 +215,14 @@ export function ChatbotSimulator({
       setMessages([welcomeMessage]);
       setCurrentNodeId(startNode.id);
 
+      // Update conversation history
+      setConversationHistory([
+        {
+          sender: "bot",
+          content: welcomeMessage.content,
+        },
+      ]);
+
       // Log the welcome message
       await logger.logMessage(conversationId, chatbot.id, userIdentifier, {
         sender: "bot",
@@ -158,7 +245,7 @@ export function ChatbotSimulator({
       conversationId,
       chatbot.id,
       userIdentifier,
-      "reset",
+      "abandoned",
       { reason: "user_reset", messageCount: messages.length }
     );
 
@@ -166,6 +253,7 @@ export function ChatbotSimulator({
     setCurrentNodeId(null);
     setInputValue("");
     setConversationState({});
+    setConversationHistory([]);
     setShowFeedback(false);
     setFeedbackGiven(false);
 
@@ -190,6 +278,15 @@ export function ChatbotSimulator({
     setMessages((prev) => [...prev, userMessage]);
     setInputValue("");
     setIsTyping(true);
+
+    // Update conversation history
+    setConversationHistory((prev) => [
+      ...prev,
+      {
+        sender: "user",
+        content: text,
+      },
+    ]);
 
     // Log user message
     await logger.logMessage(conversationId, chatbot.id, userIdentifier, {
@@ -222,24 +319,40 @@ export function ChatbotSimulator({
     let intentDetected = null;
     let confidenceScore = null;
 
-    // Store user input in conversation state for all node types
-    const updatedState = {
-      ...conversationState,
-      last_user_input: userInput,
-    };
-
-    // Handle different node types
+    // Handle different node types and update conversation state
     switch (currentNode.data.nodeType) {
       case "lead_capture": {
         // Store the captured information with multiple key mappings
         const fieldName = currentNode.data.fields?.[0]?.name || "user_input";
         const newState = {
-          ...updatedState,
+          ...conversationState,
           [fieldName]: userInput,
-          user_name: userInput,
-          first_name: userInput,
-          name: userInput,
+          // Store with common name variations for easy access
+          user_name: fieldName.includes("name")
+            ? userInput
+            : conversationState.user_name,
+          first_name: fieldName.includes("name")
+            ? userInput
+            : conversationState.first_name,
+          name: fieldName.includes("name") ? userInput : conversationState.name,
+          contact_name: fieldName.includes("name")
+            ? userInput
+            : conversationState.contact_name,
+          last_user_input: userInput,
         };
+
+        // If this is a name field, store it in all name variations
+        if (
+          fieldName.includes("name") ||
+          fieldName === "first_name" ||
+          fieldName === "user_name"
+        ) {
+          newState.user_name = userInput;
+          newState.first_name = userInput;
+          newState.name = userInput;
+          newState.contact_name = userInput;
+        }
+
         setConversationState(newState);
 
         botResponse = `Thank you, ${userInput}!`;
@@ -259,14 +372,35 @@ export function ChatbotSimulator({
         if (selectedOption) {
           // Store the selection in conversation state with multiple mappings
           const questionState = {
-            ...updatedState,
+            ...conversationState,
             [currentNode.id]: selectedOption,
             selected_option: selectedOption,
-            visitor_type: selectedOption, // For lead capture template
-            company_size: selectedOption,
-            current_challenge: selectedOption,
-            timeline: selectedOption,
-            budget: selectedOption,
+            last_user_input: userInput,
+            // Store for different template types
+            visitor_type: currentNode.data.label?.includes("Visitor")
+              ? selectedOption
+              : conversationState.visitor_type,
+            company_size: currentNode.data.label?.includes("Company")
+              ? selectedOption
+              : conversationState.company_size,
+            current_challenge: currentNode.data.label?.includes("Challenge")
+              ? selectedOption
+              : conversationState.current_challenge,
+            timeline: currentNode.data.label?.includes("Timeline")
+              ? selectedOption
+              : conversationState.timeline,
+            budget: currentNode.data.label?.includes("Budget")
+              ? selectedOption
+              : conversationState.budget,
+            selected_category: currentNode.data.label?.includes("Categories")
+              ? selectedOption
+              : conversationState.selected_category,
+            helpful_response: currentNode.data.label?.includes("helpful")
+              ? selectedOption
+              : conversationState.helpful_response,
+            followup_choice: currentNode.data.label?.includes("Anything Else")
+              ? selectedOption
+              : conversationState.followup_choice,
           };
           setConversationState(questionState);
 
@@ -281,24 +415,32 @@ export function ChatbotSimulator({
         break;
       }
 
-      case "ai_response":
-        // Generate AI response
+      case "ai_response": {
+        // Generate AI response using OpenAI
         const aiResponse = await generateAIResponse(userInput, currentNode);
         botResponse = aiResponse.response;
         intentDetected = aiResponse.intent;
         confidenceScore = aiResponse.confidence;
-        setConversationState(updatedState);
+
+        setConversationState((prev) => ({
+          ...prev,
+          last_user_input: userInput,
+        }));
         break;
+      }
 
       default:
         botResponse = "I understand. Let me help you with that.";
         intentDetected = "general_inquiry";
         confidenceScore = 0.7;
-        setConversationState(updatedState);
+        setConversationState((prev) => ({
+          ...prev,
+          last_user_input: userInput,
+        }));
     }
 
     if (botResponse) {
-      // Substitute variables in the bot response
+      // Substitute variables in the bot response using UPDATED conversation state
       const substitutedResponse = substituteVariables(
         botResponse,
         conversationState
@@ -314,6 +456,15 @@ export function ChatbotSimulator({
       };
 
       setMessages((prev) => [...prev, botMessage]);
+
+      // Update conversation history
+      setConversationHistory((prev) => [
+        ...prev,
+        {
+          sender: "bot",
+          content: substitutedResponse,
+        },
+      ]);
 
       // Log bot response
       await logger.logMessage(conversationId, chatbot.id, userIdentifier, {
@@ -332,6 +483,90 @@ export function ChatbotSimulator({
     setTimeout(() => {
       moveToNextNode(currentNodeId, userInput);
     }, 500);
+  };
+
+  const generateAIResponse = async (
+    userInput: string,
+    node: any
+  ): Promise<{
+    response: string;
+    intent: string;
+    confidence: number;
+  }> => {
+    try {
+      // Use OpenAI service to generate response
+      const aiResponse = await openAIService.generateResponse(
+        userInput,
+        node.data.systemPrompt || node.data.content,
+        conversationHistory,
+        {
+          conversationState,
+          nodeContext: node.data,
+          chatbotInfo: {
+            name: chatbot.name,
+            description: chatbot.description,
+          },
+        }
+      );
+
+      return {
+        response: aiResponse.response,
+        intent: aiResponse.intent,
+        confidence: aiResponse.confidence,
+      };
+    } catch (error) {
+      console.error("AI response generation failed:", error);
+
+      // Fallback to simple responses
+      const input = userInput.toLowerCase();
+      const userName =
+        conversationState.user_name ||
+        conversationState.first_name ||
+        conversationState.name ||
+        "";
+
+      if (input.includes("hello") || input.includes("hi")) {
+        return {
+          response: `Hello${
+            userName ? `, ${userName}` : ""
+          }! I'm here to help you. What can I do for you today?`,
+          intent: "greeting",
+          confidence: 0.95,
+        };
+      } else if (input.includes("help")) {
+        return {
+          response: `I'd be happy to help you${
+            userName ? `, ${userName}` : ""
+          }! You can ask me about our services, pricing, or any other questions you might have.`,
+          intent: "help_request",
+          confidence: 0.9,
+        };
+      } else if (input.includes("price") || input.includes("cost")) {
+        return {
+          response: `Our pricing is very competitive${
+            userName ? `, ${userName}` : ""
+          }! We offer different plans to suit your needs. Would you like me to show you our pricing options?`,
+          intent: "pricing_inquiry",
+          confidence: 0.85,
+        };
+      } else if (input.includes("thank")) {
+        return {
+          response: `You're very welcome${
+            userName ? `, ${userName}` : ""
+          }! Is there anything else I can help you with?`,
+          intent: "gratitude",
+          confidence: 0.9,
+        };
+      } else {
+        return {
+          response: `I understand you're asking about "${userInput}"${
+            userName ? `, ${userName}` : ""
+          }. Let me help you with that. For the most accurate information, I'd recommend speaking with one of our team members who can provide detailed assistance.`,
+          intent: "general_inquiry",
+          confidence: 0.7,
+        };
+      }
+    }
   };
 
   const moveToNextNode = (fromNodeId: string, userInput?: string) => {
@@ -405,9 +640,11 @@ export function ChatbotSimulator({
         break;
       }
 
-      case "conditional": { // Handle conditional logic - this is where the flow was breaking
+      case "conditional": {
+        // Handle conditional logic - this is where the flow was breaking
         const conditions = nextNode.data.conditions || [];
         let conditionMet = false;
+        let targetNodeId = null;
 
         for (const condition of conditions) {
           const variableValue = conversationState[condition.variable] || "";
@@ -437,14 +674,35 @@ export function ChatbotSimulator({
 
           if (matches) {
             conditionMet = true;
+            // Find the edge with this condition
+            const conditionalEdge = flow.edges.find(
+              (edge: any) =>
+                edge.source === nextNode.id &&
+                edge.condition === condition.action
+            );
+            if (conditionalEdge) {
+              targetNodeId = conditionalEdge.target;
+            }
             break;
           }
         }
 
-        // If conditional node, immediately move to next node without showing a message
-        setTimeout(() => {
-          moveToNextNode(nextNode.id);
-        }, 100);
+        // If no condition met, take the first edge without condition
+        if (!conditionMet) {
+          const defaultEdge = flow.edges.find(
+            (edge: any) => edge.source === nextNode.id && !edge.condition
+          );
+          if (defaultEdge) {
+            targetNodeId = defaultEdge.target;
+          }
+        }
+
+        // If conditional node, immediately move to target node without showing a message
+        if (targetNodeId) {
+          setTimeout(() => {
+            moveToNextNode(targetNodeId);
+          }, 100);
+        }
         return;
       }
 
@@ -468,11 +726,11 @@ export function ChatbotSimulator({
 
       case "api_webhook":
         botResponse = "Processing your information...";
-        // Simulate API call delay
+        // Simulate API call delay and move to next node
         setTimeout(() => {
           moveToNextNode(nextNode.id);
         }, 1500);
-        break;
+        return;
 
       case "survey": {
         botResponse =
@@ -489,7 +747,7 @@ export function ChatbotSimulator({
     }
 
     if (botResponse) {
-      // Substitute variables in the response
+      // Substitute variables in the response using current conversation state
       const substitutedResponse = substituteVariables(
         botResponse,
         conversationState
@@ -508,6 +766,15 @@ export function ChatbotSimulator({
       setTimeout(async () => {
         setMessages((prev) => [...prev, botMessage]);
 
+        // Update conversation history
+        setConversationHistory((prev) => [
+          ...prev,
+          {
+            sender: "bot",
+            content: substitutedResponse,
+          },
+        ]);
+
         // Log bot message
         await logger.logMessage(conversationId, chatbot.id, userIdentifier, {
           sender: "bot",
@@ -517,75 +784,6 @@ export function ChatbotSimulator({
           responseTimeMs: 300,
         });
       }, 500);
-    }
-  };
-
-  const generateAIResponse = async (
-    userInput: string,
-    node: any
-  ): Promise<{
-    response: string;
-    intent: string;
-    confidence: number;
-  }> => {
-    // Simulate AI processing delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    // In a real implementation, this would call OpenAI API
-    const systemPrompt = node.data.systemPrompt || node.data.content;
-
-    // Simple keyword-based responses for simulation
-    const input = userInput.toLowerCase();
-    const userName =
-      conversationState.user_name ||
-      conversationState.first_name ||
-      conversationState.name ||
-      "";
-
-    if (input.includes("hello") || input.includes("hi")) {
-      return {
-        response: `Hello${
-          userName ? `, ${userName}` : ""
-        }! I'm here to help you. What can I do for you today?`,
-        intent: "greeting",
-        confidence: 0.95,
-      };
-    } else if (input.includes("help")) {
-      return {
-        response: `I'd be happy to help you${
-          userName ? `, ${userName}` : ""
-        }! You can ask me about our services, pricing, or any other questions you might have.`,
-        intent: "help_request",
-        confidence: 0.9,
-      };
-    } else if (input.includes("price") || input.includes("cost")) {
-      return {
-        response: `Our pricing is very competitive${
-          userName ? `, ${userName}` : ""
-        }! We offer different plans to suit your needs. Would you like me to show you our pricing options?`,
-        intent: "pricing_inquiry",
-        confidence: 0.85,
-      };
-    } else if (input.includes("thank")) {
-      return {
-        response: `You're very welcome${
-          userName ? `, ${userName}` : ""
-        }! Is there anything else I can help you with?`,
-        intent: "gratitude",
-        confidence: 0.9,
-      };
-    } else {
-      return {
-        response: `I understand you're asking about "${userInput}"${
-          userName ? `, ${userName}` : ""
-        }. ${
-          systemPrompt
-            ? `Based on my instructions: ${systemPrompt}`
-            : "Let me help you with that."
-        } In a real implementation, this would be powered by OpenAI for more intelligent responses.`,
-        intent: "general_inquiry",
-        confidence: 0.7,
-      };
     }
   };
 

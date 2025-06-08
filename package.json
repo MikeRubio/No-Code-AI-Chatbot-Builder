@@ -25,7 +25,8 @@
     "reactflow": "^11.10.1",
     "react-beautiful-dnd": "^13.1.1",
     "date-fns": "^2.30.0",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "openai": "^4.20.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",

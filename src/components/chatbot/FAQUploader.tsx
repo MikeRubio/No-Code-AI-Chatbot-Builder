@@ -5,6 +5,7 @@ import { Upload, File, CheckCircle, XCircle, Loader } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 import { supabase } from '../../lib/supabase';
+import { openAIService } from '../../lib/openai';
 import toast from 'react-hot-toast';
 
 interface FAQUploaderProps {
@@ -18,6 +19,7 @@ interface UploadedFile {
   status: 'uploading' | 'processing' | 'completed' | 'failed';
   progress: number;
   error?: string;
+  faqCount?: number;
 }
 
 export function FAQUploader({ chatbotId, onUploadComplete }: FAQUploaderProps) {
@@ -41,11 +43,11 @@ export function FAQUploader({ chatbotId, onUploadComplete }: FAQUploaderProps) {
         
         // Update progress
         setUploadedFiles(prev => prev.map(f => 
-          f.id === fileId ? { ...f, progress: 50 } : f
+          f.id === fileId ? { ...f, progress: 30 } : f
         ));
 
-        // Save to database
-        const { data, error } = await supabase
+        // Save document to database
+        const { data: document, error: docError } = await supabase
           .from('faq_documents')
           .insert({
             chatbot_id: chatbotId,
@@ -53,40 +55,82 @@ export function FAQUploader({ chatbotId, onUploadComplete }: FAQUploaderProps) {
             file_type: file.type,
             file_size: file.size,
             content: content,
-            processing_status: 'pending'
+            processing_status: 'processing'
           })
           .select()
           .single();
 
-        if (error) throw error;
+        if (docError) throw docError;
 
         // Update status to processing
         setUploadedFiles(prev => prev.map(f => 
-          f.id === fileId ? { ...f, status: 'processing', progress: 75 } : f
+          f.id === fileId ? { ...f, status: 'processing', progress: 50 } : f
         ));
 
-        // Call processing function
-        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-faq-document`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ documentId: data.id }),
-        });
+        // Process FAQ content using OpenAI
+        const faqEntries = await openAIService.processFAQDocument(content, file.name);
+        
+        // Update progress
+        setUploadedFiles(prev => prev.map(f => 
+          f.id === fileId ? { ...f, progress: 75 } : f
+        ));
 
-        if (!response.ok) throw new Error('Failed to process document');
+        // Save FAQ entries to database
+        if (faqEntries.length > 0) {
+          const faqInserts = faqEntries.map(entry => ({
+            document_id: document.id,
+            chatbot_id: chatbotId,
+            question: entry.question,
+            answer: entry.answer,
+            keywords: entry.keywords
+          }));
+
+          const { error: faqError } = await supabase
+            .from('faq_entries')
+            .insert(faqInserts);
+
+          if (faqError) throw faqError;
+        }
+
+        // Update document status
+        await supabase
+          .from('faq_documents')
+          .update({ 
+            processing_status: 'completed',
+            processed_at: new Date().toISOString()
+          })
+          .eq('id', document.id);
 
         // Update status to completed
         setUploadedFiles(prev => prev.map(f => 
-          f.id === fileId ? { ...f, status: 'completed', progress: 100 } : f
+          f.id === fileId ? { 
+            ...f, 
+            status: 'completed', 
+            progress: 100,
+            faqCount: faqEntries.length
+          } : f
         ));
 
-        toast.success(`${file.name} processed successfully!`);
+        toast.success(`${file.name} processed successfully! Found ${faqEntries.length} FAQ entries.`);
         onUploadComplete();
 
       } catch (error: any) {
         console.error('Upload error:', error);
+        
+        // Update document status to failed if it was created
+        try {
+          await supabase
+            .from('faq_documents')
+            .update({ 
+              processing_status: 'failed',
+              error_message: error.message
+            })
+            .eq('chatbot_id', chatbotId)
+            .eq('filename', file.name);
+        } catch (updateError) {
+          console.error('Failed to update document status:', updateError);
+        }
+
         setUploadedFiles(prev => prev.map(f => 
           f.id === fileId ? { 
             ...f, 
@@ -132,7 +176,7 @@ export function FAQUploader({ chatbotId, onUploadComplete }: FAQUploaderProps) {
           Upload FAQ Documents
         </h3>
         <p className="text-gray-600 mb-4">
-          Upload your FAQ documents to train your chatbot. Supported formats: TXT, CSV, PDF (up to 10MB each).
+          Upload your FAQ documents to train your chatbot with AI-powered processing. Supported formats: TXT, CSV, PDF (up to 10MB each).
         </p>
 
         <div
@@ -157,6 +201,18 @@ export function FAQUploader({ chatbotId, onUploadComplete }: FAQUploaderProps) {
               </p>
             </div>
           )}
+        </div>
+
+        {/* AI Processing Info */}
+        <div className="mt-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4">
+          <h4 className="font-medium text-gray-900 mb-2 flex items-center">
+            <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+            AI-Powered Processing
+          </h4>
+          <p className="text-sm text-gray-700">
+            Our AI will automatically extract questions and answers from your documents, 
+            generate relevant keywords, and optimize them for intelligent responses.
+          </p>
         </div>
 
         {/* Format Examples */}
@@ -203,12 +259,20 @@ A: Email us at support@company.com`}
                     <div className="flex items-center space-x-2">
                       <div className="w-32 bg-gray-200 rounded-full h-2">
                         <div 
-                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                          className={`h-2 rounded-full transition-all duration-300 ${
+                            file.status === 'completed' ? 'bg-green-600' :
+                            file.status === 'failed' ? 'bg-red-600' : 'bg-blue-600'
+                          }`}
                           style={{ width: `${file.progress}%` }}
                         />
                       </div>
                       <span className="text-xs text-gray-500">{file.progress}%</span>
                     </div>
+                    {file.status === 'completed' && file.faqCount && (
+                      <p className="text-xs text-green-600 mt-1">
+                        ✓ {file.faqCount} FAQ entries extracted
+                      </p>
+                    )}
                     {file.error && (
                       <p className="text-xs text-red-600 mt-1">{file.error}</p>
                     )}
@@ -219,7 +283,10 @@ A: Email us at support@company.com`}
                     <Loader className="w-5 h-5 text-blue-600 animate-spin" />
                   )}
                   {file.status === 'processing' && (
-                    <Loader className="w-5 h-5 text-orange-600 animate-spin" />
+                    <div className="flex items-center space-x-1">
+                      <Loader className="w-5 h-5 text-orange-600 animate-spin" />
+                      <span className="text-xs text-orange-600">AI Processing...</span>
+                    </div>
                   )}
                   {file.status === 'completed' && (
                     <CheckCircle className="w-5 h-5 text-green-600" />

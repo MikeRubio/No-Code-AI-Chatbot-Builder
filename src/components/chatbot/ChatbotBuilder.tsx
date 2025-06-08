@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import ReactFlow, {
   Node,
+  Edge,
   addEdge,
   Connection,
   useNodesState,
@@ -18,15 +19,20 @@ import ReactFlow, {
 } from "reactflow";
 import "reactflow/dist/style.css";
 import {
+  Plus,
   MessageSquare,
   HelpCircle,
   Zap,
   Play,
   Save,
+  Settings,
+  Trash2,
+  Bot,
   Upload,
   TestTube,
   Share,
   MessageCircle,
+  Target,
   Calendar,
   User,
   Brain,
@@ -34,6 +40,7 @@ import {
   Globe,
   FileUp,
   BarChart3,
+  Users,
   Headphones,
   Sparkles,
 } from "lucide-react";
@@ -716,17 +723,6 @@ function ChatbotBuilderContent() {
                   <BarChart3 className="w-4 h-4 mr-2" />
                   A/B Testing
                 </Button>
-
-                {canUseFeature("whatsapp") && (
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => setShowWhatsAppSetup(true)}
-                  >
-                    <MessageCircle className="w-4 h-4 mr-2" />
-                    WhatsApp Setup
-                  </Button>
-                )}
               </div>
             </div>
           )}
