@@ -113,7 +113,10 @@ export function TemplateSelector({
     <>
       <Modal
         isOpen={isOpen}
-        onClose={onClose}
+        onClose={() => {
+          setSkippedTemplate(true);
+          onClose();
+        }}
         title="Choose a Template"
         size="xl"
       >
