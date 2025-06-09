@@ -23,10 +23,10 @@ import {
   Upload,
   TestTube,
   Share,
-  MessageCircle,
   Globe,
   BarChart3,
   Sparkles,
+  MessageCircle,
 } from "lucide-react";
 import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
@@ -50,7 +50,6 @@ import { nodeTypeDefinitions } from "./utils";
 const nodeTypes: NodeTypes = {
   custom: CustomNode,
 };
-
 // Custom edge style
 const edgeTypes: EdgeTypes = {};
 
@@ -80,7 +79,7 @@ function ChatbotBuilderContent() {
   const [skippedTemplate, setSkippedTemplate] = useState(false);
   const [chatbotName, setChatbotName] = useState("");
   const [chatbotDescription, setChatbotDescription] = useState("");
-  const [draggedNodeType, setDraggedNodeType] = useState<string | null>(null);
+  // const [draggedNodeType, setDraggedNodeType] = useState<string | null>(null);
 
   const {
     chatbots,
@@ -111,9 +110,8 @@ function ChatbotBuilderContent() {
     if (currentChatbot) {
       setChatbotName(currentChatbot.name);
       setChatbotDescription(currentChatbot.description || "");
-
       if (currentChatbot.flow_data?.nodes) {
-        const flowNodes = currentChatbot.flow_data.nodes.map((node: any) => ({
+        const flowNodes = currentChatbot.flow_data.nodes.map((node: Node) => ({
           id: node.id,
           type: "custom",
           position: node.position || { x: 100, y: 100 },
@@ -139,35 +137,8 @@ function ChatbotBuilderContent() {
       setChatbotDescription("");
       setSelectedNode(null);
     }
+    // eslint-disable-next-line
   }, [currentChatbot, id]);
-
-  // Handle template selection
-  const handleTemplateSelect = useCallback(
-    (template: ChatbotTemplate) => {
-      setChatbotName(template.name);
-      setChatbotDescription(template.description);
-
-      // Convert template nodes to React Flow format
-      const templateNodes = template.flow.nodes.map((node: any) => ({
-        id: node.id,
-        type: "custom",
-        position: node.position,
-        data: {
-          ...node.data,
-          onEdit: handleNodeEdit,
-          onDelete: handleNodeDelete,
-          isSelected: false,
-        },
-      }));
-
-      setNodes(templateNodes);
-      setEdges(template.flow.edges);
-      setShowTemplateSelector(false);
-
-      toast.success(`${template.name} template loaded successfully!`);
-    },
-    [setNodes, setEdges]
-  );
 
   // Handle node selection
   const onNodeClick = useCallback(
@@ -205,52 +176,6 @@ function ChatbotBuilderContent() {
     event.preventDefault();
     event.dataTransfer.dropEffect = "move";
   }, []);
-
-  // Handle drop on canvas
-  const onDrop = useCallback(
-    (event: React.DragEvent) => {
-      event.preventDefault();
-
-      if (!draggedNodeType || !reactFlowInstance) return;
-
-      const position = reactFlowInstance.screenToFlowPosition({
-        x: event.clientX,
-        y: event.clientY,
-      });
-
-      const nodeTypeDef = nodeTypeDefinitions.find(
-        (def) => def.type === draggedNodeType
-      );
-      if (!nodeTypeDef) return;
-
-      // Check if user can use this node type
-      if (nodeTypeDef.requiresPro && profile?.plan === "free") {
-        toast.error(
-          "This feature requires a Pro plan. Please upgrade to continue."
-        );
-        return;
-      }
-
-      const newNode: Node = {
-        id: `node-${Date.now()}`,
-        type: "custom",
-        position,
-        data: {
-          nodeType: draggedNodeType,
-          label: nodeTypeDef.title,
-          content: "",
-          options: [],
-          onEdit: handleNodeEdit,
-          onDelete: handleNodeDelete,
-          isSelected: false,
-        },
-      };
-
-      setNodes((nds) => nds.concat(newNode));
-      setDraggedNodeType(null);
-    },
-    [draggedNodeType, reactFlowInstance, profile, setNodes]
-  );
 
   // Handle node editing
   const handleNodeEdit = useCallback(
@@ -306,6 +231,85 @@ function ChatbotBuilderContent() {
     [setNodes]
   );
 
+  // Handle template selection
+  const handleTemplateSelect = useCallback(
+    (template: ChatbotTemplate) => {
+      setChatbotName(template.name);
+      setChatbotDescription(template.description);
+
+      // Convert template nodes to React Flow format
+      const templateNodes = template.flow.nodes.map((node: Node) => ({
+        id: node.id,
+        type: "custom",
+        position: node.position,
+        data: {
+          ...node.data,
+          onEdit: handleNodeEdit,
+          onDelete: handleNodeDelete,
+          isSelected: false,
+        },
+      }));
+
+      setNodes(templateNodes);
+      setEdges(template.flow.edges);
+      setShowTemplateSelector(false);
+
+      toast.success(`${template.name} template loaded successfully!`);
+    },
+    [setNodes, setEdges, handleNodeEdit, handleNodeDelete]
+  );
+
+  // Handle drop on canvas
+  const onDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
+
+      const type = event.dataTransfer.getData("application/reactflow");
+      if (!type || !reactFlowInstance) return;
+
+      const position = reactFlowInstance.screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+
+      const nodeTypeDef = nodeTypeDefinitions.find((def) => def.type === type);
+      if (!nodeTypeDef) return;
+
+      // Check if user can use this node type
+      if (nodeTypeDef.requiresPro && profile?.plan === "free") {
+        toast.error(
+          "This feature requires a Pro plan. Please upgrade to continue."
+        );
+        return;
+      }
+
+      const newNode: Node = {
+        id: `node-${Date.now()}`,
+        type: "custom",
+        position,
+        data: {
+          nodeType: type,
+          label: nodeTypeDef.title,
+          content: "",
+          options: [],
+          onEdit: handleNodeEdit,
+          onDelete: handleNodeDelete,
+          isSelected: false,
+        },
+      };
+
+      setNodes((nds) => nds.concat(newNode));
+      // setDraggedNodeType(null);
+    },
+    [
+      reactFlowInstance,
+      profile?.plan,
+      handleNodeEdit,
+      handleNodeDelete,
+      setNodes,
+    ]
+  );
+
   // Save chatbot flow
   const handleSave = async () => {
     if (!chatbotName.trim()) {
@@ -335,7 +339,6 @@ function ChatbotBuilderContent() {
         id: edge.id,
         source: edge.source,
         target: edge.target,
-        // Only include sourceHandle/targetHandle if you use them in your nodes
         ...(edge.sourceHandle && { sourceHandle: edge.sourceHandle }),
         ...(edge.targetHandle && { targetHandle: edge.targetHandle }),
       })),
@@ -370,7 +373,11 @@ function ChatbotBuilderContent() {
           toast.error("Failed to create chatbot. Please try again.");
         }
       } catch (err) {
-        toast.error(err.message || "Failed to create chatbot");
+        if (err instanceof Error) {
+          toast.error(err.message || "Failed to create chatbot");
+        } else {
+          toast.error("Failed to create chatbot");
+        }
       }
     }
   };
@@ -411,332 +418,296 @@ function ChatbotBuilderContent() {
 
   // Handle drag start for node types
   const onDragStart = (event: React.DragEvent, nodeType: string) => {
-    setDraggedNodeType(nodeType);
+    // setDraggedNodeType(nodeType);
+    event.dataTransfer.setData("application/reactflow", nodeType);
     event.dataTransfer.effectAllowed = "move";
   };
 
   return (
-    <div className="h-full flex">
+    <div className="flex bg-gray-950">
       {/* Sidebar */}
-      <div className="w-80 bg-white/70 backdrop-blur-sm border-r border-gray-200 overflow-y-auto">
+      <aside className="h-[90vh] w-80 bg-gray-900 border-r border-gray-800 flex-shrink-0 overflow-y-auto">
         <div className="p-6 space-y-6">
-          {/* Chatbot Settings */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Chatbot Settings
-            </h3>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Name
-                </label>
-                <input
-                  type="text"
-                  value={chatbotName}
-                  onChange={(e) => setChatbotName(e.target.value)}
-                  placeholder="My Awesome Chatbot"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description
-                </label>
-                <textarea
-                  value={chatbotDescription}
-                  onChange={(e) => setChatbotDescription(e.target.value)}
-                  placeholder="Describe what your chatbot does..."
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
+          <h3 className="text-lg font-semibold text-gray-100 mb-4">
+            Chatbot Settings
+          </h3>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Name
+              </label>
+              <input
+                type="text"
+                value={chatbotName}
+                onChange={(e) => setChatbotName(e.target.value)}
+                placeholder="My Awesome Chatbot"
+                className="w-full px-3 py-2 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-900 text-gray-100"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Description
+              </label>
+              <textarea
+                value={chatbotDescription}
+                onChange={(e) => setChatbotDescription(e.target.value)}
+                placeholder="Describe what your chatbot does..."
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-900 text-gray-100"
+              />
             </div>
           </div>
-
-          {/* Template Button */}
-          {!id && (
+          <Button
+            className="w-full"
+            variant="primary"
+            onClick={handleSave}
+            disabled={isCreating || isUpdating}
+          >
+            <Save className="w-4 h-4 mr-2" />
+            {isCreating || isUpdating ? "Saving..." : "Save Flow"}
+          </Button>
+          {currentChatbot && (
+            <>
+              <Button
+                className="w-full"
+                variant="outline"
+                onClick={() => setShowSimulator(true)}
+              >
+                <TestTube className="w-4 h-4 mr-2" />
+                Test Bot
+              </Button>
+              <Button
+                className="w-full"
+                variant="outline"
+                onClick={handlePublish}
+              >
+                <Share className="w-4 h-4 mr-2" />
+                Publish
+              </Button>
+            </>
+          )}
+          {currentChatbot && canUseFeature("faq_upload") && (
             <div>
+              <h3 className="text-lg font-semibold text-gray-100 mt-8 mb-4">
+                Advanced Features
+              </h3>
               <Button
                 variant="outline"
-                className="w-full"
-                onClick={() => setShowTemplateSelector(true)}
+                className="w-full justify-start"
+                onClick={() => setShowFAQUploader(true)}
               >
-                <Sparkles className="w-4 h-4 mr-2" />
-                Choose Template
+                <Upload className="w-4 h-4 mr-2" />
+                Upload FAQ
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => setShowMultiChannelSetup(true)}
+              >
+                <Globe className="w-4 h-4 mr-2" />
+                Multi-Channel Deploy
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => setShowABTestManager(true)}
+              >
+                <BarChart3 className="w-4 h-4 mr-2" />
+                A/B Testing
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => setShowWhatsAppSetup(true)}
+              >
+                <MessageCircle className="w-4 h-4 mr-2" />
+                WhatsApp Setup
               </Button>
             </div>
           )}
+        </div>
+      </aside>
 
-          {/* Node Types */}
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Add Nodes
-            </h3>
-            <div className="space-y-4">
-              {["flow", "basic", "ai", "data", "action"].map((category) => (
-                <div key={category}>
-                  <h4 className="text-sm font-medium text-gray-700 mb-2 capitalize">
-                    {category === "ai"
-                      ? "AI Features"
-                      : category === "data"
-                      ? "Data Collection"
-                      : category}
-                  </h4>
-                  <div className="grid grid-cols-2 gap-2">
-                    {nodeTypeDefinitions
-                      .filter((nodeType) => nodeType.category === category)
-                      .map((nodeType) => (
-                        <motion.div
-                          key={nodeType.type}
-                          draggable={canUseFeature(nodeType.type)}
-                          onDragStart={(e) => onDragStart(e, nodeType.type)}
-                          whileHover={{
-                            scale: canUseFeature(nodeType.type) ? 1.05 : 1,
-                          }}
-                          whileTap={{
-                            scale: canUseFeature(nodeType.type) ? 0.95 : 1,
-                          }}
-                          className={`${
-                            canUseFeature(nodeType.type)
-                              ? "cursor-move"
-                              : "cursor-not-allowed opacity-50"
-                          }`}
-                        >
-                          <Card
-                            hover={canUseFeature(nodeType.type)}
-                            className="p-3 text-center"
-                          >
-                            <div
-                              className={`w-6 h-6 bg-gradient-to-r ${nodeType.color} rounded-lg flex items-center justify-center mx-auto mb-1`}
-                            >
-                              <nodeType.icon className="w-3 h-3 text-white" />
-                            </div>
-                            <p className="text-xs font-medium text-gray-900">
-                              {nodeType.title}
-                            </p>
-                            {nodeType.requiresPro &&
-                              profile?.plan === "free" && (
-                                <p className="text-xs text-orange-600 mt-1">
-                                  Pro
-                                </p>
-                              )}
-                          </Card>
-                        </motion.div>
-                      ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="space-y-3">
-            <Button
-              className="w-full"
-              variant="primary"
-              onClick={handleSave}
-              disabled={isCreating || isUpdating}
+      {/* Main area */}
+      <div className="flex-1 flex flex-col">
+        {/* Node selection bar */}
+        <div className="sticky top-0 z-20 bg-gray-950 border-b border-gray-800 px-8 py-4 flex gap-8 overflow-x-auto">
+          {["flow", "basic", "ai", "data", "action"].map((category) => (
+            <div
+              key={category}
+              className="flex flex-col items-center min-w-[140px]"
             >
-              <Save className="w-4 h-4 mr-2" />
-              {isCreating || isUpdating ? "Saving..." : "Save Flow"}
-            </Button>
+              <span className="text-xs font-semibold text-gray-200 mb-2 capitalize">
+                {category === "ai"
+                  ? "AI Features"
+                  : category === "data"
+                  ? "Data Collection"
+                  : category}
+              </span>
+              <div className="grid grid-cols-2 gap-2 rounded-2xl  bg-gray-900/40 px-3 py-2">
+                {nodeTypeDefinitions
+                  .filter((nodeType) => nodeType.category === category)
+                  .map((nodeType) => (
+                    <motion.div
+                      key={nodeType.type}
+                      draggable={canUseFeature(nodeType.type)}
+                      onDragStart={(e) => onDragStart(e, nodeType.type)}
+                      whileHover={{
+                        scale: canUseFeature(nodeType.type) ? 1.05 : 1,
+                      }}
+                      whileTap={{
+                        scale: canUseFeature(nodeType.type) ? 0.95 : 1,
+                      }}
+                      className="inline-block shrink-0"
+                    >
+                      <Card
+                        hover={canUseFeature(nodeType.type)}
+                        className="p-2 w-32 min-w-32 box-border text-center bg-white/10 dark:bg-gray-900/70 border border-gray-500 dark:border-gray-700 rounded-xl"
+                      >
+                        <div
+                          className={`w-6 h-6 bg-gradient-to-r ${nodeType.color} rounded-lg flex items-center justify-center mx-auto mb-1`}
+                        >
+                          <nodeType.icon className="w-3 h-3 text-white" />
+                        </div>
+                        <p className="text-xs font-medium text-gray-100">
+                          {nodeType.title}
+                        </p>
+                        {nodeType.requiresPro && profile?.plan === "free" && (
+                          <p className="text-xs text-orange-400 mt-1">Pro</p>
+                        )}
+                      </Card>
+                    </motion.div>
+                  ))}
+              </div>
+            </div>
+          ))}
+        </div>
 
+        {/* Canvas area */}
+        <div className="flex-1 min-h-0 relative overflow-hidden">
+          <ReactFlowProvider>
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              onNodeClick={onNodeClick}
+              onDrop={onDrop}
+              onDragOver={onDragOver}
+              nodeTypes={nodeTypes}
+              edgeTypes={edgeTypes}
+              defaultEdgeOptions={defaultEdgeOptions}
+              fitView
+              className="bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-blue-950"
+            >
+              <Background color="#e5e7eb" gap={20} />
+              <Controls />
+              <MiniMap
+                nodeColor="#6366f1"
+                maskColor="rgba(255, 255, 255, 0.8)"
+                className="bg-white/70 dark:bg-gray-900/80 backdrop-blur-sm"
+              />
+              {/* Empty state */}
+              {nodes.length === 0 && (
+                <Panel className="mt-44" position="top-center">
+                  <div className="text-center bg-white/70 dark:bg-gray-900/80 backdrop-blur-sm rounded-xl p-8 shadow-lg">
+                    <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                      <MessageSquare className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                      Start Building Your Advanced Chatbot
+                    </h3>
+                    <p className="text-gray-600 dark:text-gray-300 mb-4 max-w-md">
+                      Choose from professional templates or drag and drop nodes
+                      to create sophisticated conversation flows
+                    </p>
+                    <div className="flex space-x-3 justify-center">
+                      <Button onClick={() => setShowTemplateSelector(true)}>
+                        <Sparkles className="w-4 h-4 mr-2" />
+                        Browse Templates
+                      </Button>
+                      <Button variant="outline">Start from Scratch</Button>
+                    </div>
+                  </div>
+                </Panel>
+              )}
+            </ReactFlow>
+
+            {/* Node Properties Panel */}
+            {selectedNode && (
+              <NodePropertiesPanel
+                node={selectedNode}
+                onUpdate={(data) => updateNodeData(selectedNode.id, data)}
+                onClose={() => {
+                  setSelectedNode(null);
+                  setNodes((nds) =>
+                    nds.map((n) => ({
+                      ...n,
+                      data: {
+                        ...n.data,
+                        isSelected: false,
+                      },
+                    }))
+                  );
+                }}
+              />
+            )}
+
+            <TemplateSelector
+              isOpen={showTemplateSelector}
+              onClose={() => setShowTemplateSelector(false)}
+              onSelectTemplate={handleTemplateSelect}
+              setSkippedTemplate={setSkippedTemplate}
+            />
+
+            {/* Modals */}
             {currentChatbot && (
               <>
-                <Button
-                  className="w-full"
-                  variant="outline"
-                  onClick={() => setShowSimulator(true)}
-                >
-                  <TestTube className="w-4 h-4 mr-2" />
-                  Test Bot
-                </Button>
+                <ChatbotSimulator
+                  chatbot={currentChatbot}
+                  flow={{ nodes, edges }}
+                  isOpen={showSimulator}
+                  onClose={() => setShowSimulator(false)}
+                />
 
-                <Button
-                  className="w-full"
-                  variant="outline"
-                  onClick={handlePublish}
+                <Modal
+                  isOpen={showFAQUploader}
+                  onClose={() => setShowFAQUploader(false)}
+                  title="Upload FAQ Documents"
+                  size="lg"
                 >
-                  <Share className="w-4 h-4 mr-2" />
-                  Publish
-                </Button>
+                  <FAQUploader
+                    chatbotId={currentChatbot.id}
+                    onUploadComplete={() => {
+                      setShowFAQUploader(false);
+                      toast.success("FAQ documents uploaded successfully!");
+                    }}
+                  />
+                </Modal>
+
+                <MultiChannelSetup
+                  chatbotId={currentChatbot.id}
+                  isOpen={showMultiChannelSetup}
+                  onClose={() => setShowMultiChannelSetup(false)}
+                />
+
+                <ABTestManager
+                  chatbotId={currentChatbot.id}
+                  isOpen={showABTestManager}
+                  onClose={() => setShowABTestManager(false)}
+                />
+
+                <WhatsAppSetup
+                  chatbotId={currentChatbot.id}
+                  isOpen={showWhatsAppSetup}
+                  onClose={() => setShowWhatsAppSetup(false)}
+                />
               </>
             )}
-          </div>
-
-          {/* Advanced Features */}
-          {currentChatbot && canUseFeature("faq_upload") && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Advanced Features
-              </h3>
-              <div className="space-y-2">
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => setShowFAQUploader(true)}
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  Upload FAQ
-                </Button>
-
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => setShowMultiChannelSetup(true)}
-                >
-                  <Globe className="w-4 h-4 mr-2" />
-                  Multi-Channel Deploy
-                </Button>
-
-                <Button
-                  variant="outline"
-                  className="w-full justify-start"
-                  onClick={() => setShowABTestManager(true)}
-                >
-                  <BarChart3 className="w-4 h-4 mr-2" />
-                  A/B Testing
-                </Button>
-
-                {canUseFeature("whatsapp") && (
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => setShowWhatsAppSetup(true)}
-                  >
-                    <MessageCircle className="w-4 h-4 mr-2" />
-                    WhatsApp Setup
-                  </Button>
-                )}
-              </div>
-            </div>
-          )}
+          </ReactFlowProvider>
         </div>
       </div>
-
-      {/* Main Canvas */}
-      <div className="flex-1 relative">
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          onNodeClick={onNodeClick}
-          onDrop={onDrop}
-          onDragOver={onDragOver}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          defaultEdgeOptions={defaultEdgeOptions}
-          fitView
-          className="bg-gradient-to-br from-gray-50 to-blue-50"
-        >
-          <Background color="#e5e7eb" gap={20} />
-          <Controls />
-          <MiniMap
-            nodeColor="#6366f1"
-            maskColor="rgba(255, 255, 255, 0.8)"
-            className="bg-white/70 backdrop-blur-sm"
-          />
-
-          {/* Empty state */}
-          {nodes.length === 0 && (
-            <Panel position="top-right">
-              <div className="text-center bg-white/70 backdrop-blur-sm rounded-xl p-8 shadow-lg">
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <MessageSquare className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  Start Building Your Advanced Chatbot
-                </h3>
-                <p className="text-gray-600 mb-4 max-w-md">
-                  Choose from professional templates or drag and drop nodes to
-                  create sophisticated conversation flows
-                </p>
-                <div className="flex space-x-3 justify-center">
-                  <Button onClick={() => setShowTemplateSelector(true)}>
-                    <Sparkles className="w-4 h-4 mr-2" />
-                    Browse Templates
-                  </Button>
-                  <Button variant="outline">Start from Scratch</Button>
-                </div>
-              </div>
-            </Panel>
-          )}
-        </ReactFlow>
-      </div>
-
-      {/* Node Properties Panel */}
-      {selectedNode && (
-        <NodePropertiesPanel
-          node={selectedNode}
-          onUpdate={(data) => updateNodeData(selectedNode.id, data)}
-          onClose={() => {
-            setSelectedNode(null);
-            setNodes((nds) =>
-              nds.map((n) => ({
-                ...n,
-                data: {
-                  ...n.data,
-                  isSelected: false,
-                },
-              }))
-            );
-          }}
-        />
-      )}
-
-      <TemplateSelector
-        isOpen={showTemplateSelector}
-        onClose={() => setShowTemplateSelector(false)}
-        onSelectTemplate={handleTemplateSelect}
-        setSkippedTemplate={setSkippedTemplate}
-      />
-
-      {/* Modals */}
-      {currentChatbot && (
-        <>
-          <ChatbotSimulator
-            chatbot={currentChatbot}
-            flow={{ nodes, edges }}
-            isOpen={showSimulator}
-            onClose={() => setShowSimulator(false)}
-          />
-
-          <Modal
-            isOpen={showFAQUploader}
-            onClose={() => setShowFAQUploader(false)}
-            title="Upload FAQ Documents"
-            size="lg"
-          >
-            <FAQUploader
-              chatbotId={currentChatbot.id}
-              onUploadComplete={() => {
-                setShowFAQUploader(false);
-                toast.success("FAQ documents uploaded successfully!");
-              }}
-            />
-          </Modal>
-
-          <MultiChannelSetup
-            chatbotId={currentChatbot.id}
-            isOpen={showMultiChannelSetup}
-            onClose={() => setShowMultiChannelSetup(false)}
-          />
-
-          <ABTestManager
-            chatbotId={currentChatbot.id}
-            isOpen={showABTestManager}
-            onClose={() => setShowABTestManager(false)}
-          />
-
-          <WhatsAppSetup
-            chatbotId={currentChatbot.id}
-            isOpen={showWhatsAppSetup}
-            onClose={() => setShowWhatsAppSetup(false)}
-          />
-        </>
-      )}
     </div>
   );
 }

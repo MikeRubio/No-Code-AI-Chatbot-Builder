@@ -104,13 +104,13 @@ export function PricingPlans({
     <div className="space-y-8">
       {/* Billing Toggle */}
       <div className="flex items-center justify-center">
-        <div className="bg-gray-100 p-1 rounded-lg">
+        <div className="bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
           <button
             onClick={() => setBillingInterval("month")}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
               billingInterval === "month"
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-600 hover:text-gray-900"
+                ? "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm"
+                : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
             }`}
           >
             Monthly
@@ -119,8 +119,8 @@ export function PricingPlans({
             onClick={() => setBillingInterval("year")}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-colors relative ${
               billingInterval === "year"
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-600 hover:text-gray-900"
+                ? "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm"
+                : "text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
             }`}
           >
             Yearly
@@ -157,7 +157,7 @@ export function PricingPlans({
               {/* Popular Badge */}
               {isPopular && (
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
-                  <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-1 rounded-full text-sm font-medium flex items-center">
+                  <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-1 rounded-full text-sm font-medium flex items-center shadow-lg">
                     <Star className="w-4 h-4 mr-1" />
                     Most Popular
                   </div>
@@ -167,20 +167,20 @@ export function PricingPlans({
               {/* Current Plan Badge */}
               {isCurrent && (
                 <div className="absolute -top-4 right-4 z-10">
-                  <div className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+                  <div className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-medium shadow-lg">
                     Current Plan
                   </div>
                 </div>
               )}
 
               <Card
-                className={`p-8 h-full relative overflow-hidden ${
+                className={`p-8 h-full relative overflow-hidden bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 ${
                   isPopular ? "ring-2 ring-blue-500 shadow-xl" : ""
                 } ${isCurrent ? "ring-2 ring-green-500" : ""}`}
                 hover={!isCurrent}
               >
                 {/* Background Pattern */}
-                <div className="absolute top-0 right-0 w-32 h-32 opacity-5">
+                <div className="absolute top-0 right-0 w-32 h-32 opacity-5 pointer-events-none">
                   <div
                     className={`w-full h-full bg-gradient-to-br ${colorClass} rounded-full transform translate-x-16 -translate-y-16`}
                   />
@@ -196,28 +196,28 @@ export function PricingPlans({
                     </div>
                     {billingInterval === "year" && plan.price > 0 && (
                       <div className="text-right">
-                        <div className="text-sm text-green-600 font-medium">
+                        <div className="text-sm text-green-600 dark:text-green-400 font-medium">
                           Save ${savings.toFixed(0)}/year
                         </div>
                       </div>
                     )}
                   </div>
 
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
                     {plan.name}
                   </h3>
 
                   <div className="mb-6">
                     <div className="flex items-baseline">
-                      <span className="text-4xl font-bold text-gray-900">
+                      <span className="text-4xl font-bold text-gray-900 dark:text-gray-100">
                         ${displayPrice.toFixed(0)}
                       </span>
-                      <span className="text-gray-600 ml-2">
+                      <span className="text-gray-600 dark:text-gray-300 ml-2">
                         /{displayInterval}
                       </span>
                     </div>
                     {billingInterval === "year" && plan.price > 0 && (
-                      <div className="text-sm text-gray-500 mt-1">
+                      <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                         ${yearlyPrice.toFixed(0)} billed annually
                       </div>
                     )}
@@ -228,7 +228,9 @@ export function PricingPlans({
                     {plan.features.map((feature, featureIndex) => (
                       <div key={featureIndex} className="flex items-center">
                         <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                        <span className="text-gray-700 text-sm">{feature}</span>
+                        <span className="text-gray-700 dark:text-gray-200 text-sm">
+                          {feature}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -239,9 +241,9 @@ export function PricingPlans({
                     disabled={loading || isCurrent}
                     className={`w-full ${
                       isPopular
-                        ? "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
+                        ? "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 dark:from-blue-700 dark:to-purple-800 dark:hover:from-blue-800 dark:hover:to-purple-900"
                         : isCurrent
-                        ? "bg-green-500 hover:bg-green-600"
+                        ? "bg-green-500 hover:bg-green-600 dark:bg-green-700 dark:hover:bg-green-800"
                         : ""
                     }`}
                     variant={
@@ -268,11 +270,11 @@ export function PricingPlans({
                   {/* Additional Info */}
                   {planId === "enterprise" && (
                     <div className="mt-4 text-center">
-                      <p className="text-sm text-gray-600">
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
                         Need custom features?{" "}
                         <a
                           href="mailto:sales@botbuilder.com"
-                          className="text-blue-600 hover:text-blue-700 font-medium"
+                          className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
                         >
                           Contact Sales
                         </a>
@@ -288,32 +290,37 @@ export function PricingPlans({
 
       {/* Feature Comparison */}
       <div className="mt-16">
-        <h3 className="text-2xl font-bold text-gray-900 text-center mb-8">
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 text-center mb-8">
           Compare Plans
         </h3>
 
         <div className="overflow-x-auto">
           <table className="w-full max-w-4xl mx-auto">
             <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-4 px-6 font-medium text-gray-900">
+              <tr className="border-b border-gray-200 dark:border-gray-700">
+                <th className="text-left py-4 px-6 font-medium text-gray-900 dark:text-gray-100">
                   Features
                 </th>
                 {Object.entries(STRIPE_CONFIG.plans).map(([planId, plan]) => (
                   <th
                     key={planId}
-                    className="text-center py-4 px-6 font-medium text-gray-900"
+                    className="text-center py-4 px-6 font-medium text-gray-900 dark:text-gray-100"
                   >
                     {plan.name}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               <tr>
-                <td className="py-4 px-6 text-gray-700">Chatbots</td>
+                <td className="py-4 px-6 text-gray-700 dark:text-gray-200">
+                  Chatbots
+                </td>
                 {Object.entries(STRIPE_CONFIG.plans).map(([planId, plan]) => (
-                  <td key={planId} className="text-center py-4 px-6">
+                  <td
+                    key={planId}
+                    className="text-center py-4 px-6 dark:text-gray-200"
+                  >
                     {plan.limits.chatbots === -1
                       ? "Unlimited"
                       : plan.limits.chatbots}
@@ -321,9 +328,14 @@ export function PricingPlans({
                 ))}
               </tr>
               <tr>
-                <td className="py-4 px-6 text-gray-700">Messages per month</td>
+                <td className="py-4 px-6 text-gray-700 dark:text-gray-200">
+                  Messages per month
+                </td>
                 {Object.entries(STRIPE_CONFIG.plans).map(([planId, plan]) => (
-                  <td key={planId} className="text-center py-4 px-6">
+                  <td
+                    key={planId}
+                    className="text-center py-4 px-6 dark:text-gray-200"
+                  >
                     {plan.limits.messages === -1
                       ? "Unlimited"
                       : plan.limits.messages.toLocaleString()}
@@ -331,51 +343,77 @@ export function PricingPlans({
                 ))}
               </tr>
               <tr>
-                <td className="py-4 px-6 text-gray-700">AI Features</td>
+                <td className="py-4 px-6 text-gray-700 dark:text-gray-200">
+                  AI Features
+                </td>
                 {Object.entries(STRIPE_CONFIG.plans).map(([planId, plan]) => (
-                  <td key={planId} className="text-center py-4 px-6">
+                  <td
+                    key={planId}
+                    className="text-center py-4 px-6 dark:text-gray-200"
+                  >
                     {plan.limits.aiFeatures ? (
                       <Check className="w-5 h-5 text-green-500 mx-auto" />
                     ) : (
-                      <span className="text-gray-400">—</span>
+                      <span className="text-gray-400 dark:text-gray-600">
+                        —
+                      </span>
                     )}
                   </td>
                 ))}
               </tr>
               <tr>
-                <td className="py-4 px-6 text-gray-700">
+                <td className="py-4 px-6 text-gray-700 dark:text-gray-200">
                   Multi-Channel Deployment
                 </td>
                 {Object.entries(STRIPE_CONFIG.plans).map(([planId, plan]) => (
-                  <td key={planId} className="text-center py-4 px-6">
+                  <td
+                    key={planId}
+                    className="text-center py-4 px-6 dark:text-gray-200"
+                  >
                     {plan.limits.multiChannel ? (
                       <Check className="w-5 h-5 text-green-500 mx-auto" />
                     ) : (
-                      <span className="text-gray-400">—</span>
+                      <span className="text-gray-400 dark:text-gray-600">
+                        —
+                      </span>
                     )}
                   </td>
                 ))}
               </tr>
               <tr>
-                <td className="py-4 px-6 text-gray-700">Advanced Analytics</td>
+                <td className="py-4 px-6 text-gray-700 dark:text-gray-200">
+                  Advanced Analytics
+                </td>
                 {Object.entries(STRIPE_CONFIG.plans).map(([planId, plan]) => (
-                  <td key={planId} className="text-center py-4 px-6">
+                  <td
+                    key={planId}
+                    className="text-center py-4 px-6 dark:text-gray-200"
+                  >
                     {plan.limits.analytics ? (
                       <Check className="w-5 h-5 text-green-500 mx-auto" />
                     ) : (
-                      <span className="text-gray-400">—</span>
+                      <span className="text-gray-400 dark:text-gray-600">
+                        —
+                      </span>
                     )}
                   </td>
                 ))}
               </tr>
               <tr>
-                <td className="py-4 px-6 text-gray-700">Custom Branding</td>
+                <td className="py-4 px-6 text-gray-700 dark:text-gray-200">
+                  Custom Branding
+                </td>
                 {Object.entries(STRIPE_CONFIG.plans).map(([planId, plan]) => (
-                  <td key={planId} className="text-center py-4 px-6">
+                  <td
+                    key={planId}
+                    className="text-center py-4 px-6 dark:text-gray-200"
+                  >
                     {plan.limits.customBranding ? (
                       <Check className="w-5 h-5 text-green-500 mx-auto" />
                     ) : (
-                      <span className="text-gray-400">—</span>
+                      <span className="text-gray-400 dark:text-gray-600">
+                        —
+                      </span>
                     )}
                   </td>
                 ))}
@@ -387,48 +425,48 @@ export function PricingPlans({
 
       {/* FAQ Section */}
       <div className="mt-16 max-w-3xl mx-auto">
-        <h3 className="text-2xl font-bold text-gray-900 text-center mb-8">
+        <h3 className="text-2xl font-bold text-gray-900 dark:text-gray-100 text-center mb-8">
           Frequently Asked Questions
         </h3>
 
         <div className="space-y-6">
-          <div className="bg-gray-50 rounded-lg p-6">
-            <h4 className="font-semibold text-gray-900 mb-2">
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
+            <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
               Can I change my plan anytime?
             </h4>
-            <p className="text-gray-700 text-sm">
+            <p className="text-gray-700 dark:text-gray-200 text-sm">
               Yes! You can upgrade or downgrade your plan at any time. Changes
               take effect immediately, and we'll prorate the billing
               accordingly.
             </p>
           </div>
 
-          <div className="bg-gray-50 rounded-lg p-6">
-            <h4 className="font-semibold text-gray-900 mb-2">
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
+            <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
               What happens if I exceed my message limit?
             </h4>
-            <p className="text-gray-700 text-sm">
+            <p className="text-gray-700 dark:text-gray-200 text-sm">
               Your chatbots will continue to work, but you'll be prompted to
               upgrade your plan. We'll never shut down your service without
               notice.
             </p>
           </div>
 
-          <div className="bg-gray-50 rounded-lg p-6">
-            <h4 className="font-semibold text-gray-900 mb-2">
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
+            <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
               Do you offer refunds?
             </h4>
-            <p className="text-gray-700 text-sm">
+            <p className="text-gray-700 dark:text-gray-200 text-sm">
               We offer a 30-day money-back guarantee for all paid plans. If
               you're not satisfied, contact us for a full refund.
             </p>
           </div>
 
-          <div className="bg-gray-50 rounded-lg p-6">
-            <h4 className="font-semibold text-gray-900 mb-2">
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6">
+            <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-2">
               Is there a setup fee?
             </h4>
-            <p className="text-gray-700 text-sm">
+            <p className="text-gray-700 dark:text-gray-200 text-sm">
               No setup fees, no hidden costs. The price you see is exactly what
               you pay. Cancel anytime with no penalties.
             </p>

@@ -1,80 +1,85 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { X, Plus, Trash2, Settings, Code, FileText, BarChart3 } from 'lucide-react';
-import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { X, Plus, Trash2, Code, FileText, BarChart3 } from "lucide-react";
+import { Button } from "../ui/Button";
+import { Card } from "../ui/Card";
+import { Node } from "reactflow";
 
 interface NodePropertiesPanelProps {
-  node: any;
+  node: Node;
   onUpdate: (data: any) => void;
   onClose: () => void;
 }
 
-export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesPanelProps) {
+export function NodePropertiesPanel({
+  node,
+  onUpdate,
+  onClose,
+}: NodePropertiesPanelProps) {
   const [formData, setFormData] = useState({
-    label: '',
-    content: '',
+    label: "",
+    content: "",
     options: [] as string[],
-    actionType: 'webhook',
+    actionType: "webhook",
     fields: [] as any[],
-    systemPrompt: '',
+    systemPrompt: "",
     conditions: [] as any[],
     apiConfig: {
-      url: '',
-      method: 'POST',
+      url: "",
+      method: "POST",
       headers: {},
-      auth: { type: 'none' },
-      timeout: 30
+      auth: { type: "none" },
+      timeout: 30,
     },
     surveyConfig: {
-      title: '',
+      title: "",
       questions: [] as any[],
-      collectNPS: false
+      collectNPS: false,
     },
     fileConfig: {
-      allowedTypes: ['pdf', 'doc', 'jpg', 'png'],
+      allowedTypes: ["pdf", "doc", "jpg", "png"],
       maxSize: 10,
-      downloadable: false
+      downloadable: false,
     },
     handoffConfig: {
-      reason: '',
-      priority: 'medium',
-      department: 'support'
-    }
+      reason: "",
+      priority: "medium",
+      department: "support",
+    },
   });
 
   useEffect(() => {
     if (node) {
       setFormData({
-        label: node.data.label || '',
-        content: node.data.content || '',
+        label: node.data.label || "",
+        content: node.data.content || "",
         options: node.data.options || [],
-        actionType: node.data.actionType || 'webhook',
+        actionType: node.data.actionType || "webhook",
         fields: node.data.fields || [],
-        systemPrompt: node.data.systemPrompt || '',
+        systemPrompt: node.data.systemPrompt || "",
         conditions: node.data.conditions || [],
         apiConfig: node.data.apiConfig || {
-          url: '',
-          method: 'POST',
+          url: "",
+          method: "POST",
           headers: {},
-          auth: { type: 'none' },
-          timeout: 30
+          auth: { type: "none" },
+          timeout: 30,
         },
         surveyConfig: node.data.surveyConfig || {
-          title: '',
+          title: "",
           questions: [],
-          collectNPS: false
+          collectNPS: false,
         },
         fileConfig: node.data.fileConfig || {
-          allowedTypes: ['pdf', 'doc', 'jpg', 'png'],
+          allowedTypes: ["pdf", "doc", "jpg", "png"],
           maxSize: 10,
-          downloadable: false
+          downloadable: false,
         },
         handoffConfig: node.data.handoffConfig || {
-          reason: '',
-          priority: 'medium',
-          department: 'support'
-        }
+          reason: "",
+          priority: "medium",
+          department: "support",
+        },
       });
     }
   }, [node]);
@@ -84,105 +89,113 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
   };
 
   const addOption = () => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      options: [...prev.options, '']
+      options: [...prev.options, ""],
     }));
   };
 
   const updateOption = (index: number, value: string) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      options: prev.options.map((opt, i) => i === index ? value : opt)
+      options: prev.options.map((opt, i) => (i === index ? value : opt)),
     }));
   };
 
   const removeOption = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      options: prev.options.filter((_, i) => i !== index)
+      options: prev.options.filter((_, i) => i !== index),
     }));
   };
 
   const addField = () => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      fields: [...prev.fields, { name: '', type: 'text', required: true }]
+      fields: [...prev.fields, { name: "", type: "text", required: true }],
     }));
   };
 
   const updateField = (index: number, field: any) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      fields: prev.fields.map((f, i) => i === index ? field : f)
+      fields: prev.fields.map((f, i) => (i === index ? field : f)),
     }));
   };
 
   const removeField = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      fields: prev.fields.filter((_, i) => i !== index)
+      fields: prev.fields.filter((_, i) => i !== index),
     }));
   };
 
   const addCondition = () => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      conditions: [...prev.conditions, { 
-        variable: '', 
-        operator: 'equals', 
-        value: '', 
-        action: 'continue' 
-      }]
+      conditions: [
+        ...prev.conditions,
+        {
+          variable: "",
+          operator: "equals",
+          value: "",
+          action: "continue",
+        },
+      ],
     }));
   };
 
   const updateCondition = (index: number, condition: any) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      conditions: prev.conditions.map((c, i) => i === index ? condition : c)
+      conditions: prev.conditions.map((c, i) => (i === index ? condition : c)),
     }));
   };
 
   const removeCondition = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      conditions: prev.conditions.filter((_, i) => i !== index)
+      conditions: prev.conditions.filter((_, i) => i !== index),
     }));
   };
 
   const addSurveyQuestion = () => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       surveyConfig: {
         ...prev.surveyConfig,
-        questions: [...prev.surveyConfig.questions, {
-          type: 'text',
-          question: '',
-          required: true,
-          options: []
-        }]
-      }
+        questions: [
+          ...prev.surveyConfig.questions,
+          {
+            type: "text",
+            question: "",
+            required: true,
+            options: [],
+          },
+        ],
+      },
     }));
   };
 
   const updateSurveyQuestion = (index: number, question: any) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       surveyConfig: {
         ...prev.surveyConfig,
-        questions: prev.surveyConfig.questions.map((q, i) => i === index ? question : q)
-      }
+        questions: prev.surveyConfig.questions.map((q, i) =>
+          i === index ? question : q
+        ),
+      },
     }));
   };
 
   const removeSurveyQuestion = (index: number) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       surveyConfig: {
         ...prev.surveyConfig,
-        questions: prev.surveyConfig.questions.filter((_, i) => i !== index)
-      }
+        questions: prev.surveyConfig.questions.filter((_, i) => i !== index),
+      },
     }));
   };
 
@@ -195,13 +208,13 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
       initial={{ x: 300, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       exit={{ x: 300, opacity: 0 }}
-      className="absolute right-0 top-0 h-full w-96 bg-white border-l border-gray-200 shadow-lg z-10 overflow-y-auto"
+      className="absolute right-0 top-0 h-full w-96 bg-white border-l border-gray-200 shadow-lg z-10 overflow-y-auto z-50"
     >
       <div className="p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-gray-900">
-            Edit {nodeType.replace('_', ' ')} Node
+            Edit {nodeType.replace("_", " ")} Node
           </h3>
           <button
             onClick={onClose}
@@ -220,40 +233,56 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
             <input
               type="text"
               value={formData.label}
-              onChange={(e) => setFormData(prev => ({ ...prev, label: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, label: e.target.value }))
+              }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="Enter node label"
             />
           </div>
 
           {/* Content for message, question, and AI response nodes */}
-          {(nodeType === 'message' || nodeType === 'question' || nodeType === 'ai_response') && (
+          {(nodeType === "message" ||
+            nodeType === "question" ||
+            nodeType === "ai_response") && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {nodeType === 'ai_response' ? 'System Prompt' : 'Message Content'}
+                {nodeType === "ai_response"
+                  ? "System Prompt"
+                  : "Message Content"}
               </label>
               <textarea
-                value={nodeType === 'ai_response' ? formData.systemPrompt : formData.content}
+                value={
+                  nodeType === "ai_response"
+                    ? formData.systemPrompt
+                    : formData.content
+                }
                 onChange={(e) => {
-                  if (nodeType === 'ai_response') {
-                    setFormData(prev => ({ ...prev, systemPrompt: e.target.value }));
+                  if (nodeType === "ai_response") {
+                    setFormData((prev) => ({
+                      ...prev,
+                      systemPrompt: e.target.value,
+                    }));
                   } else {
-                    setFormData(prev => ({ ...prev, content: e.target.value }));
+                    setFormData((prev) => ({
+                      ...prev,
+                      content: e.target.value,
+                    }));
                   }
                 }}
                 rows={4}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder={
-                  nodeType === 'ai_response' 
-                    ? 'Enter system prompt for AI...'
-                    : 'Enter your message...'
+                  nodeType === "ai_response"
+                    ? "Enter system prompt for AI..."
+                    : "Enter your message..."
                 }
               />
             </div>
           )}
 
           {/* Options for question nodes */}
-          {nodeType === 'question' && (
+          {nodeType === "question" && (
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-medium text-gray-700">
@@ -287,7 +316,7 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
           )}
 
           {/* Conditional Logic Configuration */}
-          {nodeType === 'conditional' && (
+          {nodeType === "conditional" && (
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-medium text-gray-700">
@@ -302,7 +331,9 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
                 {formData.conditions.map((condition, index) => (
                   <Card key={index} className="p-3">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-700">Condition {index + 1}</span>
+                      <span className="text-sm font-medium text-gray-700">
+                        Condition {index + 1}
+                      </span>
                       <button
                         onClick={() => removeCondition(index)}
                         className="text-red-500 hover:text-red-700"
@@ -314,14 +345,24 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
                       <input
                         type="text"
                         value={condition.variable}
-                        onChange={(e) => updateCondition(index, { ...condition, variable: e.target.value })}
+                        onChange={(e) =>
+                          updateCondition(index, {
+                            ...condition,
+                            variable: e.target.value,
+                          })
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="Variable name"
                       />
                       <div className="flex space-x-2">
                         <select
                           value={condition.operator}
-                          onChange={(e) => updateCondition(index, { ...condition, operator: e.target.value })}
+                          onChange={(e) =>
+                            updateCondition(index, {
+                              ...condition,
+                              operator: e.target.value,
+                            })
+                          }
                           className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                           <option value="equals">Equals</option>
@@ -333,7 +374,12 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
                         <input
                           type="text"
                           value={condition.value}
-                          onChange={(e) => updateCondition(index, { ...condition, value: e.target.value })}
+                          onChange={(e) =>
+                            updateCondition(index, {
+                              ...condition,
+                              value: e.target.value,
+                            })
+                          }
                           className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           placeholder="Value"
                         />
@@ -346,7 +392,7 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
           )}
 
           {/* API/Webhook Configuration */}
-          {nodeType === 'api_webhook' && (
+          {nodeType === "api_webhook" && (
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -357,20 +403,27 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
                   <input
                     type="url"
                     value={formData.apiConfig.url}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      apiConfig: { ...prev.apiConfig, url: e.target.value }
-                    }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        apiConfig: { ...prev.apiConfig, url: e.target.value },
+                      }))
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="https://api.example.com/endpoint"
                   />
                   <div className="flex space-x-2">
                     <select
                       value={formData.apiConfig.method}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        apiConfig: { ...prev.apiConfig, method: e.target.value }
-                      }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          apiConfig: {
+                            ...prev.apiConfig,
+                            method: e.target.value,
+                          },
+                        }))
+                      }
                       className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="GET">GET</option>
@@ -381,16 +434,23 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
                     <input
                       type="number"
                       value={formData.apiConfig.timeout}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        apiConfig: { ...prev.apiConfig, timeout: parseInt(e.target.value) }
-                      }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          apiConfig: {
+                            ...prev.apiConfig,
+                            timeout: parseInt(e.target.value),
+                          },
+                        }))
+                      }
                       className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="30"
                       min="1"
                       max="300"
                     />
-                    <span className="text-sm text-gray-500 self-center">seconds</span>
+                    <span className="text-sm text-gray-500 self-center">
+                      seconds
+                    </span>
                   </div>
                 </div>
               </div>
@@ -398,7 +458,7 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
           )}
 
           {/* Survey Configuration */}
-          {nodeType === 'survey' && (
+          {nodeType === "survey" && (
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -408,15 +468,20 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
                 <input
                   type="text"
                   value={formData.surveyConfig.title}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    surveyConfig: { ...prev.surveyConfig, title: e.target.value }
-                  }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      surveyConfig: {
+                        ...prev.surveyConfig,
+                        title: e.target.value,
+                      },
+                    }))
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   placeholder="Survey title"
                 />
               </div>
-              
+
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label className="block text-sm font-medium text-gray-700">
@@ -431,7 +496,9 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
                   {formData.surveyConfig.questions.map((question, index) => (
                     <Card key={index} className="p-3">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-gray-700">Question {index + 1}</span>
+                        <span className="text-sm font-medium text-gray-700">
+                          Question {index + 1}
+                        </span>
                         <button
                           onClick={() => removeSurveyQuestion(index)}
                           className="text-red-500 hover:text-red-700"
@@ -443,29 +510,48 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
                         <input
                           type="text"
                           value={question.question}
-                          onChange={(e) => updateSurveyQuestion(index, { ...question, question: e.target.value })}
+                          onChange={(e) =>
+                            updateSurveyQuestion(index, {
+                              ...question,
+                              question: e.target.value,
+                            })
+                          }
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           placeholder="Question text"
                         />
                         <div className="flex space-x-2">
                           <select
                             value={question.type}
-                            onChange={(e) => updateSurveyQuestion(index, { ...question, type: e.target.value })}
+                            onChange={(e) =>
+                              updateSurveyQuestion(index, {
+                                ...question,
+                                type: e.target.value,
+                              })
+                            }
                             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                           >
                             <option value="text">Text</option>
                             <option value="rating">Rating (1-5)</option>
                             <option value="nps">NPS (0-10)</option>
-                            <option value="multiple_choice">Multiple Choice</option>
+                            <option value="multiple_choice">
+                              Multiple Choice
+                            </option>
                           </select>
                           <label className="flex items-center">
                             <input
                               type="checkbox"
                               checked={question.required}
-                              onChange={(e) => updateSurveyQuestion(index, { ...question, required: e.target.checked })}
+                              onChange={(e) =>
+                                updateSurveyQuestion(index, {
+                                  ...question,
+                                  required: e.target.checked,
+                                })
+                              }
                               className="mr-2"
                             />
-                            <span className="text-sm text-gray-700">Required</span>
+                            <span className="text-sm text-gray-700">
+                              Required
+                            </span>
                           </label>
                         </div>
                       </div>
@@ -477,7 +563,7 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
           )}
 
           {/* File Upload Configuration */}
-          {nodeType === 'file_upload' && (
+          {nodeType === "file_upload" && (
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -486,20 +572,39 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
                 </label>
                 <div className="space-y-3">
                   <div>
-                    <label className="block text-xs text-gray-600 mb-1">Allowed File Types</label>
+                    <label className="block text-xs text-gray-600 mb-1">
+                      Allowed File Types
+                    </label>
                     <div className="flex flex-wrap gap-2">
-                      {['pdf', 'doc', 'docx', 'txt', 'jpg', 'png', 'gif', 'mp4', 'mp3'].map(type => (
+                      {[
+                        "pdf",
+                        "doc",
+                        "docx",
+                        "txt",
+                        "jpg",
+                        "png",
+                        "gif",
+                        "mp4",
+                        "mp3",
+                      ].map((type) => (
                         <label key={type} className="flex items-center">
                           <input
                             type="checkbox"
-                            checked={formData.fileConfig.allowedTypes.includes(type)}
+                            checked={formData.fileConfig.allowedTypes.includes(
+                              type
+                            )}
                             onChange={(e) => {
                               const types = e.target.checked
                                 ? [...formData.fileConfig.allowedTypes, type]
-                                : formData.fileConfig.allowedTypes.filter(t => t !== type);
-                              setFormData(prev => ({
+                                : formData.fileConfig.allowedTypes.filter(
+                                    (t) => t !== type
+                                  );
+                              setFormData((prev) => ({
                                 ...prev,
-                                fileConfig: { ...prev.fileConfig, allowedTypes: types }
+                                fileConfig: {
+                                  ...prev.fileConfig,
+                                  allowedTypes: types,
+                                },
                               }));
                             }}
                             className="mr-1"
@@ -511,14 +616,21 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
                   </div>
                   <div className="flex space-x-2">
                     <div className="flex-1">
-                      <label className="block text-xs text-gray-600 mb-1">Max Size (MB)</label>
+                      <label className="block text-xs text-gray-600 mb-1">
+                        Max Size (MB)
+                      </label>
                       <input
                         type="number"
                         value={formData.fileConfig.maxSize}
-                        onChange={(e) => setFormData(prev => ({
-                          ...prev,
-                          fileConfig: { ...prev.fileConfig, maxSize: parseInt(e.target.value) }
-                        }))}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            fileConfig: {
+                              ...prev.fileConfig,
+                              maxSize: parseInt(e.target.value),
+                            },
+                          }))
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         min="1"
                         max="100"
@@ -529,13 +641,20 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
                         <input
                           type="checkbox"
                           checked={formData.fileConfig.downloadable}
-                          onChange={(e) => setFormData(prev => ({
-                            ...prev,
-                            fileConfig: { ...prev.fileConfig, downloadable: e.target.checked }
-                          }))}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              fileConfig: {
+                                ...prev.fileConfig,
+                                downloadable: e.target.checked,
+                              },
+                            }))
+                          }
                           className="mr-2"
                         />
-                        <span className="text-sm text-gray-700">Downloadable</span>
+                        <span className="text-sm text-gray-700">
+                          Downloadable
+                        </span>
                       </label>
                     </div>
                   </div>
@@ -545,7 +664,7 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
           )}
 
           {/* Human Handoff Configuration */}
-          {nodeType === 'human_handoff' && (
+          {nodeType === "human_handoff" && (
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -554,10 +673,15 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
                 <div className="space-y-3">
                   <textarea
                     value={formData.handoffConfig.reason}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      handoffConfig: { ...prev.handoffConfig, reason: e.target.value }
-                    }))}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        handoffConfig: {
+                          ...prev.handoffConfig,
+                          reason: e.target.value,
+                        },
+                      }))
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Reason for handoff..."
                     rows={3}
@@ -565,10 +689,15 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
                   <div className="flex space-x-2">
                     <select
                       value={formData.handoffConfig.priority}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        handoffConfig: { ...prev.handoffConfig, priority: e.target.value }
-                      }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          handoffConfig: {
+                            ...prev.handoffConfig,
+                            priority: e.target.value,
+                          },
+                        }))
+                      }
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="low">Low Priority</option>
@@ -578,10 +707,15 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
                     </select>
                     <select
                       value={formData.handoffConfig.department}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        handoffConfig: { ...prev.handoffConfig, department: e.target.value }
-                      }))}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          handoffConfig: {
+                            ...prev.handoffConfig,
+                            department: e.target.value,
+                          },
+                        }))
+                      }
                       className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     >
                       <option value="support">Support</option>
@@ -596,7 +730,7 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
           )}
 
           {/* Fields for lead capture nodes */}
-          {nodeType === 'lead_capture' && (
+          {nodeType === "lead_capture" && (
             <div>
               <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-medium text-gray-700">
@@ -609,9 +743,14 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
               </div>
               <div className="space-y-3">
                 {formData.fields.map((field, index) => (
-                  <Card key={index} className="p-3">
+                  <Card
+                    key={index}
+                    className="p-3 bg-white border-gray-200 shadow-sm"
+                  >
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-700">Field {index + 1}</span>
+                      <span className="text-sm font-medium text-gray-700">
+                        Field {index + 1}
+                      </span>
                       <button
                         onClick={() => removeField(index)}
                         className="text-red-500 hover:text-red-700"
@@ -623,14 +762,21 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
                       <input
                         type="text"
                         value={field.name}
-                        onChange={(e) => updateField(index, { ...field, name: e.target.value })}
+                        onChange={(e) =>
+                          updateField(index, { ...field, name: e.target.value })
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="Field name"
                       />
                       <div className="flex space-x-2">
                         <select
                           value={field.type}
-                          onChange={(e) => updateField(index, { ...field, type: e.target.value })}
+                          onChange={(e) =>
+                            updateField(index, {
+                              ...field,
+                              type: e.target.value,
+                            })
+                          }
                           className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
                           <option value="text">Text</option>
@@ -642,10 +788,17 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
                           <input
                             type="checkbox"
                             checked={field.required}
-                            onChange={(e) => updateField(index, { ...field, required: e.target.checked })}
+                            onChange={(e) =>
+                              updateField(index, {
+                                ...field,
+                                required: e.target.checked,
+                              })
+                            }
                             className="mr-2"
                           />
-                          <span className="text-sm text-gray-700">Required</span>
+                          <span className="text-sm text-gray-700">
+                            Required
+                          </span>
                         </label>
                       </div>
                     </div>
@@ -656,14 +809,16 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
           )}
 
           {/* Appointment booking settings */}
-          {nodeType === 'appointment' && (
+          {nodeType === "appointment" && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Booking Instructions
               </label>
               <textarea
                 value={formData.content}
-                onChange={(e) => setFormData(prev => ({ ...prev, content: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, content: e.target.value }))
+                }
                 rows={3}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter booking instructions or calendar link..."
@@ -672,14 +827,19 @@ export function NodePropertiesPanel({ node, onUpdate, onClose }: NodePropertiesP
           )}
 
           {/* Action type for action nodes */}
-          {nodeType === 'action' && (
+          {nodeType === "action" && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Action Type
               </label>
               <select
                 value={formData.actionType}
-                onChange={(e) => setFormData(prev => ({ ...prev, actionType: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    actionType: e.target.value,
+                  }))
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="webhook">Webhook Call</option>

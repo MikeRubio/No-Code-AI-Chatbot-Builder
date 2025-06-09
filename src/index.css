@@ -1,3 +1,50 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Dark theme base styles */
+@layer base {
+  body {
+    @apply bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100;
+  }
+}
+
+/* Custom scrollbar for dark theme */
+@layer utilities {
+  .scrollbar-dark::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  /* .scrollbar-dark::-webkit-scrollbar-track {
+    @apply bg-gray-800;
+  }
+
+  .scrollbar-dark::-webkit-scrollbar-thumb {
+    @apply bg-gray-600 rounded-full;
+  } */
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-200 dark:bg-gray-800;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-400 dark:bg-gray-600 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-500 dark:bg-gray-500;
+  }
+  /* .scrollbar-dark::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-500;
+  } */
+}
+
+/* Glass morphism effects for dark theme */
+.glass-dark {
+  background: rgba(17, 24, 39, 0.8);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(75, 85, 99, 0.2);
+}
+
+.glass-dark-light {
+  background: rgba(31, 41, 55, 0.8);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(75, 85, 99, 0.3);
+}

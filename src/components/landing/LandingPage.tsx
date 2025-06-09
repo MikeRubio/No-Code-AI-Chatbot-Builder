@@ -9,6 +9,16 @@ import {
   Check,
   Star,
   BookOpen,
+  ArrowRight,
+  Play,
+  Award,
+  Sparkles,
+  Github,
+  Twitter,
+  Linkedin,
+  Mail,
+  Phone,
+  MapPin,
 } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
@@ -19,32 +29,44 @@ export function LandingPage() {
     {
       icon: Bot,
       title: "Drag & Drop Builder",
-      description: "Create chatbot flows visually without any coding knowledge",
+      description:
+        "Create sophisticated chatbot flows visually with our intuitive no-code interface",
+      gradient: "from-blue-500 to-cyan-500",
     },
     {
       icon: MessageCircle,
       title: "AI-Powered Responses",
-      description: "Integrate with OpenAI for natural language understanding",
+      description:
+        "Leverage OpenAI's GPT models for natural, context-aware conversations",
+      gradient: "from-purple-500 to-pink-500",
     },
     {
       icon: Globe,
       title: "Multi-Platform Deploy",
-      description: "Deploy to your website, WhatsApp, and other channels",
+      description:
+        "Deploy seamlessly to websites, WhatsApp, Facebook Messenger, and more",
+      gradient: "from-green-500 to-emerald-500",
     },
     {
       icon: BarChart3,
       title: "Advanced Analytics",
-      description: "Track conversations, user engagement, and performance",
+      description:
+        "Deep insights into user behavior, conversation flows, and performance metrics",
+      gradient: "from-orange-500 to-red-500",
     },
     {
       icon: Shield,
       title: "Enterprise Security",
-      description: "Bank-level security for your data and conversations",
+      description:
+        "Bank-level encryption, GDPR compliance, and SOC 2 Type II certification",
+      gradient: "from-indigo-500 to-purple-500",
     },
     {
       icon: Zap,
-      title: "Instant Setup",
-      description: "Get your chatbot running in minutes, not days",
+      title: "Lightning Fast",
+      description:
+        "Sub-second response times with global CDN and optimized infrastructure",
+      gradient: "from-yellow-500 to-orange-500",
     },
   ];
 
@@ -62,6 +84,7 @@ export function LandingPage() {
         "Community support",
       ],
       popular: false,
+      cta: "Get Started Free",
     },
     {
       name: "Pro",
@@ -78,6 +101,7 @@ export function LandingPage() {
         "Custom branding",
       ],
       popular: true,
+      cta: "Start Free Trial",
     },
     {
       name: "Enterprise",
@@ -94,40 +118,82 @@ export function LandingPage() {
         "SLA guarantee",
       ],
       popular: false,
+      cta: "Contact Sales",
+    },
+  ];
+
+  const benefits = [
+    {
+      title: "No Coding Required",
+      description:
+        "Build sophisticated chatbots with our visual drag-and-drop interface",
+    },
+    {
+      title: "Deploy Anywhere",
+      description:
+        "Website, WhatsApp, Facebook Messenger, and more platforms supported",
+    },
+    {
+      title: "AI-Powered",
+      description: "Leverage OpenAI's latest models for natural conversations",
+    },
+    {
+      title: "Enterprise Ready",
+      description:
+        "Built for scale with enterprise-grade security and compliance",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
       {/* Header */}
-      <header className="bg-white/70 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
+      <header className="glass-dark border-b border-gray-700 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                 <Bot className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                 BotBuilder Pro
               </span>
+              <BoldBadge />
             </div>
-            <div className="flex items-center space-x-4">
-              <Link
-                to="/docs"
-                className="text-gray-600 hover:text-gray-900 font-medium flex items-center"
-              >
-                <BookOpen className="w-4 h-4 mr-1" />
-                Documentation
-              </Link>
-              <Link
-                to="/auth"
-                className="text-gray-600 hover:text-gray-900 font-medium"
-              >
-                Sign In
-              </Link>
-              <Link to="/auth">
-                <Button>Get Started Free</Button>
-              </Link>
+            <div className="flex items-center space-x-6">
+              <nav className="hidden md:flex items-center space-x-6">
+                <a
+                  href="#features"
+                  className="text-gray-300 hover:text-white transition-colors"
+                >
+                  Features
+                </a>
+                <a
+                  href="#pricing"
+                  className="text-gray-300 hover:text-white transition-colors"
+                >
+                  Pricing
+                </a>
+                <Link
+                  to="/docs"
+                  className="text-gray-300 hover:text-white transition-colors flex items-center"
+                >
+                  <BookOpen className="w-4 h-4 mr-1" />
+                  Docs
+                </Link>
+              </nav>
+              <div className="flex items-center space-x-4">
+                <Link
+                  to="/auth"
+                  className="text-gray-300 hover:text-white transition-colors"
+                >
+                  Sign In
+                </Link>
+                <Link to="/auth">
+                  <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                    Get Started Free
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>
@@ -135,54 +201,102 @@ export function LandingPage() {
 
       {/* Hero Section */}
       <section className="relative py-20 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h1 className="text-5xl md:text-7xl font-bold text-gray-900 mb-6 leading-tight">
-              Build AI Chatbots
-              <span className="block bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Without Code
-              </span>
-            </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Create, train, and deploy intelligent chatbots for your business
-              in minutes. No technical skills required. Start automating
-              customer support today.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/auth">
-                <Button size="lg" className="text-lg px-8 py-4">
-                  Start Building Free
-                </Button>
-              </Link>
-              <Link to="/docs">
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="text-lg px-8 py-4"
-                >
-                  View Documentation
-                </Button>
-              </Link>
-            </div>
-          </motion.div>
+        {/* Background Effects */}
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl" />
+
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8 }}
+            >
+              <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-full border border-blue-500/30 mb-8">
+                <Sparkles className="w-4 h-4 text-blue-400 mr-2" />
+                <span className="text-blue-300 text-sm font-medium">
+                  The future of customer automation is here
+                </span>
+              </div>
+
+              <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
+                Build AI Chatbots
+                <span className="block bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                  Without Code
+                </span>
+              </h1>
+
+              <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
+                Create, train, and deploy intelligent chatbots for your business
+                in minutes. No technical skills required. Start automating
+                customer support today with our powerful no-code platform.
+              </p>
+
+              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+                <Link to="/auth">
+                  <Button
+                    size="lg"
+                    className="text-lg px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  >
+                    <Play className="w-5 h-5 mr-2" />
+                    Start Building Free
+                  </Button>
+                </Link>
+                <Link to="/docs">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="text-lg px-8 py-4 border-gray-600 text-gray-300 hover:bg-gray-800"
+                  >
+                    <BookOpen className="w-5 h-5 mr-2" />
+                    View Documentation
+                  </Button>
+                </Link>
+              </div>
+
+              {/* Benefits Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto">
+                {benefits.map((benefit, index) => (
+                  <motion.div
+                    key={benefit.title}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
+                    className="text-center p-4 bg-gray-800/30 rounded-lg border border-gray-700/50"
+                  >
+                    <h3 className="text-white font-semibold mb-2">
+                      {benefit.title}
+                    </h3>
+                    <p className="text-gray-400 text-sm">
+                      {benefit.description}
+                    </p>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          </div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-white/50 backdrop-blur-sm">
+      <section id="features" className="py-20 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Everything you need to succeed
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Powerful features designed to help small businesses automate
-              customer interactions
-            </p>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="text-4xl font-bold text-white mb-4">
+                Everything you need to succeed
+              </h2>
+              <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+                Powerful features designed to help businesses of all sizes
+                automate customer interactions and drive growth
+              </p>
+            </motion.div>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -190,17 +304,25 @@ export function LandingPage() {
               <motion.div
                 key={feature.title}
                 initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
               >
-                <Card hover className="p-6 h-full">
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mb-4">
+                <Card
+                  hover
+                  className="p-6 h-full bg-gray-800/50 border-gray-700 backdrop-blur-sm"
+                >
+                  <div
+                    className={`w-12 h-12 bg-gradient-to-r ${feature.gradient} rounded-xl flex items-center justify-center mb-4`}
+                  >
                     <feature.icon className="w-6 h-6 text-white" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  <h3 className="text-xl font-semibold text-white mb-2">
                     {feature.title}
                   </h3>
-                  <p className="text-gray-600">{feature.description}</p>
+                  <p className="text-gray-400 leading-relaxed">
+                    {feature.description}
+                  </p>
                 </Card>
               </motion.div>
             ))}
@@ -208,17 +330,93 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section className="py-20">
+      {/* How It Works Section */}
+      <section className="py-20 bg-gradient-to-r from-gray-800/50 to-gray-700/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Simple, transparent pricing
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Choose the plan that's right for your business. Upgrade or
-              downgrade at any time.
-            </p>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="text-4xl font-bold text-white mb-4">
+                How it works
+              </h2>
+              <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+                Get your chatbot up and running in three simple steps
+              </p>
+            </motion.div>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                step: "1",
+                title: "Design Your Flow",
+                description:
+                  "Use our drag-and-drop builder to create conversation flows without any coding",
+                icon: Bot,
+              },
+              {
+                step: "2",
+                title: "Train with AI",
+                description:
+                  "Connect to OpenAI and upload your FAQ documents for intelligent responses",
+                icon: MessageCircle,
+              },
+              {
+                step: "3",
+                title: "Deploy Everywhere",
+                description:
+                  "Launch on your website, WhatsApp, or any platform with one click",
+                icon: Globe,
+              },
+            ].map((step, index) => (
+              <motion.div
+                key={step.step}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                className="text-center"
+              >
+                <div className="relative mb-6">
+                  <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <step.icon className="w-8 h-8 text-white" />
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                    {step.step}
+                  </div>
+                </div>
+                <h3 className="text-xl font-semibold text-white mb-3">
+                  {step.title}
+                </h3>
+                <p className="text-gray-400">{step.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              viewport={{ once: true }}
+            >
+              <h2 className="text-4xl font-bold text-white mb-4">
+                Simple, transparent pricing
+              </h2>
+              <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+                Choose the plan that's right for your business. Upgrade or
+                downgrade at any time.
+              </p>
+            </motion.div>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -226,8 +424,9 @@ export function LandingPage() {
               <motion.div
                 key={plan.name}
                 initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
+                viewport={{ once: true }}
                 className="relative"
               >
                 {plan.popular && (
@@ -239,37 +438,39 @@ export function LandingPage() {
                   </div>
                 )}
                 <Card
-                  className={`p-8 h-full ${
-                    plan.popular ? "ring-2 ring-blue-500" : ""
+                  className={`p-8 h-full bg-gray-800/50 border-gray-700 backdrop-blur-sm ${
+                    plan.popular ? "ring-2 ring-blue-500/50" : ""
                   }`}
                 >
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                  <h3 className="text-2xl font-bold text-white mb-2">
                     {plan.name}
                   </h3>
-                  <p className="text-gray-600 mb-4">{plan.description}</p>
+                  <p className="text-gray-400 mb-4">{plan.description}</p>
                   <div className="mb-6">
-                    <span className="text-4xl font-bold text-gray-900">
+                    <span className="text-4xl font-bold text-white">
                       {plan.price}
                     </span>
-                    <span className="text-gray-500 ml-2">/{plan.period}</span>
+                    <span className="text-gray-400 ml-2">/{plan.period}</span>
                   </div>
                   <ul className="space-y-3 mb-8">
                     {plan.features.map((feature) => (
                       <li key={feature} className="flex items-center">
-                        <Check className="w-5 h-5 text-green-500 mr-3 flex-shrink-0" />
-                        <span className="text-gray-600">{feature}</span>
+                        <Check className="w-5 h-5 text-green-400 mr-3 flex-shrink-0" />
+                        <span className="text-gray-300">{feature}</span>
                       </li>
                     ))}
                   </ul>
                   <Link to="/auth" className="block">
                     <Button
                       variant={plan.popular ? "primary" : "outline"}
-                      className="w-full"
+                      className={`w-full ${
+                        plan.popular
+                          ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                          : "border-gray-600 text-gray-300 hover:bg-gray-800"
+                      }`}
                       size="lg"
                     >
-                      {plan.name === "Free"
-                        ? "Get Started"
-                        : "Start Free Trial"}
+                      {plan.cta}
                     </Button>
                   </Link>
                 </Card>
@@ -280,58 +481,324 @@ export function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
-        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-4xl font-bold text-white mb-4">
-            Ready to automate your customer support?
-          </h2>
-          <p className="text-xl text-blue-100 mb-8">
-            Join thousands of businesses already using BotBuilder Pro to improve
-            customer satisfaction
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link to="/auth">
-              <Button
-                variant="secondary"
-                size="lg"
-                className="text-lg px-8 py-4"
-              >
-                Start Your Free Trial
-              </Button>
-            </Link>
-            <Link to="/docs">
-              <Button variant="outline" size="lg" className="text-lg px-8 py-4">
-                View Documentation
-              </Button>
-            </Link>
-          </div>
+      <section className="py-20 bg-gradient-to-r from-blue-600/20 to-purple-600/20 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10" />
+        <div className="relative max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-4xl font-bold text-white mb-4">
+              Ready to automate your customer support?
+            </h2>
+            <p className="text-xl text-gray-300 mb-8">
+              Start building intelligent chatbots today. No credit card required
+              for the free plan.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link to="/auth">
+                <Button
+                  size="lg"
+                  className="text-lg px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                >
+                  Start Building Free
+                  <ArrowRight className="w-5 h-5 ml-2" />
+                </Button>
+              </Link>
+              <Link to="/docs">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="text-lg px-8 py-4 border-gray-600 text-gray-300 hover:bg-gray-800"
+                >
+                  View Documentation
+                </Button>
+              </Link>
+            </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                <Bot className="w-5 h-5 text-white" />
+      <footer className="bg-gray-900 border-t border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+            {/* Brand */}
+            <div className="lg:col-span-2">
+              <div className="flex items-center space-x-2 mb-4">
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  <Bot className="w-5 h-5 text-white" />
+                </div>
+                <span className="text-xl font-bold text-white">
+                  BotBuilder Pro
+                </span>
+                <BoldBadge />
               </div>
-              <span className="text-xl font-bold">BotBuilder Pro</span>
+              <p className="text-gray-400 mb-6 max-w-md">
+                The modern no-code platform for building intelligent chatbots.
+                Empower your business with AI-driven customer automation.
+              </p>
+              <div className="flex space-x-4">
+                <a
+                  href="https://twitter.com"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <Twitter className="w-5 h-5" />
+                </a>
+                <a
+                  href="https://linkedin.com"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <Linkedin className="w-5 h-5" />
+                </a>
+                <a
+                  href="https://github.com"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  <Github className="w-5 h-5" />
+                </a>
+              </div>
             </div>
-            <div className="flex items-center space-x-6">
-              <Link
-                to="/docs"
-                className="text-gray-400 hover:text-white transition-colors"
-              >
-                Documentation
-              </Link>
-              <p className="text-gray-400">
+
+            {/* Product */}
+            <div>
+              <h3 className="text-white font-semibold mb-4">Product</h3>
+              <ul className="space-y-3">
+                <li>
+                  <a
+                    href="#features"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    Features
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#pricing"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    Pricing
+                  </a>
+                </li>
+                <li>
+                  <Link
+                    to="/docs"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    Documentation
+                  </Link>
+                </li>
+                <li>
+                  <a
+                    href="/api"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    API Reference
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/integrations"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    Integrations
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/templates"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    Templates
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Company */}
+            <div>
+              <h3 className="text-white font-semibold mb-4">Company</h3>
+              <ul className="space-y-3">
+                <li>
+                  <a
+                    href="/about"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    About Us
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/careers"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    Careers
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/blog"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    Blog
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/press"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    Press Kit
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/partners"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    Partners
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/investors"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    Investors
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Support */}
+            <div>
+              <h3 className="text-white font-semibold mb-4">Support</h3>
+              <ul className="space-y-3">
+                <li>
+                  <a
+                    href="/help"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    Help Center
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/contact"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    Contact Us
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/community"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    Community
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/status"
+                    className="text-gray-400 hover:text-white transition-colors flex items-center"
+                  >
+                    System Status
+                    <div className="w-2 h-2 bg-green-400 rounded-full ml-2"></div>
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/security"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    Security
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/compliance"
+                    className="text-gray-400 hover:text-white transition-colors"
+                  >
+                    Compliance
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Contact Info */}
+          <div className="border-t border-gray-800 mt-12 pt-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="flex items-center text-gray-400">
+                <Mail className="w-5 h-5 mr-3" />
+                <span>support@botbuilder.pro</span>
+              </div>
+              <div className="flex items-center text-gray-400">
+                <Phone className="w-5 h-5 mr-3" />
+                <span>+1 (555) 123-4567</span>
+              </div>
+              <div className="flex items-center text-gray-400">
+                <MapPin className="w-5 h-5 mr-3" />
+                <span>San Francisco, CA</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Bar */}
+          <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
+            <div className="flex flex-wrap items-center space-x-6 mb-4 md:mb-0">
+              <p className="text-gray-400 text-sm">
                 © 2024 BotBuilder Pro. All rights reserved.
               </p>
+              <a
+                href="/privacy"
+                className="text-gray-400 hover:text-white text-sm transition-colors"
+              >
+                Privacy Policy
+              </a>
+              <a
+                href="/terms"
+                className="text-gray-400 hover:text-white text-sm transition-colors"
+              >
+                Terms of Service
+              </a>
+              <a
+                href="/cookies"
+                className="text-gray-400 hover:text-white text-sm transition-colors"
+              >
+                Cookie Policy
+              </a>
+            </div>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center text-gray-400 text-sm">
+                <Award className="w-4 h-4 mr-2" />
+                <span>SOC 2 Type II Certified</span>
+              </div>
+              <div className="flex items-center text-gray-400 text-sm">
+                <Shield className="w-4 h-4 mr-2" />
+                <span>GDPR Compliant</span>
+              </div>
             </div>
           </div>
         </div>
       </footer>
+    </div>
+  );
+}
+
+// Bold Badge Component
+function BoldBadge() {
+  return (
+    <div className="inline-flex items-center">
+      <div className="relative">
+        <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-bold px-2 py-1 rounded-md transform -rotate-12 shadow-lg">
+          BOLD
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-red-400 text-white text-xs font-bold px-2 py-1 rounded-md transform -rotate-12 blur-sm opacity-50"></div>
+      </div>
     </div>
   );
 }
