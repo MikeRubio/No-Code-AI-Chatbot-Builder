@@ -5,8 +5,6 @@ import {
   Zap,
   Check,
   Settings,
-  ExternalLink,
-  Webhook,
   AlertTriangle,
 } from "lucide-react";
 import { Card } from "../ui/Card";
@@ -29,7 +27,6 @@ export function SubscriptionManager({
 }: SubscriptionManagerProps) {
   const { profile } = useProfile();
   const [showWebhookSetup, setShowWebhookSetup] = useState(false);
-  const [showPricingPlans, setShowPricingPlans] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const currentPlan = profile
@@ -237,38 +234,6 @@ export function SubscriptionManager({
             </Card>
           )}
 
-          {/* Stripe Setup */}
-          <Card className="p-6 bg-blue-50 border-blue-200">
-            <div className="flex items-start space-x-3">
-              <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-                <Webhook className="w-5 h-5 text-white" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-blue-900 mb-1">
-                  Stripe Integration Setup
-                </h3>
-                <p className="text-blue-800 text-sm mb-3">
-                  Configure Stripe webhooks to enable subscription management
-                  and payment processing.
-                </p>
-                <div className="flex items-center space-x-3">
-                  <Button onClick={() => setShowWebhookSetup(true)} size="sm">
-                    <Settings className="w-4 h-4 mr-2" />
-                    Setup Webhooks
-                  </Button>
-                  <Button
-                    onClick={() => setShowPricingPlans(true)}
-                    variant="outline"
-                    size="sm"
-                  >
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    View All Plans
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </Card>
-
           {/* Subscription Status */}
           {profile &&
             profile.subscription_status !== "active" &&
@@ -318,10 +283,7 @@ export function SubscriptionManager({
       />
 
       {/* Pricing Plans Modal */}
-      <PricingPlans
-        isOpen={showPricingPlans}
-        onClose={() => setShowPricingPlans(false)}
-      />
+      <PricingPlans />
     </>
   );
 }
