@@ -99,7 +99,11 @@ export class StripeService {
     return this.stripe;
   }
 
-  async createCheckoutSession(priceId: string, customerId?: string) {
+  async createCheckoutSession(
+    priceId: string,
+    customerId?: string,
+    userEmail?: string
+  ) {
     try {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -119,7 +123,8 @@ export class StripeService {
         body: JSON.stringify({
           priceId,
           customerId,
-          successUrl: `${window.location.origin}/settings?success=true`,
+          userEmail,
+          successUrl: `${window.location.origin}/settings?success=true&session_id={CHECKOUT_SESSION_ID}`,
           cancelUrl: `${window.location.origin}/settings?canceled=true`,
         }),
       });

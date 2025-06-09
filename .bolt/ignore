@@ -5,4 +5,8 @@ src/components/analytic/*
 src/components/auth/*
 src/components/onboarding/*
 src/components/subscription/*
+src/components/landing/*
+src/components/dashboard/*
+src/components/integrations/*
 src/components/ui/*
+src/data/*

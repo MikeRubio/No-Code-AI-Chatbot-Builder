@@ -1,21 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   CreditCard,
-  Calendar,
-  AlertCircle,
-  CheckCircle,
-  ExternalLink,
+  Crown,
+  Zap,
+  Check,
   Settings,
-  Download,
-  RefreshCw,
+  ExternalLink,
+  Webhook,
+  AlertTriangle,
 } from "lucide-react";
-import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
+import { Button } from "../ui/Button";
 import { Modal } from "../ui/Modal";
+import { StripeWebhookSetup } from "./StripeWebhookSetup";
 import { PricingPlans } from "./PricingPlans";
 import { useProfile } from "../../hooks/useProfile";
 import { stripeService, STRIPE_CONFIG } from "../../lib/stripe";
-import { supabase } from "../../lib/supabase";
 import toast from "react-hot-toast";
 
 interface SubscriptionManagerProps {
@@ -23,480 +23,305 @@ interface SubscriptionManagerProps {
   onClose: () => void;
 }
 
-interface SubscriptionData {
-  id: string;
-  status: string;
-  current_period_start: string;
-  current_period_end: string;
-  plan: string;
-  stripe_customer_id: string;
-}
-
 export function SubscriptionManager({
   isOpen,
   onClose,
 }: SubscriptionManagerProps) {
-  const [activeTab, setActiveTab] = useState<"overview" | "plans" | "billing">(
-    "overview"
-  );
-  const [subscription, setSubscription] = useState<SubscriptionData | null>(
-    null
-  );
+  const { profile } = useProfile();
+  const [showWebhookSetup, setShowWebhookSetup] = useState(false);
+  const [showPricingPlans, setShowPricingPlans] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [usageData, setUsageData] = useState<any>(null);
-  const { profile, updateProfile } = useProfile();
 
-  useEffect(() => {
-    if (isOpen && profile) {
-      loadSubscriptionData();
-      loadUsageData();
-    }
-  }, [isOpen, profile]);
+  const currentPlan = profile
+    ? STRIPE_CONFIG.plans[profile.plan as keyof typeof STRIPE_CONFIG.plans]
+    : null;
 
-  const loadSubscriptionData = async () => {
+  const handleUpgrade = async (planId: string) => {
     if (!profile) return;
-
-    try {
-      const { data, error } = await supabase
-        .from("subscriptions")
-        .select("*")
-        .eq("user_id", profile.id)
-        .single();
-
-      if (error && error.code !== "PGRST116") {
-        throw error;
-      }
-
-      setSubscription(data);
-    } catch (error: any) {
-      console.error("Failed to load subscription:", error);
-    }
-  };
-
-  const loadUsageData = async () => {
-    if (!profile) return;
-
-    try {
-      // Get current month's usage
-      const startOfMonth = new Date();
-      startOfMonth.setDate(1);
-      startOfMonth.setHours(0, 0, 0, 0);
-
-      const { data: chatbots } = await supabase
-        .from("chatbots")
-        .select("id")
-        .eq("user_id", profile.id);
-
-      const { data: conversations } = await supabase
-        .from("conversations")
-        .select("id")
-        .in("chatbot_id", chatbots?.map((c) => c.id) || [])
-        .gte("created_at", startOfMonth.toISOString());
-
-      const { data: messages } = await supabase
-        .from("messages")
-        .select("id")
-        .in("conversation_id", conversations?.map((c) => c.id) || [])
-        .gte("created_at", startOfMonth.toISOString());
-
-      setUsageData({
-        chatbots: chatbots?.length || 0,
-        conversations: conversations?.length || 0,
-        messages: messages?.length || 0,
-      });
-    } catch (error: any) {
-      console.error("Failed to load usage data:", error);
-    }
-  };
-
-  const handleManageBilling = async () => {
-    if (!subscription?.stripe_customer_id) {
-      toast.error("No billing information found");
-      return;
-    }
 
     setIsLoading(true);
     try {
-      await stripeService.createPortalSession(subscription.stripe_customer_id);
+      await stripeService.initialize();
+      const plan =
+        STRIPE_CONFIG.plans[planId as keyof typeof STRIPE_CONFIG.plans];
+
+      if (plan.priceId) {
+        await stripeService.createCheckoutSession(plan.priceId);
+      } else {
+        toast.error(
+          "Price ID not configured. Please set up Stripe products first."
+        );
+      }
     } catch (error: any) {
-      toast.error("Failed to open billing portal");
+      toast.error(error.message || "Failed to start checkout");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handlePlanChange = async (newPlanId: string) => {
-    if (!profile) return;
+  const handleManageBilling = async () => {
+    if (!profile?.subscription_id) {
+      toast.error("No active subscription found");
+      return;
+    }
 
+    setIsLoading(true);
     try {
-      await updateProfile({ plan: newPlanId as any });
-      toast.success("Plan updated successfully!");
-      setActiveTab("overview");
-      loadSubscriptionData();
+      await stripeService.createPortalSession(profile.subscription_id);
     } catch (error: any) {
-      toast.error("Failed to update plan");
+      toast.error(error.message || "Failed to open billing portal");
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const downloadInvoice = async () => {
-    // This would typically call your backend to generate/fetch invoice
-    toast.info("Invoice download feature coming soon!");
+  const getUsagePercentage = () => {
+    if (!profile) return 0;
+    if (profile.message_quota === -1) return 0; // Unlimited
+    return Math.min((profile.messages_used / profile.message_quota) * 100, 100);
   };
 
-  const getCurrentPlan = () => {
-    return STRIPE_CONFIG.plans[
-      profile?.plan as keyof typeof STRIPE_CONFIG.plans
-    ];
+  const getUsageColor = () => {
+    const percentage = getUsagePercentage();
+    if (percentage >= 90) return "text-red-600 bg-red-100";
+    if (percentage >= 75) return "text-orange-600 bg-orange-100";
+    return "text-green-600 bg-green-100";
   };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "text-green-600 bg-green-100";
-      case "past_due":
-        return "text-yellow-600 bg-yellow-100";
-      case "canceled":
-        return "text-red-600 bg-red-100";
-      default:
-        return "text-gray-600 bg-gray-100";
-    }
-  };
-
-  const getUsagePercentage = (used: number, limit: number) => {
-    if (limit === -1) return 0; // Unlimited
-    return Math.min((used / limit) * 100, 100);
-  };
-
-  const tabs = [
-    { id: "overview", name: "Overview", icon: CreditCard },
-    { id: "plans", name: "Plans", icon: Settings },
-    { id: "billing", name: "Billing", icon: Calendar },
-  ];
-
-  if (!profile) return null;
-
-  const currentPlan = getCurrentPlan();
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Subscription Management"
-      size="xl"
-    >
-      <div className="space-y-6">
-        {/* Tab Navigation */}
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center ${
-                  activeTab === tab.id
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
-              >
-                <tab.icon className="w-4 h-4 mr-2" />
-                {tab.name}
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        {/* Tab Content */}
-        {activeTab === "overview" && (
-          <div className="space-y-6">
-            {/* Current Plan */}
+    <>
+      <Modal
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Subscription Management"
+        size="lg"
+      >
+        <div className="space-y-6">
+          {/* Current Plan */}
+          {currentPlan && (
             <Card className="p-6">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Current Plan
-                </h3>
-                {subscription && (
-                  <span
-                    className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                      subscription.status
-                    )}`}
+                <div className="flex items-center space-x-3">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                    {currentPlan.id === "enterprise" ? (
+                      <Crown className="w-6 h-6 text-white" />
+                    ) : currentPlan.id === "pro" ? (
+                      <Zap className="w-6 h-6 text-white" />
+                    ) : (
+                      <CreditCard className="w-6 h-6 text-white" />
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {currentPlan.name} Plan
+                    </h3>
+                    <p className="text-gray-600">
+                      {currentPlan.price === 0
+                        ? "Free"
+                        : `$${currentPlan.price}/${currentPlan.interval}`}
+                    </p>
+                  </div>
+                </div>
+
+                {profile.plan !== "free" && (
+                  <Button
+                    variant="outline"
+                    onClick={handleManageBilling}
+                    disabled={isLoading}
                   >
-                    {subscription.status}
-                  </span>
+                    <Settings className="w-4 h-4 mr-2" />
+                    Manage Billing
+                  </Button>
                 )}
               </div>
 
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="text-2xl font-bold text-gray-900 mb-2">
-                    {currentPlan?.name} Plan
-                  </h4>
-                  <p className="text-gray-600 mb-4">
-                    ${currentPlan?.price}/month
-                  </p>
-
-                  {subscription && (
-                    <div className="space-y-2 text-sm text-gray-600">
-                      <div className="flex items-center">
-                        <Calendar className="w-4 h-4 mr-2" />
-                        Next billing:{" "}
-                        {new Date(
-                          subscription.current_period_end
-                        ).toLocaleDateString()}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-3">
-                  <Button
-                    onClick={() => setActiveTab("plans")}
-                    variant="outline"
-                    className="w-full"
+              {/* Usage */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">Message Usage</span>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${getUsageColor()}`}
                   >
-                    Change Plan
-                  </Button>
-                  {subscription?.stripe_customer_id && (
-                    <Button
-                      onClick={handleManageBilling}
-                      disabled={isLoading}
-                      variant="outline"
-                      className="w-full"
-                    >
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      Manage Billing
-                    </Button>
-                  )}
+                    {profile.message_quota === -1
+                      ? `${profile.messages_used} messages (Unlimited)`
+                      : `${profile.messages_used} / ${profile.message_quota} messages`}
+                  </span>
                 </div>
-              </div>
-            </Card>
 
-            {/* Usage Overview */}
-            <Card className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Usage This Month
-                </h3>
-                <Button onClick={loadUsageData} variant="ghost" size="sm">
-                  <RefreshCw className="w-4 h-4" />
-                </Button>
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-6">
-                {/* Chatbots */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">
-                      Chatbots
-                    </span>
-                    <span className="text-sm text-gray-600">
-                      {usageData?.chatbots || 0} /{" "}
-                      {currentPlan?.limits.chatbots === -1
-                        ? "∞"
-                        : currentPlan?.limits.chatbots}
-                    </span>
-                  </div>
+                {profile.message_quota !== -1 && (
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div
                       className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                      style={{
-                        width: `${getUsagePercentage(
-                          usageData?.chatbots || 0,
-                          currentPlan?.limits.chatbots || 0
-                        )}%`,
-                      }}
+                      style={{ width: `${getUsagePercentage()}%` }}
                     />
                   </div>
-                </div>
+                )}
+              </div>
 
-                {/* Messages */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">
-                      Messages
-                    </span>
-                    <span className="text-sm text-gray-600">
-                      {profile.messages_used} /{" "}
-                      {currentPlan?.limits.messages === -1
-                        ? "∞"
-                        : currentPlan?.limits.messages.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+              {/* Features */}
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <h4 className="font-medium text-gray-900 mb-2">
+                  Plan Features
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  {currentPlan.features.map((feature, index) => (
                     <div
-                      className="bg-green-600 h-2 rounded-full transition-all duration-300"
-                      style={{
-                        width: `${getUsagePercentage(
-                          profile.messages_used,
-                          currentPlan?.limits.messages || 0
-                        )}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-
-                {/* Conversations */}
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">
-                      Conversations
-                    </span>
-                    <span className="text-sm text-gray-600">
-                      {usageData?.conversations || 0}
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-purple-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: "60%" }}
-                    />
-                  </div>
+                      key={index}
+                      className="flex items-center space-x-2 text-sm"
+                    >
+                      <Check className="w-4 h-4 text-green-600" />
+                      <span className="text-gray-700">{feature}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </Card>
+          )}
 
-            {/* Plan Features */}
+          {/* Upgrade Options */}
+          {profile?.plan === "free" && (
             <Card className="p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Plan Features
+                Upgrade Your Plan
               </h3>
               <div className="grid md:grid-cols-2 gap-4">
-                {currentPlan?.features.map((feature, index) => (
-                  <div key={index} className="flex items-center">
-                    <CheckCircle className="w-5 h-5 text-green-500 mr-3" />
-                    <span className="text-gray-700 text-sm">{feature}</span>
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Zap className="w-5 h-5 text-purple-600" />
+                    <h4 className="font-semibold text-gray-900">Pro Plan</h4>
                   </div>
-                ))}
+                  <p className="text-2xl font-bold text-gray-900 mb-1">
+                    $29
+                    <span className="text-sm font-normal text-gray-600">
+                      /month
+                    </span>
+                  </p>
+                  <p className="text-gray-600 text-sm mb-3">
+                    Perfect for growing businesses
+                  </p>
+                  <Button
+                    onClick={() => handleUpgrade("pro")}
+                    disabled={isLoading}
+                    className="w-full"
+                  >
+                    Upgrade to Pro
+                  </Button>
+                </div>
+
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Crown className="w-5 h-5 text-yellow-600" />
+                    <h4 className="font-semibold text-gray-900">
+                      Enterprise Plan
+                    </h4>
+                  </div>
+                  <p className="text-2xl font-bold text-gray-900 mb-1">
+                    $99
+                    <span className="text-sm font-normal text-gray-600">
+                      /month
+                    </span>
+                  </p>
+                  <p className="text-gray-600 text-sm mb-3">
+                    For large organizations
+                  </p>
+                  <Button
+                    onClick={() => handleUpgrade("enterprise")}
+                    disabled={isLoading}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    Upgrade to Enterprise
+                  </Button>
+                </div>
               </div>
             </Card>
+          )}
 
-            {/* Alerts */}
-            {profile.messages_used / profile.message_quota > 0.8 && (
-              <Card className="p-4 bg-yellow-50 border-yellow-200">
-                <div className="flex items-center">
-                  <AlertCircle className="w-5 h-5 text-yellow-600 mr-3" />
+          {/* Stripe Setup */}
+          <Card className="p-6 bg-blue-50 border-blue-200">
+            <div className="flex items-start space-x-3">
+              <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                <Webhook className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-blue-900 mb-1">
+                  Stripe Integration Setup
+                </h3>
+                <p className="text-blue-800 text-sm mb-3">
+                  Configure Stripe webhooks to enable subscription management
+                  and payment processing.
+                </p>
+                <div className="flex items-center space-x-3">
+                  <Button onClick={() => setShowWebhookSetup(true)} size="sm">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Setup Webhooks
+                  </Button>
+                  <Button
+                    onClick={() => setShowPricingPlans(true)}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    View All Plans
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          {/* Subscription Status */}
+          {profile &&
+            profile.subscription_status !== "active" &&
+            profile.plan !== "free" && (
+              <Card className="p-6 bg-orange-50 border-orange-200">
+                <div className="flex items-start space-x-3">
+                  <AlertTriangle className="w-6 h-6 text-orange-600 mt-0.5" />
                   <div>
-                    <h4 className="font-medium text-yellow-900">
-                      Usage Warning
-                    </h4>
-                    <p className="text-yellow-800 text-sm">
-                      You've used{" "}
-                      {Math.round(
-                        (profile.messages_used / profile.message_quota) * 100
-                      )}
-                      % of your monthly message quota. Consider upgrading to
-                      avoid service interruption.
+                    <h3 className="font-semibold text-orange-900 mb-1">
+                      Subscription Issue
+                    </h3>
+                    <p className="text-orange-800 text-sm mb-3">
+                      Your subscription status is:{" "}
+                      <strong>{profile.subscription_status}</strong>
                     </p>
+                    {profile.subscription_status === "past_due" && (
+                      <p className="text-orange-800 text-sm mb-3">
+                        Please update your payment method to continue using
+                        premium features.
+                      </p>
+                    )}
+                    <Button
+                      onClick={handleManageBilling}
+                      size="sm"
+                      className="bg-orange-600 hover:bg-orange-700"
+                    >
+                      Resolve Issue
+                    </Button>
                   </div>
                 </div>
               </Card>
             )}
+
+          {/* Actions */}
+          <div className="flex justify-end space-x-3">
+            <Button variant="outline" onClick={onClose}>
+              Close
+            </Button>
           </div>
-        )}
+        </div>
+      </Modal>
 
-        {activeTab === "plans" && (
-          <div>
-            <PricingPlans
-              onPlanSelect={handlePlanChange}
-              currentPlan={profile.plan}
-              showCurrentPlan={true}
-            />
-          </div>
-        )}
+      {/* Webhook Setup Modal */}
+      <StripeWebhookSetup
+        isOpen={showWebhookSetup}
+        onClose={() => setShowWebhookSetup(false)}
+      />
 
-        {activeTab === "billing" && (
-          <div className="space-y-6">
-            {/* Billing Information */}
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Billing Information
-              </h3>
-
-              {subscription ? (
-                <div className="space-y-4">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Plan
-                      </label>
-                      <p className="text-gray-900">{currentPlan?.name}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Amount
-                      </label>
-                      <p className="text-gray-900">
-                        ${currentPlan?.price}/month
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Next Billing Date
-                      </label>
-                      <p className="text-gray-900">
-                        {new Date(
-                          subscription.current_period_end
-                        ).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Status
-                      </label>
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                          subscription.status
-                        )}`}
-                      >
-                        {subscription.status}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex space-x-3 pt-4 border-t border-gray-200">
-                    <Button onClick={handleManageBilling} disabled={isLoading}>
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      Manage Payment Methods
-                    </Button>
-                    <Button onClick={downloadInvoice} variant="outline">
-                      <Download className="w-4 h-4 mr-2" />
-                      Download Invoice
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <CreditCard className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <h4 className="text-lg font-medium text-gray-900 mb-2">
-                    No Billing Information
-                  </h4>
-                  <p className="text-gray-600 mb-4">
-                    You're currently on the free plan. Upgrade to access premium
-                    features.
-                  </p>
-                  <Button onClick={() => setActiveTab("plans")}>
-                    View Plans
-                  </Button>
-                </div>
-              )}
-            </Card>
-
-            {/* Billing History */}
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Billing History
-              </h3>
-
-              <div className="text-center py-8">
-                <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-600">
-                  Billing history will appear here once you have a paid
-                  subscription.
-                </p>
-              </div>
-            </Card>
-          </div>
-        )}
-      </div>
-    </Modal>
+      {/* Pricing Plans Modal */}
+      <PricingPlans
+        isOpen={showPricingPlans}
+        onClose={() => setShowPricingPlans(false)}
+      />
+    </>
   );
 }

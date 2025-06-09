@@ -16,9 +16,9 @@ import {
 } from "lucide-react";
 import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
-import { getGuideById, quickStartGuides } from "./QuickStartGuide";
+import { QuickStartGuideComponent } from "./QuickStartGuide";
 import { appFAQ, searchFAQ, getAllCategories } from "../../data/appFAQ";
-import { QuickStartGuideComponent } from "./QuickStartGuideComponent";
+import { quickStartGuides, getGuideById } from "../../data/quickStartGuides";
 
 const iconMap = {
   Zap,
@@ -31,13 +31,7 @@ const iconMap = {
 export function DocumentationPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  type FAQResult = {
-    question: string;
-    answer: string;
-    category: string;
-    keywords: string[];
-  };
-  const [searchResults, setSearchResults] = useState<FAQResult[]>([]);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
   const [selectedGuide, setSelectedGuide] = useState<string | null>(null);
   const [showGuide, setShowGuide] = useState(false);
 
@@ -125,50 +119,50 @@ export function DocumentationPage() {
                   iconMap[guide.icon as keyof typeof iconMap] || BookOpen;
 
                 return (
-                  <Card key={guide.id} hover className="p-6 cursor-pointer">
-                    <div
-                      onClick={() => handleGuideSelect(guide.id)}
-                      className="cursor-pointer"
-                    >
-                      <div className="flex items-center mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mr-4">
-                          <IconComponent className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <span
-                              className={`text-xs px-2 py-1 rounded-full ${
-                                guide.difficulty === "beginner"
-                                  ? "bg-green-100 text-green-800"
-                                  : guide.difficulty === "intermediate"
-                                  ? "bg-yellow-100 text-yellow-800"
-                                  : "bg-red-100 text-red-800"
-                              }`}
-                            >
-                              {guide.difficulty}
-                            </span>
-                            <span className="text-xs text-gray-500 flex items-center">
-                              <Clock className="w-3 h-3 mr-1" />
-                              {guide.estimatedTime}
-                            </span>
-                          </div>
+                  <Card
+                    key={guide.id}
+                    hover
+                    className="p-6 cursor-pointer"
+                    onClick={() => handleGuideSelect(guide.id)}
+                  >
+                    <div className="flex items-center mb-4">
+                      <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mr-4">
+                        <IconComponent className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <span
+                            className={`text-xs px-2 py-1 rounded-full ${
+                              guide.difficulty === "beginner"
+                                ? "bg-green-100 text-green-800"
+                                : guide.difficulty === "intermediate"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {guide.difficulty}
+                          </span>
+                          <span className="text-xs text-gray-500 flex items-center">
+                            <Clock className="w-3 h-3 mr-1" />
+                            {guide.estimatedTime}
+                          </span>
                         </div>
                       </div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        {guide.title}
-                      </h3>
-                      <p className="text-gray-600 text-sm mb-4 line-clamp-2">
-                        {guide.description}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500">
-                          {guide.category}
-                        </span>
-                        <Button variant="outline" size="sm">
-                          <BookOpen className="w-4 h-4 mr-2" />
-                          Start Guide
-                        </Button>
-                      </div>
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                      {guide.title}
+                    </h3>
+                    <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                      {guide.description}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500">
+                        {guide.category}
+                      </span>
+                      <Button variant="outline" size="sm">
+                        <BookOpen className="w-4 h-4 mr-2" />
+                        Start Guide
+                      </Button>
                     </div>
                   </Card>
                 );

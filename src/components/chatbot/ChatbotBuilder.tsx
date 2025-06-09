@@ -84,9 +84,9 @@ function ChatbotBuilderContent() {
 
   const {
     chatbots,
+    createChatbotAsync,
     updateChatbot,
     publishChatbot,
-    createChatbotAsync,
     isCreating,
     isUpdating,
   } = useChatbots();

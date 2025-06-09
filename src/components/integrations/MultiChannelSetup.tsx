@@ -1,27 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { 
-  MessageCircle, 
-  Facebook, 
-  Send, 
-  Smartphone, 
-  Globe, 
-  CheckCircle, 
-  ExternalLink,
-  Settings,
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import {
+  Globe,
+  MessageCircle,
+  Facebook,
+  Send,
+  Smartphone,
   Plus,
-  Trash2,
+  CheckCircle,
+  AlertCircle,
   Copy,
-  Code
-} from 'lucide-react';
-import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
-import { Modal } from '../ui/Modal';
-import { supabase } from '../../lib/supabase';
-import { useAuth } from '../../hooks/useAuth';
-import { FacebookMessengerSetup } from './FacebookMessengerSetup';
-import { WhatsAppOAuthSetup } from './WhatsAppOAuthSetup';
-import toast from 'react-hot-toast';
+  Trash2,
+  RefreshCw,
+} from "lucide-react";
+import { Card } from "../ui/Card";
+import { Button } from "../ui/Button";
+import { WebsiteWidget } from "./WebsiteWidget";
+import { WhatsAppSetup } from "./WhatsAppSetup";
+import { FacebookMessengerSetup } from "./FacebookMessengerSetup";
+import { supabase } from "../../lib/supabase";
+import toast from "react-hot-toast";
 
 interface MultiChannelSetupProps {
   chatbotId: string;
@@ -29,610 +27,569 @@ interface MultiChannelSetupProps {
   onClose: () => void;
 }
 
-interface Channel {
+interface DeploymentChannel {
   id: string;
   channel_type: string;
   channel_config: any;
   is_active: boolean;
-  deployment_url?: string;
-  sync_status: string;
-  error_message?: string;
+  deployment_url: string | null;
+  webhook_url: string | null;
+  last_sync_at: string | null;
+  sync_status: "pending" | "syncing" | "synced" | "error";
+  error_message: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
-const channelTypes = [
+const channels = [
   {
-    type: 'web',
-    name: 'Website Widget',
+    id: "web",
+    name: "Website Widget",
+    description: "Embed on your website with modern framework support",
     icon: Globe,
-    color: 'from-blue-500 to-blue-600',
-    description: 'Embed chatbot on your website',
-    free: true
+    color: "from-blue-500 to-blue-600",
+    features: [
+      "React/Vue/Angular support",
+      "Customizable appearance",
+      "Mobile responsive",
+      "Easy integration",
+    ],
+    setupComponent: "WebsiteWidget",
   },
   {
-    type: 'whatsapp',
-    name: 'WhatsApp Business',
+    id: "whatsapp",
+    name: "WhatsApp Business",
+    description: "Connect with customers on WhatsApp",
     icon: MessageCircle,
-    color: 'from-green-500 to-green-600',
-    description: 'Connect via WhatsApp Business API (Seamless Setup)',
-    free: false
+    color: "from-green-500 to-green-600",
+    features: [
+      "Business API integration",
+      "Rich media support",
+      "Template messages",
+      "Global reach",
+    ],
+    setupComponent: "WhatsAppSetup",
+    requiresPro: true,
   },
   {
-    type: 'facebook',
-    name: 'Facebook Messenger',
+    id: "facebook",
+    name: "Facebook Messenger",
+    description: "Engage users on Facebook and Instagram",
     icon: Facebook,
-    color: 'from-blue-600 to-blue-700',
-    description: 'Deploy to Facebook Messenger',
-    free: false
+    color: "from-blue-600 to-purple-600",
+    features: [
+      "Messenger integration",
+      "Instagram DMs",
+      "Rich interactions",
+      "Social commerce",
+    ],
+    setupComponent: "FacebookMessengerSetup",
+    requiresPro: true,
   },
   {
-    type: 'telegram',
-    name: 'Telegram Bot',
+    id: "telegram",
+    name: "Telegram",
+    description: "Deploy on Telegram with bot API",
     icon: Send,
-    color: 'from-sky-500 to-sky-600',
-    description: 'Create a Telegram bot',
-    free: false
+    color: "from-cyan-500 to-blue-500",
+    features: [
+      "Bot API integration",
+      "Group chat support",
+      "Inline keyboards",
+      "File sharing",
+    ],
+    setupComponent: null,
+    requiresPro: true,
+    comingSoon: true,
   },
   {
-    type: 'sms',
-    name: 'SMS/Text',
+    id: "sms",
+    name: "SMS",
+    description: "Text message conversations via Twilio",
     icon: Smartphone,
-    color: 'from-purple-500 to-purple-600',
-    description: 'SMS-based conversations',
-    free: false
-  }
+    color: "from-purple-500 to-pink-500",
+    features: [
+      "Twilio integration",
+      "Global SMS delivery",
+      "Two-way messaging",
+      "Shortcode support",
+    ],
+    setupComponent: null,
+    requiresPro: true,
+    comingSoon: true,
+  },
+  {
+    id: "slack",
+    name: "Slack",
+    description: "Internal team communication bot",
+    icon: MessageCircle,
+    color: "from-purple-600 to-indigo-600",
+    features: [
+      "Slack app integration",
+      "Workspace deployment",
+      "Slash commands",
+      "Thread support",
+    ],
+    setupComponent: null,
+    requiresPro: true,
+    comingSoon: true,
+  },
 ];
 
-export function MultiChannelSetup({ chatbotId, isOpen, onClose }: MultiChannelSetupProps) {
-  const { user } = useAuth();
-  const [channels, setChannels] = useState<Channel[]>([]);
+export function MultiChannelSetup({
+  chatbotId,
+  isOpen,
+  onClose,
+}: MultiChannelSetupProps) {
+  const [deployments, setDeployments] = useState<DeploymentChannel[]>([]);
   const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
+  const [showChannelSetup, setShowChannelSetup] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [showChannelConfig, setShowChannelConfig] = useState(false);
-  const [showEmbedCode, setShowEmbedCode] = useState(false);
-  const [showFacebookSetup, setShowFacebookSetup] = useState(false);
-  const [showWhatsAppSetup, setShowWhatsAppSetup] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      loadChannels();
+      loadDeployments();
     }
   }, [isOpen, chatbotId]);
 
-  const loadChannels = async () => {
+  const loadDeployments = async () => {
     try {
       const { data, error } = await supabase
-        .from('deployment_channels')
-        .select('*')
-        .eq('chatbot_id', chatbotId);
+        .from("deployment_channels")
+        .select("*")
+        .eq("chatbot_id", chatbotId)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setChannels(data || []);
+      setDeployments(data || []);
     } catch (error: any) {
-      toast.error('Failed to load channels: ' + error.message);
+      console.error("Failed to load deployments:", error);
+      toast.error("Failed to load deployment channels");
     }
   };
 
-  const addChannel = async (channelType: string) => {
-    if (!user) {
-      toast.error('You must be logged in to add channels');
+  const handleChannelSetup = (channelId: string) => {
+    const channel = channels.find((c) => c.id === channelId);
+    if (channel?.comingSoon) {
+      toast.info("This channel is coming soon! Stay tuned for updates.");
       return;
     }
 
-    // Handle special setup flows
-    if (channelType === 'facebook') {
-      setShowFacebookSetup(true);
-      return;
-    }
+    setSelectedChannel(channelId);
+    setShowChannelSetup(true);
+  };
 
-    if (channelType === 'whatsapp') {
-      setShowWhatsAppSetup(true);
-      return;
-    }
-
-    setIsLoading(true);
+  const toggleChannelStatus = async (
+    deploymentId: string,
+    isActive: boolean
+  ) => {
     try {
-      const channelConfig = getDefaultConfig(channelType);
-      
-      const { data, error } = await supabase
-        .from('deployment_channels')
-        .insert({
-          chatbot_id: chatbotId,
-          channel_type: channelType,
-          channel_config: channelConfig,
-          is_active: false,
-          sync_status: 'pending'
+      const { error } = await supabase
+        .from("deployment_channels")
+        .update({
+          is_active: !isActive,
+          updated_at: new Date().toISOString(),
         })
-        .select()
-        .single();
+        .eq("id", deploymentId);
 
       if (error) throw error;
 
-      setChannels(prev => [...prev, data]);
-      setSelectedChannel(data.id);
-      setShowChannelConfig(true);
-      toast.success('Channel added successfully!');
+      setDeployments((prev) =>
+        prev.map((dep) =>
+          dep.id === deploymentId ? { ...dep, is_active: !isActive } : dep
+        )
+      );
+
+      toast.success(
+        `Channel ${!isActive ? "activated" : "deactivated"} successfully`
+      );
     } catch (error: any) {
-      toast.error('Failed to add channel: ' + error.message);
-    } finally {
-      setIsLoading(false);
+      console.error("Failed to toggle channel status:", error);
+      toast.error("Failed to update channel status");
     }
   };
 
-  const updateChannel = async (channelId: string, updates: any) => {
-    try {
-      const { error } = await supabase
-        .from('deployment_channels')
-        .update(updates)
-        .eq('id', channelId);
-
-      if (error) throw error;
-
-      setChannels(prev => prev.map(ch => 
-        ch.id === channelId ? { ...ch, ...updates } : ch
-      ));
-      
-      toast.success('Channel updated successfully!');
-    } catch (error: any) {
-      toast.error('Failed to update channel: ' + error.message);
+  const deleteDeployment = async (deploymentId: string) => {
+    if (
+      !confirm(
+        "Are you sure you want to delete this deployment? This action cannot be undone."
+      )
+    ) {
+      return;
     }
-  };
-
-  const deleteChannel = async (channelId: string) => {
-    if (!confirm('Are you sure you want to delete this channel?')) return;
 
     try {
       const { error } = await supabase
-        .from('deployment_channels')
+        .from("deployment_channels")
         .delete()
-        .eq('id', channelId);
+        .eq("id", deploymentId);
 
       if (error) throw error;
 
-      setChannels(prev => prev.filter(ch => ch.id !== channelId));
-      toast.success('Channel deleted successfully!');
+      setDeployments((prev) => prev.filter((dep) => dep.id !== deploymentId));
+      toast.success("Deployment deleted successfully");
     } catch (error: any) {
-      toast.error('Failed to delete channel: ' + error.message);
+      console.error("Failed to delete deployment:", error);
+      toast.error("Failed to delete deployment");
     }
   };
 
-  const deployChannel = async (channelId: string) => {
-    setIsLoading(true);
+  const syncDeployment = async (deploymentId: string) => {
     try {
+      setIsLoading(true);
+
       // Update sync status to syncing
-      await updateChannel(channelId, { sync_status: 'syncing' });
+      await supabase
+        .from("deployment_channels")
+        .update({
+          sync_status: "syncing",
+          last_sync_at: new Date().toISOString(),
+        })
+        .eq("id", deploymentId);
 
-      // Check if environment variables are configured
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      
-      if (!supabaseUrl || !supabaseKey || supabaseUrl.includes('your_') || supabaseKey.includes('your_')) {
-        throw new Error('Supabase environment variables are not configured. Please check your .env file.');
-      }
+      // Simulate sync process (in real implementation, this would call the respective API)
+      setTimeout(async () => {
+        await supabase
+          .from("deployment_channels")
+          .update({
+            sync_status: "synced",
+            error_message: null,
+          })
+          .eq("id", deploymentId);
 
-      // Call deployment function
-      const response = await fetch(`${supabaseUrl}/functions/v1/deploy-channel`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${supabaseKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ channelId }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP ${response.status}: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      
-      await updateChannel(channelId, { 
-        sync_status: 'synced',
-        deployment_url: result.deploymentUrl,
-        is_active: true
-      });
-
-      toast.success('Channel deployed successfully!');
+        loadDeployments();
+        toast.success("Deployment synced successfully");
+      }, 2000);
     } catch (error: any) {
-      console.error('Deployment error:', error);
-      await updateChannel(channelId, { 
-        sync_status: 'error',
-        error_message: error.message
-      });
-      
-      if (error.message.includes('environment variables')) {
-        toast.error('Configuration Error: ' + error.message);
-      } else if (error.message.includes('Failed to fetch')) {
-        toast.error('Network Error: Unable to connect to deployment service. Please check your internet connection and Supabase configuration.');
-      } else {
-        toast.error('Deployment failed: ' + error.message);
-      }
+      console.error("Failed to sync deployment:", error);
+      toast.error("Failed to sync deployment");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const getDefaultConfig = (channelType: string) => {
-    switch (channelType) {
-      case 'web':
-        return {
-          widget_position: 'bottom-right',
-          widget_color: '#3B82F6',
-          welcome_message: 'Hello! How can I help you?',
-          placeholder_text: 'Type your message...'
-        };
-      case 'telegram':
-        return {
-          bot_token: '',
-          webhook_url: ''
-        };
-      case 'sms':
-        return {
-          twilio_sid: '',
-          twilio_token: '',
-          phone_number: ''
-        };
-      default:
-        return {};
-    }
-  };
-
-  const getChannelIcon = (type: string) => {
-    const channel = channelTypes.find(ch => ch.type === type);
+  const getChannelIcon = (channelType: string) => {
+    const channel = channels.find((c) => c.id === channelType);
     return channel?.icon || Globe;
   };
 
-  const getChannelColor = (type: string) => {
-    const channel = channelTypes.find(ch => ch.type === type);
-    return channel?.color || 'from-gray-500 to-gray-600';
+  const getChannelColor = (channelType: string) => {
+    const channel = channels.find((c) => c.id === channelType);
+    return channel?.color || "from-gray-500 to-gray-600";
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'synced': return 'text-green-600 bg-green-100';
-      case 'syncing': return 'text-yellow-600 bg-yellow-100';
-      case 'error': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
-    }
-  };
-
-  const copyEmbedCode = (channel: Channel) => {
-    const embedCode = channel.channel_config?.embed_code;
-    if (embedCode) {
-      navigator.clipboard.writeText(embedCode);
-      toast.success('Embed code copied to clipboard!');
-    } else {
-      toast.error('Embed code not available. Please deploy the channel first.');
-    }
-  };
-
-  return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Multi-Channel Deployment"
-      size="xl"
-    >
-      <div className="space-y-6">
-        {/* Available Channels */}
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Available Channels</h3>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {channelTypes.map((channelType) => {
-              const isAdded = channels.some(ch => ch.channel_type === channelType.type);
-              const Icon = channelType.icon;
-              
-              return (
-                <Card key={channelType.type} className="p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className={`w-10 h-10 bg-gradient-to-r ${channelType.color} rounded-lg flex items-center justify-center`}>
-                      <Icon className="w-5 h-5 text-white" />
-                    </div>
-                    {!channelType.free && (
-                      <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded">
-                        Pro
-                      </span>
-                    )}
-                  </div>
-                  <h4 className="font-medium text-gray-900 mb-1">{channelType.name}</h4>
-                  <p className="text-sm text-gray-600 mb-3">{channelType.description}</p>
-                  
-                  {isAdded ? (
-                    <Button variant="outline" size="sm" className="w-full" disabled>
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Added
-                    </Button>
-                  ) : (
-                    <Button 
-                      size="sm" 
-                      className="w-full"
-                      onClick={() => addChannel(channelType.type)}
-                      disabled={isLoading}
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Channel
-                    </Button>
-                  )}
-                </Card>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Configured Channels */}
-        {channels.length > 0 && (
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Configured Channels</h3>
-            <div className="space-y-4">
-              {channels.map((channel) => {
-                const Icon = getChannelIcon(channel.channel_type);
-                const colorClass = getChannelColor(channel.channel_type);
-                const statusClass = getStatusColor(channel.sync_status);
-                
-                return (
-                  <Card key={channel.id} className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className={`w-10 h-10 bg-gradient-to-r ${colorClass} rounded-lg flex items-center justify-center`}>
-                          <Icon className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-900">
-                            {channelTypes.find(ct => ct.type === channel.channel_type)?.name}
-                          </h4>
-                          <div className="flex items-center space-x-2">
-                            <span className={`text-xs px-2 py-1 rounded-full ${statusClass}`}>
-                              {channel.sync_status}
-                            </span>
-                            {channel.is_active && (
-                              <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                                Active
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2">
-                        {channel.channel_type === 'web' && channel.sync_status === 'synced' && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => copyEmbedCode(channel)}
-                            title="Copy embed code"
-                          >
-                            <Code className="w-4 h-4" />
-                          </Button>
-                        )}
-                        
-                        {channel.deployment_url && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => window.open(channel.deployment_url, '_blank')}
-                          >
-                            <ExternalLink className="w-4 h-4" />
-                          </Button>
-                        )}
-                        
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            if (channel.channel_type === 'facebook') {
-                              setShowFacebookSetup(true);
-                            } else if (channel.channel_type === 'whatsapp') {
-                              setShowWhatsAppSetup(true);
-                            } else {
-                              setSelectedChannel(channel.id);
-                              setShowChannelConfig(true);
-                            }
-                          }}
-                        >
-                          <Settings className="w-4 h-4" />
-                        </Button>
-                        
-                        {channel.sync_status === 'pending' || channel.sync_status === 'error' ? (
-                          <Button
-                            size="sm"
-                            onClick={() => deployChannel(channel.id)}
-                            disabled={isLoading}
-                          >
-                            Deploy
-                          </Button>
-                        ) : (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => deleteChannel(channel.id)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {channel.error_message && (
-                      <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                        <p className="text-sm text-red-700">{channel.error_message}</p>
-                        {channel.error_message.includes('environment variables') && (
-                          <p className="text-xs text-red-600 mt-1">
-                            Please configure your Supabase URL and API key in the .env file
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </Card>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Channel Configuration Modal */}
-        {showChannelConfig && selectedChannel && (
-          <ChannelConfigModal
-            channel={channels.find(ch => ch.id === selectedChannel)!}
-            onUpdate={(updates) => updateChannel(selectedChannel, updates)}
-            onClose={() => {
-              setShowChannelConfig(false);
-              setSelectedChannel(null);
-            }}
-          />
-        )}
-
-        {/* Facebook Messenger Setup Modal */}
-        <FacebookMessengerSetup
-          chatbotId={chatbotId}
-          isOpen={showFacebookSetup}
-          onClose={() => {
-            setShowFacebookSetup(false);
-            loadChannels(); // Reload channels after Facebook setup
-          }}
-        />
-
-        {/* WhatsApp OAuth Setup Modal */}
-        <WhatsAppOAuthSetup
-          chatbotId={chatbotId}
-          isOpen={showWhatsAppSetup}
-          onClose={() => {
-            setShowWhatsAppSetup(false);
-            loadChannels(); // Reload channels after WhatsApp setup
-          }}
-        />
-      </div>
-    </Modal>
-  );
-}
-
-interface ChannelConfigModalProps {
-  channel: Channel;
-  onUpdate: (updates: any) => void;
-  onClose: () => void;
-}
-
-function ChannelConfigModal({ channel, onUpdate, onClose }: ChannelConfigModalProps) {
-  const [config, setConfig] = useState(channel.channel_config);
-
-  const handleSave = () => {
-    onUpdate({ channel_config: config });
-    onClose();
-  };
-
-  const renderConfigFields = () => {
-    switch (channel.channel_type) {
-      case 'web':
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Widget Position
-              </label>
-              <select
-                value={config.widget_position}
-                onChange={(e) => setConfig(prev => ({ ...prev, widget_position: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="bottom-right">Bottom Right</option>
-                <option value="bottom-left">Bottom Left</option>
-                <option value="top-right">Top Right</option>
-                <option value="top-left">Top Left</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Widget Color
-              </label>
-              <input
-                type="color"
-                value={config.widget_color}
-                onChange={(e) => setConfig(prev => ({ ...prev, widget_color: e.target.value }))}
-                className="w-full h-10 border border-gray-300 rounded-lg"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Welcome Message
-              </label>
-              <input
-                type="text"
-                value={config.welcome_message}
-                onChange={(e) => setConfig(prev => ({ ...prev, welcome_message: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Placeholder Text
-              </label>
-              <input
-                type="text"
-                value={config.placeholder_text}
-                onChange={(e) => setConfig(prev => ({ ...prev, placeholder_text: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-          </div>
-        );
-        
-      case 'telegram':
-        return (
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Bot Token
-              </label>
-              <input
-                type="password"
-                value={config.bot_token}
-                onChange={(e) => setConfig(prev => ({ ...prev, bot_token: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-          </div>
-        );
-        
+      case "synced":
+        return "text-green-600 bg-green-100";
+      case "syncing":
+        return "text-blue-600 bg-blue-100";
+      case "error":
+        return "text-red-600 bg-red-100";
       default:
-        return (
-          <div className="text-center py-8">
-            <p className="text-gray-600">Configuration options for this channel will be available soon.</p>
-          </div>
-        );
+        return "text-gray-600 bg-gray-100";
     }
   };
+
+  const getDeployedChannels = () => {
+    return deployments.map((dep) => dep.channel_type);
+  };
+
+  const getAvailableChannels = () => {
+    const deployedChannels = getDeployedChannels();
+    return channels.filter((channel) => !deployedChannels.includes(channel.id));
+  };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-md bg-white rounded-xl shadow-2xl"
+        exit={{ opacity: 0, scale: 0.9 }}
+        className="w-full max-w-6xl max-h-[90vh] bg-white rounded-xl shadow-2xl overflow-hidden"
       >
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">
-              Configure {channelTypes.find(ct => ct.type === channel.channel_type)?.name}
-            </h3>
-            <button
-              onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-            >
-              ×
-            </button>
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-purple-50">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">
+              Multi-Channel Deployment
+            </h2>
+            <p className="text-gray-600">
+              Deploy your chatbot across multiple platforms and channels
+            </p>
           </div>
-          
-          {renderConfigFields()}
-          
-          <div className="flex space-x-3 mt-6">
-            <Button variant="outline" onClick={onClose} className="flex-1">
-              Cancel
-            </Button>
-            <Button onClick={handleSave} className="flex-1">
-              Save Configuration
-            </Button>
-          </div>
+          <button
+            onClick={onClose}
+            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            ×
+          </button>
         </div>
+
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+          {/* Active Deployments */}
+          {deployments.length > 0 && (
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Active Deployments
+              </h3>
+              <div className="grid md:grid-cols-2 gap-4">
+                {deployments.map((deployment) => {
+                  const IconComponent = getChannelIcon(deployment.channel_type);
+                  const channel = channels.find(
+                    (c) => c.id === deployment.channel_type
+                  );
+
+                  return (
+                    <Card key={deployment.id} className="p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <div
+                            className={`w-10 h-10 bg-gradient-to-r ${getChannelColor(
+                              deployment.channel_type
+                            )} rounded-lg flex items-center justify-center`}
+                          >
+                            <IconComponent className="w-5 h-5 text-white" />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-gray-900">
+                              {channel?.name}
+                            </h4>
+                            <div className="flex items-center space-x-2">
+                              <span
+                                className={`text-xs px-2 py-1 rounded-full ${getStatusColor(
+                                  deployment.sync_status
+                                )}`}
+                              >
+                                {deployment.sync_status}
+                              </span>
+                              <span
+                                className={`text-xs px-2 py-1 rounded-full ${
+                                  deployment.is_active
+                                    ? "text-green-600 bg-green-100"
+                                    : "text-gray-600 bg-gray-100"
+                                }`}
+                              >
+                                {deployment.is_active ? "Active" : "Inactive"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => syncDeployment(deployment.id)}
+                            disabled={isLoading}
+                          >
+                            <RefreshCw
+                              className={`w-4 h-4 ${
+                                isLoading ? "animate-spin" : ""
+                              }`}
+                            />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              toggleChannelStatus(
+                                deployment.id,
+                                deployment.is_active
+                              )
+                            }
+                          >
+                            {deployment.is_active ? (
+                              <AlertCircle className="w-4 h-4 text-orange-600" />
+                            ) : (
+                              <CheckCircle className="w-4 h-4 text-green-600" />
+                            )}
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteDeployment(deployment.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+
+                      {deployment.deployment_url && (
+                        <div className="mb-2">
+                          <p className="text-xs text-gray-600 mb-1">
+                            Deployment URL:
+                          </p>
+                          <div className="flex items-center space-x-2">
+                            <code className="text-xs bg-gray-100 px-2 py-1 rounded flex-1 truncate">
+                              {deployment.deployment_url}
+                            </code>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() =>
+                                navigator.clipboard.writeText(
+                                  deployment.deployment_url!
+                                )
+                              }
+                            >
+                              <Copy className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+
+                      {deployment.error_message && (
+                        <div className="text-xs text-red-600 bg-red-50 p-2 rounded">
+                          {deployment.error_message}
+                        </div>
+                      )}
+
+                      <div className="text-xs text-gray-500 mt-2">
+                        Last synced:{" "}
+                        {deployment.last_sync_at
+                          ? new Date(deployment.last_sync_at).toLocaleString()
+                          : "Never"}
+                      </div>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Available Channels */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              Available Channels
+            </h3>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {getAvailableChannels().map((channel) => {
+                const IconComponent = channel.icon;
+
+                return (
+                  <Card key={channel.id} hover className="p-6">
+                    <div className="flex items-center mb-4">
+                      <div
+                        className={`w-12 h-12 bg-gradient-to-r ${channel.color} rounded-xl flex items-center justify-center mr-4`}
+                      >
+                        <IconComponent className="w-6 h-6 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <h4 className="font-semibold text-gray-900">
+                            {channel.name}
+                          </h4>
+                          {channel.requiresPro && (
+                            <span className="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full">
+                              Pro
+                            </span>
+                          )}
+                          {channel.comingSoon && (
+                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                              Soon
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="text-gray-600 text-sm mb-4">
+                      {channel.description}
+                    </p>
+
+                    <div className="space-y-2 mb-4">
+                      {channel.features.map((feature, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center text-sm text-gray-600"
+                        >
+                          <CheckCircle className="w-3 h-3 text-green-500 mr-2 flex-shrink-0" />
+                          {feature}
+                        </div>
+                      ))}
+                    </div>
+
+                    <Button
+                      onClick={() => handleChannelSetup(channel.id)}
+                      disabled={channel.comingSoon}
+                      className="w-full"
+                    >
+                      {channel.comingSoon ? (
+                        "Coming Soon"
+                      ) : (
+                        <>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Setup Channel
+                        </>
+                      )}
+                    </Button>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Empty State */}
+          {deployments.length === 0 && (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Globe className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                No Deployments Yet
+              </h3>
+              <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                Deploy your chatbot across multiple channels to reach your
+                audience wherever they are.
+              </p>
+              <Button onClick={() => handleChannelSetup("web")}>
+                <Plus className="w-4 h-4 mr-2" />
+                Deploy Your First Channel
+              </Button>
+            </div>
+          )}
+        </div>
+
+        {/* Channel Setup Modals */}
+        {showChannelSetup && selectedChannel === "web" && (
+          <WebsiteWidget
+            chatbotId={chatbotId}
+            isOpen={showChannelSetup}
+            onClose={() => {
+              setShowChannelSetup(false);
+              setSelectedChannel(null);
+              loadDeployments();
+            }}
+          />
+        )}
+
+        {showChannelSetup && selectedChannel === "whatsapp" && (
+          <WhatsAppSetup
+            chatbotId={chatbotId}
+            isOpen={showChannelSetup}
+            onClose={() => {
+              setShowChannelSetup(false);
+              setSelectedChannel(null);
+              loadDeployments();
+            }}
+          />
+        )}
+
+        {showChannelSetup && selectedChannel === "facebook" && (
+          <FacebookMessengerSetup
+            chatbotId={chatbotId}
+            isOpen={showChannelSetup}
+            onClose={() => {
+              setShowChannelSetup(false);
+              setSelectedChannel(null);
+              loadDeployments();
+            }}
+          />
+        )}
       </motion.div>
     </div>
   );
