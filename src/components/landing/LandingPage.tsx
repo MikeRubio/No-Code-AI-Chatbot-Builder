@@ -1,91 +1,101 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Bot, MessageCircle, Zap, Shield, BarChart3, Globe, Check, Star, BookOpen } from 'lucide-react';
-import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
-import { Link } from 'react-router-dom';
+import React from "react";
+import { motion } from "framer-motion";
+import {
+  Bot,
+  MessageCircle,
+  Zap,
+  Shield,
+  BarChart3,
+  Globe,
+  Check,
+  Star,
+  BookOpen,
+} from "lucide-react";
+import { Button } from "../ui/Button";
+import { Card } from "../ui/Card";
+import { Link } from "react-router-dom";
 
 export function LandingPage() {
   const features = [
     {
       icon: Bot,
-      title: 'Drag & Drop Builder',
-      description: 'Create chatbot flows visually without any coding knowledge'
+      title: "Drag & Drop Builder",
+      description: "Create chatbot flows visually without any coding knowledge",
     },
     {
       icon: MessageCircle,
-      title: 'AI-Powered Responses',
-      description: 'Integrate with OpenAI for natural language understanding'
+      title: "AI-Powered Responses",
+      description: "Integrate with OpenAI for natural language understanding",
     },
     {
       icon: Globe,
-      title: 'Multi-Platform Deploy',
-      description: 'Deploy to your website, WhatsApp, and other channels'
+      title: "Multi-Platform Deploy",
+      description: "Deploy to your website, WhatsApp, and other channels",
     },
     {
       icon: BarChart3,
-      title: 'Advanced Analytics',
-      description: 'Track conversations, user engagement, and performance'
+      title: "Advanced Analytics",
+      description: "Track conversations, user engagement, and performance",
     },
     {
       icon: Shield,
-      title: 'Enterprise Security',
-      description: 'Bank-level security for your data and conversations'
+      title: "Enterprise Security",
+      description: "Bank-level security for your data and conversations",
     },
     {
       icon: Zap,
-      title: 'Instant Setup',
-      description: 'Get your chatbot running in minutes, not days'
-    }
+      title: "Instant Setup",
+      description: "Get your chatbot running in minutes, not days",
+    },
   ];
 
   const pricingPlans = [
     {
-      name: 'Free',
-      price: '$0',
-      period: 'forever',
-      description: 'Perfect for trying out our platform',
+      name: "Free",
+      price: "$0",
+      period: "forever",
+      description: "Perfect for trying out our platform",
       features: [
-        '1 chatbot',
-        '100 messages/month',
-        'Basic analytics',
-        'Website integration',
-        'Community support'
+        "1 chatbot",
+        "100 messages/month",
+        "Basic analytics",
+        "Website integration",
+        "Community support",
       ],
-      popular: false
+      popular: false,
     },
     {
-      name: 'Pro',
-      price: '$29',
-      period: 'per month',
-      description: 'Best for growing businesses',
+      name: "Pro",
+      price: "$29",
+      period: "per month",
+      description: "Best for growing businesses",
       features: [
-        '5 chatbots',
-        '5,000 messages/month',
-        'Advanced analytics',
-        'WhatsApp integration',
-        'OpenAI integration',
-        'Priority support',
-        'Custom branding'
+        "5 chatbots",
+        "5,000 messages/month",
+        "Advanced analytics",
+        "WhatsApp integration",
+        "OpenAI integration",
+        "Priority support",
+        "Custom branding",
       ],
-      popular: true
+      popular: true,
     },
     {
-      name: 'Enterprise',
-      price: '$99',
-      period: 'per month',
-      description: 'For large organizations',
+      name: "Enterprise",
+      price: "$99",
+      period: "per month",
+      description: "For large organizations",
       features: [
-        'Unlimited chatbots',
-        'Unlimited messages',
-        'Advanced integrations',
-        'Custom AI training',
-        'White-label solution',
-        'Dedicated support',
-        'SLA guarantee'
+        "Unlimited chatbots",
+        "Unlimited messages",
+        "Advanced integrations",
+        "Custom AI training",
+        "White-label solution",
+        "Dedicated support",
+        "SLA guarantee",
       ],
-      popular: false
-    }
+      popular: false,
+    },
   ];
 
   return (
@@ -103,11 +113,17 @@ export function LandingPage() {
               </span>
             </div>
             <div className="flex items-center space-x-4">
-              <Link to="/docs" className="text-gray-600 hover:text-gray-900 font-medium flex items-center">
+              <Link
+                to="/docs"
+                className="text-gray-600 hover:text-gray-900 font-medium flex items-center"
+              >
                 <BookOpen className="w-4 h-4 mr-1" />
                 Documentation
               </Link>
-              <Link to="/auth" className="text-gray-600 hover:text-gray-900 font-medium">
+              <Link
+                to="/auth"
+                className="text-gray-600 hover:text-gray-900 font-medium"
+              >
                 Sign In
               </Link>
               <Link to="/auth">
@@ -133,8 +149,9 @@ export function LandingPage() {
               </span>
             </h1>
             <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
-              Create, train, and deploy intelligent chatbots for your business in minutes. 
-              No technical skills required. Start automating customer support today.
+              Create, train, and deploy intelligent chatbots for your business
+              in minutes. No technical skills required. Start automating
+              customer support today.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/auth">
@@ -143,7 +160,11 @@ export function LandingPage() {
                 </Button>
               </Link>
               <Link to="/docs">
-                <Button variant="outline" size="lg" className="text-lg px-8 py-4">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="text-lg px-8 py-4"
+                >
                   View Documentation
                 </Button>
               </Link>
@@ -160,10 +181,11 @@ export function LandingPage() {
               Everything you need to succeed
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Powerful features designed to help small businesses automate customer interactions
+              Powerful features designed to help small businesses automate
+              customer interactions
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
               <motion.div
@@ -179,9 +201,7 @@ export function LandingPage() {
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">
                     {feature.title}
                   </h3>
-                  <p className="text-gray-600">
-                    {feature.description}
-                  </p>
+                  <p className="text-gray-600">{feature.description}</p>
                 </Card>
               </motion.div>
             ))}
@@ -197,7 +217,8 @@ export function LandingPage() {
               Simple, transparent pricing
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Choose the plan that's right for your business. Upgrade or downgrade at any time.
+              Choose the plan that's right for your business. Upgrade or
+              downgrade at any time.
             </p>
           </div>
 
@@ -211,18 +232,26 @@ export function LandingPage() {
                 className="relative"
               >
                 {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
                     <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-1 rounded-full text-sm font-medium flex items-center">
                       <Star className="w-4 h-4 mr-1" />
                       Most Popular
                     </div>
                   </div>
                 )}
-                <Card className={`p-8 h-full ${plan.popular ? 'ring-2 ring-blue-500' : ''}`}>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
+                <Card
+                  className={`p-8 h-full ${
+                    plan.popular ? "ring-2 ring-blue-500" : ""
+                  }`}
+                >
+                  <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                    {plan.name}
+                  </h3>
                   <p className="text-gray-600 mb-4">{plan.description}</p>
                   <div className="mb-6">
-                    <span className="text-4xl font-bold text-gray-900">{plan.price}</span>
+                    <span className="text-4xl font-bold text-gray-900">
+                      {plan.price}
+                    </span>
                     <span className="text-gray-500 ml-2">/{plan.period}</span>
                   </div>
                   <ul className="space-y-3 mb-8">
@@ -234,12 +263,14 @@ export function LandingPage() {
                     ))}
                   </ul>
                   <Link to="/auth" className="block">
-                    <Button 
-                      variant={plan.popular ? 'primary' : 'outline'} 
+                    <Button
+                      variant={plan.popular ? "primary" : "outline"}
                       className="w-full"
                       size="lg"
                     >
-                      {plan.name === 'Free' ? 'Get Started' : 'Start Free Trial'}
+                      {plan.name === "Free"
+                        ? "Get Started"
+                        : "Start Free Trial"}
                     </Button>
                   </Link>
                 </Card>
@@ -256,16 +287,25 @@ export function LandingPage() {
             Ready to automate your customer support?
           </h2>
           <p className="text-xl text-blue-100 mb-8">
-            Join thousands of businesses already using BotBuilder Pro to improve customer satisfaction
+            Join thousands of businesses already using BotBuilder Pro to improve
+            customer satisfaction
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link to="/auth">
-              <Button variant="secondary" size="lg" className="text-lg px-8 py-4 bg-white text-blue-600 hover:bg-gray-100">
+              <Button
+                variant="secondary"
+                size="lg"
+                className="text-lg px-8 py-4 bg-white text-blue-600 hover:bg-gray-100"
+              >
                 Start Your Free Trial
               </Button>
             </Link>
             <Link to="/docs">
-              <Button variant="outline" size="lg" className="text-lg px-8 py-4 border-white text-white hover:bg-white/10">
+              <Button
+                variant="outline"
+                size="lg"
+                className="text-lg px-8 py-4 border-white text-white hover:bg-white/10"
+              >
                 View Documentation
               </Button>
             </Link>
@@ -284,7 +324,10 @@ export function LandingPage() {
               <span className="text-xl font-bold">BotBuilder Pro</span>
             </div>
             <div className="flex items-center space-x-6">
-              <Link to="/docs" className="text-gray-400 hover:text-white transition-colors">
+              <Link
+                to="/docs"
+                className="text-gray-400 hover:text-white transition-colors"
+              >
                 Documentation
               </Link>
               <p className="text-gray-400">
