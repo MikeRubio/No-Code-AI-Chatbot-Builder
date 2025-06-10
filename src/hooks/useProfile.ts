@@ -1,14 +1,14 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "../lib/supabase";
-import { useAuth } from "./useAuth";
-import toast from "react-hot-toast";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '../lib/supabase';
+import { useAuth } from './useAuth';
+import toast from 'react-hot-toast';
 
-export interface Profile {
+interface Profile {
   id: string;
   email: string;
   full_name: string | null;
   avatar_url: string | null;
-  plan: "free" | "pro" | "enterprise";
+  plan: 'free' | 'pro' | 'enterprise';
   subscription_id: string | null;
   subscription_status: string;
   message_quota: number;
@@ -25,31 +25,29 @@ export function useProfile() {
   const queryClient = useQueryClient();
 
   const profileQuery = useQuery({
-    queryKey: ["profile", user?.id],
+    queryKey: ['profile', user?.id],
     queryFn: async () => {
-      if (!user) throw new Error("User not authenticated");
-
+      if (!user) throw new Error('User not authenticated');
+      
       const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
         .single();
 
       if (error) {
         // If profile doesn't exist, create it
-        if (error.code === "PGRST116") {
+        if (error.code === 'PGRST116') {
           const { data: newProfile, error: createError } = await supabase
-            .from("profiles")
+            .from('profiles')
             .insert({
               id: user.id,
-              email: user.email || "",
+              email: user.email || '',
               full_name: user.user_metadata?.full_name || null,
-              plan: "free",
+              plan: 'free',
               message_quota: 100,
               messages_used: 0,
-              quota_reset_date: new Date(
-                Date.now() + 30 * 24 * 60 * 60 * 1000
-              ).toISOString(),
+              quota_reset_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
               onboarding_completed: false,
             })
             .select()
@@ -60,23 +58,22 @@ export function useProfile() {
         }
         throw error;
       }
-
+      
       let profile = data as Profile;
 
       // If user has a subscription_id, fetch the stripe_customer_id from subscriptions table
       if (profile.subscription_id) {
-        const { data: subscriptionData, error: subscriptionError } =
-          await supabase
-            .from("subscriptions")
-            .select("stripe_customer_id")
-            .eq("user_id", user.id)
-            .single();
+        const { data: subscriptionData, error: subscriptionError } = await supabase
+          .from('subscriptions')
+          .select('stripe_customer_id')
+          .eq('user_id', user.id)
+          .single();
 
         if (!subscriptionError && subscriptionData) {
           profile.stripe_customer_id = subscriptionData.stripe_customer_id;
         }
       }
-
+      
       return profile;
     },
     enabled: !!user,
@@ -84,12 +81,12 @@ export function useProfile() {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (updates: Partial<Profile>) => {
-      if (!user) throw new Error("User not authenticated");
+      if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
-        .from("profiles")
+        .from('profiles')
         .update(updates)
-        .eq("id", user.id)
+        .eq('id', user.id)
         .select()
         .single();
 
@@ -97,22 +94,22 @@ export function useProfile() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["profile"] });
-      toast.success("Profile updated successfully!");
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      toast.success('Profile updated successfully!');
     },
     onError: (error: any) => {
-      toast.error(error.message || "Failed to update profile");
+      toast.error(error.message || 'Failed to update profile');
     },
   });
 
   const completeOnboardingMutation = useMutation({
     mutationFn: async () => {
-      if (!user) throw new Error("User not authenticated");
+      if (!user) throw new Error('User not authenticated');
 
       const { data, error } = await supabase
-        .from("profiles")
+        .from('profiles')
         .update({ onboarding_completed: true })
-        .eq("id", user.id)
+        .eq('id', user.id)
         .select()
         .single();
 
@@ -120,7 +117,7 @@ export function useProfile() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
     },
   });
 
@@ -128,14 +125,14 @@ export function useProfile() {
     if (!user || !profileQuery.data) return;
 
     const { error } = await supabase
-      .from("profiles")
-      .update({
-        messages_used: profileQuery.data.messages_used + 1,
+      .from('profiles')
+      .update({ 
+        messages_used: profileQuery.data.messages_used + 1 
       })
-      .eq("id", user.id);
+      .eq('id', user.id);
 
     if (!error) {
-      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
     }
   };
 

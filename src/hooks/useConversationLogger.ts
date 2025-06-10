@@ -114,7 +114,8 @@ export function useConversationLogger() {
       });
 
       if (!response.ok) {
-        throw new Error(`Logging failed: ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Logging failed: ${response.statusText}. ${errorData.details || ''}`);
       }
 
       console.debug(`Logged event: ${eventType}`, eventData);
@@ -144,7 +145,7 @@ export function useConversationLogger() {
     conversationId: string,
     chatbotId: string,
     userIdentifier: string,
-    outcome: string,
+    outcome: 'completed' | 'abandoned' | 'transferred' | 'error',
     metadata?: any
   ) => {
     await logEvent('end', {

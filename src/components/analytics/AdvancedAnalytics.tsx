@@ -1,17 +1,15 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   TrendingUp,
   Users,
   MessageCircle,
   Clock,
-  Bot,
   Target,
   Filter,
   Download,
   Calendar,
   BarChart3,
-  PieChart,
   Activity,
 } from "lucide-react";
 import { Card } from "../ui/Card";
@@ -34,7 +32,7 @@ import {
   LabelList,
 } from "recharts";
 import { supabase } from "../../lib/supabase";
-import { format, subDays, startOfDay, endOfDay } from "date-fns";
+import { format, subDays } from "date-fns";
 
 interface AdvancedAnalyticsProps {
   chatbotId?: string;

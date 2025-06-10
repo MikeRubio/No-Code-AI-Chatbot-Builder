@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion } from 'framer-motion';
 import {
   MessageCircle,
   Zap,
@@ -12,129 +12,129 @@ import {
   Play,
   Sparkles,
   Bot,
-} from "lucide-react";
-import { Button } from "../ui/Button";
-import { Card } from "../ui/Card";
-import { Link } from "react-router-dom";
-import boltlogo from "../../../public/bolt/boltlogo.png";
+} from 'lucide-react';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
+import { Link } from 'react-router-dom';
+import boltlogo from '../../../src/bolt/boltlogo.png';
 
 export function LandingPage() {
   const features = [
     {
       icon: Bot,
-      title: "Drag & Drop Builder",
+      title: 'Drag & Drop Builder',
       description:
-        "Create sophisticated chatbot flows visually with our intuitive no-code interface",
-      gradient: "from-blue-500 to-cyan-500",
+        'Create sophisticated chatbot flows visually with our intuitive no-code interface',
+      gradient: 'from-blue-500 to-cyan-500',
     },
     {
       icon: MessageCircle,
-      title: "AI-Powered Responses",
+      title: 'AI-Powered Responses',
       description:
         "Leverage OpenAI's GPT models for natural, context-aware conversations",
-      gradient: "from-purple-500 to-pink-500",
+      gradient: 'from-purple-500 to-pink-500',
     },
     {
       icon: Globe,
-      title: "Multi-Platform Deploy",
+      title: 'Multi-Platform Deploy',
       description:
-        "Deploy seamlessly to websites, WhatsApp, Facebook Messenger, and more",
-      gradient: "from-green-500 to-emerald-500",
+        'Deploy seamlessly to websites, WhatsApp, Facebook Messenger, and more',
+      gradient: 'from-green-500 to-emerald-500',
     },
     {
       icon: BarChart3,
-      title: "Advanced Analytics",
+      title: 'Advanced Analytics',
       description:
-        "Deep insights into user behavior, conversation flows, and performance metrics",
-      gradient: "from-orange-500 to-red-500",
+        'Deep insights into user behavior, conversation flows, and performance metrics',
+      gradient: 'from-orange-500 to-red-500',
     },
     {
       icon: Shield,
-      title: "Enterprise Security",
+      title: 'Enterprise Security',
       description:
-        "Bank-level encryption, GDPR compliance, and SOC 2 Type II certification",
-      gradient: "from-indigo-500 to-purple-500",
+        'Bank-level encryption, GDPR compliance, and SOC 2 Type II certification',
+      gradient: 'from-indigo-500 to-purple-500',
     },
     {
       icon: Zap,
-      title: "Lightning Fast",
+      title: 'Lightning Fast',
       description:
-        "Sub-second response times with global CDN and optimized infrastructure",
-      gradient: "from-yellow-500 to-orange-500",
+        'Sub-second response times with global CDN and optimized infrastructure',
+      gradient: 'from-yellow-500 to-orange-500',
     },
   ];
 
   const pricingPlans = [
     {
-      name: "Free",
-      price: "$0",
-      period: "forever",
-      description: "Perfect for trying out our platform",
+      name: 'Free',
+      price: '$0',
+      period: 'forever',
+      description: 'Perfect for trying out our platform',
       features: [
-        "1 chatbot",
-        "100 messages/month",
-        "Basic analytics",
-        "Website integration",
-        "Community support",
+        '1 chatbot',
+        '100 messages/month',
+        'Basic analytics',
+        'Website integration',
+        'Community support',
       ],
       popular: false,
-      cta: "Get Started Free",
+      cta: 'Get Started Free',
     },
     {
-      name: "Pro",
-      price: "$29",
-      period: "per month",
-      description: "Best for growing businesses",
+      name: 'Pro',
+      price: '$29',
+      period: 'per month',
+      description: 'Best for growing businesses',
       features: [
-        "5 chatbots",
-        "5,000 messages/month",
-        "Advanced analytics",
-        "WhatsApp integration",
-        "OpenAI integration",
-        "Priority support",
-        "Custom branding",
+        '5 chatbots',
+        '5,000 messages/month',
+        'Advanced analytics',
+        'WhatsApp integration',
+        'OpenAI integration',
+        'Priority support',
+        'Custom branding',
       ],
       popular: true,
-      cta: "Start Free Trial",
+      cta: 'Start Free Trial',
     },
     {
-      name: "Enterprise",
-      price: "$99",
-      period: "per month",
-      description: "For large organizations",
+      name: 'Enterprise',
+      price: '$99',
+      period: 'per month',
+      description: 'For large organizations',
       features: [
-        "Unlimited chatbots",
-        "Unlimited messages",
-        "Advanced integrations",
-        "Custom AI training",
-        "White-label solution",
-        "Dedicated support",
-        "SLA guarantee",
+        'Unlimited chatbots',
+        'Unlimited messages',
+        'Advanced integrations',
+        'Custom AI training',
+        'White-label solution',
+        'Dedicated support',
+        'SLA guarantee',
       ],
       popular: false,
-      cta: "Contact Sales",
+      cta: 'Contact Sales',
     },
   ];
 
   const benefits = [
     {
-      title: "No Coding Required",
+      title: 'No Coding Required',
       description:
-        "Build sophisticated chatbots with our visual drag-and-drop interface",
+        'Build sophisticated chatbots with our visual drag-and-drop interface',
     },
     {
-      title: "Deploy Anywhere",
+      title: 'Deploy Anywhere',
       description:
-        "Website, WhatsApp, Facebook Messenger, and more platforms supported",
+        'Website, WhatsApp, Facebook Messenger, and more platforms supported',
     },
     {
-      title: "AI-Powered",
+      title: 'AI-Powered',
       description: "Leverage OpenAI's latest models for natural conversations",
     },
     {
-      title: "Enterprise Ready",
+      title: 'Enterprise Ready',
       description:
-        "Built for scale with enterprise-grade security and compliance",
+        'Built for scale with enterprise-grade security and compliance',
     },
   ];
 
@@ -343,24 +343,24 @@ export function LandingPage() {
           <div className="grid md:grid-cols-3 gap-8">
             {[
               {
-                step: "1",
-                title: "Design Your Flow",
+                step: '1',
+                title: 'Design Your Flow',
                 description:
-                  "Use our drag-and-drop builder to create conversation flows without any coding",
+                  'Use our drag-and-drop builder to create conversation flows without any coding',
                 icon: Bot,
               },
               {
-                step: "2",
-                title: "Train with AI",
+                step: '2',
+                title: 'Train with AI',
                 description:
-                  "Connect to OpenAI and upload your FAQ documents for intelligent responses",
+                  'Connect to OpenAI and upload your FAQ documents for intelligent responses',
                 icon: MessageCircle,
               },
               {
-                step: "3",
-                title: "Deploy Everywhere",
+                step: '3',
+                title: 'Deploy Everywhere',
                 description:
-                  "Launch on your website, WhatsApp, or any platform with one click",
+                  'Launch on your website, WhatsApp, or any platform with one click',
                 icon: Globe,
               },
             ].map((step, index) => (
@@ -429,7 +429,7 @@ export function LandingPage() {
                 )}
                 <Card
                   className={`p-8 h-full bg-gray-800/50 border-gray-700 backdrop-blur-sm ${
-                    plan.popular ? "ring-2 ring-blue-500/50" : ""
+                    plan.popular ? 'ring-2 ring-blue-500/50' : ''
                   }`}
                 >
                   <h3 className="text-2xl font-bold text-white mb-2">
@@ -452,11 +452,11 @@ export function LandingPage() {
                   </ul>
                   <Link to="/auth" className="block">
                     <Button
-                      variant={plan.popular ? "primary" : "outline"}
+                      variant={plan.popular ? 'primary' : 'outline'}
                       className={`w-full ${
                         plan.popular
-                          ? "bg-blue-600"
-                          : "border-gray-600 text-gray-300 hover:bg-gray-800"
+                          ? 'bg-blue-600'
+                          : 'border-gray-600 text-gray-300 hover:bg-gray-800'
                       }`}
                       size="lg"
                     >
@@ -535,10 +535,10 @@ export function LandingPage() {
                   whileHover={{
                     scale: 1.08,
                     rotate: -2,
-                    filter: "drop-shadow(0 4px 24px #38bdf8cc)",
+                    filter: 'drop-shadow(0 4px 24px #38bdf8cc)',
                   }}
                   whileTap={{ scale: 0.97, rotate: 1 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 15 }}
                   aria-label="Powered by BotForge"
                   className="inline-block"
                 >
@@ -547,7 +547,7 @@ export function LandingPage() {
                     alt="Powered by BotForge"
                     className="h-20 w-auto transition-all duration-300"
                     style={{
-                      filter: "grayscale(0.2) brightness(0.95)",
+                      filter: 'grayscale(0.2) brightness(0.95)',
                     }}
                   />
                 </motion.a>

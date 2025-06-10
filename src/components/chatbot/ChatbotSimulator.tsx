@@ -5,6 +5,7 @@ import { Button } from "../ui/Button";
 import { useConversationLogger } from "../../hooks/useConversationLogger";
 import { openAIService } from "../../lib/openai";
 import { v4 as uuidv4 } from "uuid";
+import { Edge, Node } from "reactflow";
 
 interface Message {
   id: string;
@@ -495,8 +496,7 @@ export function ChatbotSimulator({
           conversationState,
           nodeContext: node.data,
           chatbotInfo: {
-            name: chatbot.name,
-            description: chatbot.description,
+            id: chatbot.id,
           },
         }
       );
@@ -564,7 +564,7 @@ export function ChatbotSimulator({
   const moveToNextNode = (fromNodeId: string, userInput?: string) => {
     // Find outgoing edges from current node
     const outgoingEdges = flow.edges.filter(
-      (edge: any) => edge.source === fromNodeId
+      (edge: Edge) => edge.source === fromNodeId
     );
 
     if (outgoingEdges.length === 0) {
@@ -592,7 +592,7 @@ export function ChatbotSimulator({
     // For simplicity, take the first edge (in a real implementation, you'd handle conditions)
     const nextEdge = outgoingEdges[0];
     const nextNode = flow.nodes.find(
-      (node: any) => node.id === nextEdge.target
+      (node: Node) => node.id === nextEdge.target
     );
 
     if (!nextNode) return;

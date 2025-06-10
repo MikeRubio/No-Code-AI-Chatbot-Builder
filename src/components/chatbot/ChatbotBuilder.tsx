@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { motion } from "framer-motion";
 import ReactFlow, {
   Node,
@@ -26,7 +26,7 @@ import {
   Globe,
   BarChart3,
   Sparkles,
-  MessageCircle,
+  Code,
 } from "lucide-react";
 import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
@@ -38,6 +38,7 @@ import { ChatbotSimulator } from "./ChatbotSimulator";
 import { FAQUploader } from "./FAQUploader";
 import { WhatsAppSetup } from "../integrations/WhatsAppSetup";
 import { MultiChannelSetup } from "../integrations/MultiChannelSetup";
+import { WebsiteWidget } from "../integrations/WebsiteWidget";
 import { ABTestManager } from "../analytics/ABTestManager";
 import { CustomNode } from "./nodes/CustomNode";
 import { NodePropertiesPanel } from "./NodePropertiesPanel";
@@ -74,6 +75,7 @@ function ChatbotBuilderContent() {
   const [showFAQUploader, setShowFAQUploader] = useState(false);
   const [showWhatsAppSetup, setShowWhatsAppSetup] = useState(false);
   const [showMultiChannelSetup, setShowMultiChannelSetup] = useState(false);
+  const [showWebsiteWidget, setShowWebsiteWidget] = useState(false);
   const [showABTestManager, setShowABTestManager] = useState(false);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [skippedTemplate, setSkippedTemplate] = useState(false);
@@ -483,21 +485,17 @@ function ChatbotBuilderContent() {
                 <Share className="w-4 h-4 mr-2" />
                 Publish
               </Button>
-            </>
-          )}
-          {currentChatbot && canUseFeature("faq_upload") && (
-            <div>
-              <h3 className="text-lg font-semibold text-gray-100 mt-8 mb-4">
-                Advanced Features
-              </h3>
+
+              {/* Website Widget - Available for all users */}
               <Button
                 variant="outline"
                 className="w-full justify-start"
-                onClick={() => setShowFAQUploader(true)}
+                onClick={() => setShowWebsiteWidget(true)}
               >
-                <Upload className="w-4 h-4 mr-2" />
-                Upload FAQ
+                <Code className="w-4 h-4 mr-2" />
+                Website Widget
               </Button>
+
               <Button
                 variant="outline"
                 className="w-full justify-start"
@@ -506,24 +504,30 @@ function ChatbotBuilderContent() {
                 <Globe className="w-4 h-4 mr-2" />
                 Multi-Channel Deploy
               </Button>
+              <h3 className="text-lg font-semibold text-gray-100 mt-8 mb-4">
+                Advanced PRO Features
+              </h3>
               <Button
                 variant="outline"
                 className="w-full justify-start"
+                disabled={profile?.plan == "free"}
+                onClick={() => setShowFAQUploader(true)}
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Upload FAQ
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                disabled={profile?.plan == "free"}
                 onClick={() => setShowABTestManager(true)}
               >
                 <BarChart3 className="w-4 h-4 mr-2" />
                 A/B Testing
               </Button>
-              <Button
-                variant="outline"
-                className="w-full justify-start"
-                onClick={() => setShowWhatsAppSetup(true)}
-              >
-                <MessageCircle className="w-4 h-4 mr-2" />
-                WhatsApp Setup
-              </Button>
-            </div>
+            </>
           )}
+          {currentChatbot && <div></div>}
         </div>
       </aside>
 
@@ -614,7 +618,7 @@ function ChatbotBuilderContent() {
               />
               {/* Empty state */}
               {nodes.length === 0 && (
-                <Panel className="mt-44" position="top-center">
+                <Panel className="mt-44\" position="top-center">
                   <div className="text-center bg-white/70 dark:bg-gray-900/80 backdrop-blur-sm rounded-xl p-8 shadow-lg">
                     <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
                       <MessageSquare className="w-8 h-8 text-white" />
@@ -694,6 +698,12 @@ function ChatbotBuilderContent() {
                   chatbotId={currentChatbot.id}
                   isOpen={showMultiChannelSetup}
                   onClose={() => setShowMultiChannelSetup(false)}
+                />
+
+                <WebsiteWidget
+                  chatbot={currentChatbot}
+                  isOpen={showWebsiteWidget}
+                  onClose={() => setShowWebsiteWidget(false)}
                 />
 
                 <ABTestManager

@@ -20,6 +20,7 @@ import { WhatsAppSetup } from "./WhatsAppSetup";
 import { FacebookMessengerSetup } from "./FacebookMessengerSetup";
 import { supabase } from "../../lib/supabase";
 import toast from "react-hot-toast";
+import { useProfile } from "../../hooks/useProfile";
 
 interface MultiChannelSetupProps {
   chatbotId: string;
@@ -145,12 +146,7 @@ export function MultiChannelSetup({
   const [selectedChannel, setSelectedChannel] = useState<string | null>(null);
   const [showChannelSetup, setShowChannelSetup] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    if (isOpen) {
-      loadDeployments();
-    }
-  }, [isOpen, chatbotId]);
+  const { profile } = useProfile();
 
   const loadDeployments = async () => {
     try {
@@ -162,7 +158,7 @@ export function MultiChannelSetup({
 
       if (error) throw error;
       setDeployments(data || []);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Failed to load deployments:", error);
       toast.error("Failed to load deployment channels");
     }
@@ -171,13 +167,19 @@ export function MultiChannelSetup({
   const handleChannelSetup = (channelId: string) => {
     const channel = channels.find((c) => c.id === channelId);
     if (channel?.comingSoon) {
-      toast.info("This channel is coming soon! Stay tuned for updates.");
+      toast.success("This channel is coming soon! Stay tuned for updates.");
       return;
     }
 
     setSelectedChannel(channelId);
     setShowChannelSetup(true);
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      loadDeployments();
+    }
+  }, [isOpen, chatbotId]);
 
   const toggleChannelStatus = async (
     deploymentId: string,
@@ -203,7 +205,7 @@ export function MultiChannelSetup({
       toast.success(
         `Channel ${!isActive ? "activated" : "deactivated"} successfully`
       );
-    } catch (error: any) {
+    } catch (error) {
       console.error("Failed to toggle channel status:", error);
       toast.error("Failed to update channel status");
     }
@@ -228,7 +230,7 @@ export function MultiChannelSetup({
 
       setDeployments((prev) => prev.filter((dep) => dep.id !== deploymentId));
       toast.success("Deployment deleted successfully");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Failed to delete deployment:", error);
       toast.error("Failed to delete deployment");
     }
@@ -260,7 +262,7 @@ export function MultiChannelSetup({
         loadDeployments();
         toast.success("Deployment synced successfully");
       }, 2000);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Failed to sync deployment:", error);
       toast.error("Failed to sync deployment");
     } finally {
@@ -515,7 +517,10 @@ export function MultiChannelSetup({
 
                     <Button
                       onClick={() => handleChannelSetup(channel.id)}
-                      disabled={channel.comingSoon}
+                      disabled={
+                        channel.comingSoon ||
+                        (channel.requiresPro && profile?.plan === "free")
+                      }
                       className="w-full"
                     >
                       {channel.comingSoon ? (

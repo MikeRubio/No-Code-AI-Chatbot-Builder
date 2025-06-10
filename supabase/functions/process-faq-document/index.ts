@@ -1,212 +1,196 @@
+import { createClient } from 'npm:@supabase/supabase-js@2';
+
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization",
+};
+
+interface FAQEntry {
+  question: string;
+  answer: string;
+  keywords: string[];
 }
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
-
+Deno.serve(async (req: Request) => {
   try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
-
-    const { documentId } = await req.json()
-
-    // Get document from database
-    const { data: document, error: docError } = await supabaseClient
-      .from('faq_documents')
-      .select('*')
-      .eq('id', documentId)
-      .single()
-
-    if (docError || !document) {
-      throw new Error('Document not found')
+    if (req.method === "OPTIONS") {
+      return new Response(null, {
+        status: 200,
+        headers: corsHeaders,
+      });
     }
 
-    // Update status to processing
-    await supabaseClient
-      .from('faq_documents')
-      .update({ processing_status: 'processing' })
-      .eq('id', documentId)
-
-    // Parse content based on file type
-    let faqEntries: Array<{ question: string; answer: string }> = []
-
-    if (document.file_type === 'text/csv') {
-      // Parse CSV format: question,answer
-      const lines = document.content.split('\n')
-      for (let i = 1; i < lines.length; i++) { // Skip header
-        const line = lines[i].trim()
-        if (!line) continue
-        
-        // Handle CSV parsing with proper quote handling
-        const csvRegex = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/
-        const parts = line.split(csvRegex)
-        
-        if (parts.length >= 2) {
-          const question = parts[0].trim().replace(/^"|"$/g, '')
-          const answer = parts[1].trim().replace(/^"|"$/g, '')
-          
-          if (question && answer) {
-            faqEntries.push({ question, answer })
-          }
-        }
-      }
-    } else if (document.file_type === 'text/plain') {
-      // Parse plain text format: Q: question\nA: answer\n\n
-      const sections = document.content.split('\n\n')
-      for (const section of sections) {
-        const lines = section.trim().split('\n')
-        let question = ''
-        let answer = ''
-        
-        for (const line of lines) {
-          if (line.startsWith('Q:') || line.startsWith('Question:')) {
-            question = line.replace(/^(Q:|Question:)\s*/, '').trim()
-          } else if (line.startsWith('A:') || line.startsWith('Answer:')) {
-            answer = line.replace(/^(A:|Answer:)\s*/, '').trim()
-          }
-        }
-        
-        if (question && answer) {
-          faqEntries.push({ question, answer })
-        }
-      }
-    } else if (document.file_type === 'application/pdf') {
-      // For PDF files, we'll need to implement PDF parsing
-      // For now, we'll mark it as failed with a helpful message
-      await supabaseClient
-        .from('faq_documents')
-        .update({ 
-          processing_status: 'failed',
-          error_message: 'PDF processing not yet implemented. Please use TXT or CSV format.'
-        })
-        .eq('id', documentId)
-
+    // Get environment variables
+    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
       return new Response(
-        JSON.stringify({ 
-          error: 'PDF processing not yet implemented. Please use TXT or CSV format.' 
+        JSON.stringify({
+          error: "Supabase configuration missing"
         }),
-        { 
+        {
+          status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400,
         }
-      )
+      );
     }
 
-    if (faqEntries.length === 0) {
-      await supabaseClient
-        .from('faq_documents')
-        .update({ 
-          processing_status: 'failed',
-          error_message: 'No valid FAQ entries found in the document. Please check the format.'
-        })
-        .eq('id', documentId)
+    const { content, filename, chatbotId } = await req.json();
 
+    if (!content || !filename || !chatbotId) {
       return new Response(
-        JSON.stringify({ 
-          error: 'No valid FAQ entries found in the document. Please check the format.' 
+        JSON.stringify({
+          error: "Missing required parameters: content, filename, chatbotId"
         }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        {
           status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         }
-      )
+      );
     }
 
-    // Process each FAQ entry
-    for (const entry of faqEntries) {
+    let faqEntries: FAQEntry[] = [];
+
+    // Try AI processing first if OpenAI is available
+    if (openaiApiKey) {
       try {
-        // Extract keywords from question (simple keyword extraction)
-        const keywords = entry.question
-          .toLowerCase()
-          .replace(/[^\w\s]/g, '')
-          .split(/\s+/)
-          .filter(word => word.length > 2)
-          .slice(0, 10) // Limit to 10 keywords
+        const prompt = `
+          Extract FAQ entries from the following document content. 
+          Return a JSON array of objects with "question", "answer", and "keywords" fields.
+          Keywords should be an array of relevant terms for each FAQ entry.
+          
+          Document: ${filename}
+          Content: ${content}
+          
+          Format:
+          [
+            {
+              "question": "What are your business hours?",
+              "answer": "We're open Monday-Friday 9AM-6PM",
+              "keywords": ["hours", "open", "schedule", "time"]
+            }
+          ]
+        `;
 
-        // Insert FAQ entry without embeddings for now
-        const { error: insertError } = await supabaseClient
-          .from('faq_entries')
-          .insert({
-            document_id: documentId,
-            chatbot_id: document.chatbot_id,
-            question: entry.question,
-            answer: entry.answer,
-            keywords,
-            embedding_data: null, // We'll add embeddings later when OpenAI is configured
-          })
+        const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${openaiApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-3.5-turbo',
+            messages: [{ role: 'user', content: prompt }],
+            max_tokens: 2000,
+            temperature: 0.3,
+          }),
+        });
 
-        if (insertError) {
-          console.error('Error inserting FAQ entry:', insertError)
-          throw insertError
+        if (openaiResponse.ok) {
+          const completion = await openaiResponse.json();
+          const response = completion.choices[0]?.message?.content || '[]';
+          
+          try {
+            const aiEntries = JSON.parse(response);
+            if (Array.isArray(aiEntries)) {
+              faqEntries = aiEntries;
+            }
+          } catch (parseError) {
+            console.error('Failed to parse AI response:', parseError);
+            // Fall back to manual parsing
+          }
         }
       } catch (error) {
-        console.error('Error processing FAQ entry:', error)
-        throw error
+        console.error('OpenAI processing failed:', error);
+        // Fall back to manual parsing
       }
     }
 
-    // Update document status to completed
-    await supabaseClient
-      .from('faq_documents')
-      .update({ 
-        processing_status: 'completed',
-        processed_at: new Date().toISOString()
-      })
-      .eq('id', documentId)
+    // Fallback to manual parsing if AI processing failed or OpenAI not available
+    if (faqEntries.length === 0) {
+      faqEntries = parseFAQManually(content);
+    }
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        entriesProcessed: faqEntries.length,
-        message: `Successfully processed ${faqEntries.length} FAQ entries`
+      JSON.stringify({
+        success: true,
+        entries: faqEntries,
+        count: faqEntries.length,
+        method: faqEntries.length > 0 && openaiApiKey ? 'ai' : 'manual'
       }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      {
         status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
-    )
+    );
 
   } catch (error) {
-    console.error('Error processing FAQ document:', error)
-    
-    // Update document status to failed
-    try {
-      const supabaseClient = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-      )
-      
-      const { documentId } = await req.json().catch(() => ({}))
-      if (documentId) {
-        await supabaseClient
-          .from('faq_documents')
-          .update({ 
-            processing_status: 'failed',
-            error_message: error.message
-          })
-          .eq('id', documentId)
-      }
-    } catch (updateError) {
-      console.error('Error updating document status:', updateError)
-    }
-    
+    console.error('Error in process-faq-document function:', error);
     return new Response(
-      JSON.stringify({ 
-        error: error.message 
+      JSON.stringify({
+        error: "Internal server error",
+        details: error.message
       }),
-      { 
+      {
+        status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
       }
-    )
+    );
   }
-})
+});
 
-// Import at the top
-import { createClient } from 'npm:@supabase/supabase-js@2'
+// Manual FAQ parsing fallback
+function parseFAQManually(content: string): FAQEntry[] {
+  const entries: FAQEntry[] = [];
+  const lines = content.split('\n');
+  
+  let currentQuestion = '';
+  let currentAnswer = '';
+  
+  for (const line of lines) {
+    const trimmed = line.trim();
+    
+    if (trimmed.startsWith('Q:') || trimmed.startsWith('Question:')) {
+      if (currentQuestion && currentAnswer) {
+        entries.push({
+          question: currentQuestion,
+          answer: currentAnswer,
+          keywords: extractKeywords(currentQuestion + ' ' + currentAnswer)
+        });
+      }
+      currentQuestion = trimmed.replace(/^(Q:|Question:)\s*/, '');
+      currentAnswer = '';
+    } else if (trimmed.startsWith('A:') || trimmed.startsWith('Answer:')) {
+      currentAnswer = trimmed.replace(/^(A:|Answer:)\s*/, '');
+    } else if (currentAnswer && trimmed) {
+      currentAnswer += ' ' + trimmed;
+    }
+  }
+  
+  // Add the last entry
+  if (currentQuestion && currentAnswer) {
+    entries.push({
+      question: currentQuestion,
+      answer: currentAnswer,
+      keywords: extractKeywords(currentQuestion + ' ' + currentAnswer)
+    });
+  }
+  
+  return entries;
+}
+
+// Extract keywords from text
+function extractKeywords(text: string): string[] {
+  const words = text.toLowerCase()
+    .replace(/[^\w\s]/g, '')
+    .split(/\s+/)
+    .filter(word => word.length > 3);
+  
+  // Remove common stop words
+  const stopWords = ['this', 'that', 'with', 'have', 'will', 'from', 'they', 'know', 'want', 'been', 'good', 'much', 'some', 'time', 'very', 'when', 'come', 'here', 'just', 'like', 'long', 'make', 'many', 'over', 'such', 'take', 'than', 'them', 'well', 'were'];
+  
+  return [...new Set(words.filter(word => !stopWords.includes(word)))].slice(0, 10);
+}

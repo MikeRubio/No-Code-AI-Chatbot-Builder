@@ -1,11 +1,11 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-export type Database = {
+type Database = {
   public: {
     Tables: {
       profiles: {
@@ -14,7 +14,7 @@ export type Database = {
           email: string;
           full_name: string | null;
           avatar_url: string | null;
-          plan: "free" | "pro" | "enterprise";
+          plan: 'free' | 'pro' | 'enterprise';
           subscription_id: string | null;
           subscription_status: string;
           message_quota: number;
@@ -29,7 +29,7 @@ export type Database = {
           email: string;
           full_name?: string | null;
           avatar_url?: string | null;
-          plan?: "free" | "pro" | "enterprise";
+          plan?: 'free' | 'pro' | 'enterprise';
           subscription_id?: string | null;
           subscription_status?: string;
           message_quota?: number;
@@ -42,7 +42,7 @@ export type Database = {
           email?: string;
           full_name?: string | null;
           avatar_url?: string | null;
-          plan?: "free" | "pro" | "enterprise";
+          plan?: 'free' | 'pro' | 'enterprise';
           subscription_id?: string | null;
           subscription_status?: string;
           message_quota?: number;
@@ -99,8 +99,8 @@ export type Database = {
           id: string;
           chatbot_id: string;
           user_identifier: string;
-          platform: "web" | "whatsapp";
-          status: "active" | "completed" | "abandoned";
+          platform: 'web' | 'whatsapp';
+          status: 'active' | 'completed' | 'abandoned';
           satisfaction_rating: number | null;
           goal_completed: boolean;
           human_handoff: boolean;
@@ -111,8 +111,8 @@ export type Database = {
         Insert: {
           chatbot_id: string;
           user_identifier: string;
-          platform?: "web" | "whatsapp";
-          status?: "active" | "completed" | "abandoned";
+          platform?: 'web' | 'whatsapp';
+          status?: 'active' | 'completed' | 'abandoned';
           satisfaction_rating?: number | null;
           goal_completed?: boolean;
           human_handoff?: boolean;
@@ -120,7 +120,7 @@ export type Database = {
           ended_at?: string | null;
         };
         Update: {
-          status?: "active" | "completed" | "abandoned";
+          status?: 'active' | 'completed' | 'abandoned';
           satisfaction_rating?: number | null;
           goal_completed?: boolean;
           human_handoff?: boolean;
@@ -131,24 +131,24 @@ export type Database = {
         Row: {
           id: string;
           conversation_id: string;
-          sender: "user" | "bot";
+          sender: 'user' | 'bot';
           content: string;
-          message_type: "text" | "image" | "file" | "quick_reply";
+          message_type: 'text' | 'image' | 'file' | 'quick_reply';
           node_id: string | null;
           metadata: any;
           created_at: string;
         };
         Insert: {
           conversation_id: string;
-          sender: "user" | "bot";
+          sender: 'user' | 'bot';
           content: string;
-          message_type?: "text" | "image" | "file" | "quick_reply";
+          message_type?: 'text' | 'image' | 'file' | 'quick_reply';
           node_id?: string | null;
           metadata?: any;
         };
         Update: {
           content?: string;
-          message_type?: "text" | "image" | "file" | "quick_reply";
+          message_type?: 'text' | 'image' | 'file' | 'quick_reply';
           node_id?: string | null;
           metadata?: any;
         };
@@ -161,7 +161,7 @@ export type Database = {
           file_type: string;
           file_size: number;
           content: string | null;
-          processing_status: "pending" | "processing" | "completed" | "failed";
+          processing_status: 'pending' | 'processing' | 'completed' | 'failed';
           error_message: string | null;
           uploaded_at: string;
           processed_at: string | null;
@@ -172,12 +172,12 @@ export type Database = {
           file_type: string;
           file_size: number;
           content?: string | null;
-          processing_status?: "pending" | "processing" | "completed" | "failed";
+          processing_status?: 'pending' | 'processing' | 'completed' | 'failed';
           error_message?: string | null;
         };
         Update: {
           content?: string | null;
-          processing_status?: "pending" | "processing" | "completed" | "failed";
+          processing_status?: 'pending' | 'processing' | 'completed' | 'failed';
           error_message?: string | null;
           processed_at?: string | null;
         };
@@ -254,8 +254,8 @@ export type Database = {
           stripe_customer_id: string | null;
           stripe_price_id: string | null;
           stripe_product_id: string | null;
-          plan: "free" | "pro" | "enterprise";
-          status: "active" | "canceled" | "past_due" | "unpaid";
+          plan: 'free' | 'pro' | 'enterprise';
+          status: 'active' | 'canceled' | 'past_due' | 'unpaid';
           current_period_start: string | null;
           current_period_end: string | null;
           trial_start: string | null;
@@ -271,8 +271,8 @@ export type Database = {
           stripe_customer_id?: string | null;
           stripe_price_id?: string | null;
           stripe_product_id?: string | null;
-          plan: "free" | "pro" | "enterprise";
-          status: "active" | "canceled" | "past_due" | "unpaid";
+          plan: 'free' | 'pro' | 'enterprise';
+          status: 'active' | 'canceled' | 'past_due' | 'unpaid';
           current_period_start?: string | null;
           current_period_end?: string | null;
           trial_start?: string | null;
@@ -285,8 +285,8 @@ export type Database = {
           stripe_customer_id?: string | null;
           stripe_price_id?: string | null;
           stripe_product_id?: string | null;
-          plan?: "free" | "pro" | "enterprise";
-          status?: "active" | "canceled" | "past_due" | "unpaid";
+          plan?: 'free' | 'pro' | 'enterprise';
+          status?: 'active' | 'canceled' | 'past_due' | 'unpaid';
           current_period_start?: string | null;
           current_period_end?: string | null;
           trial_start?: string | null;

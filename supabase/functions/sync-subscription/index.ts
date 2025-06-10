@@ -103,7 +103,8 @@ Deno.serve(async (req: Request) => {
 
     console.log('Syncing subscription for user:', profile.id, 'email:', userEmail);
 
-    // Find customer in Stripe by email
+    // Find or create customer in Stripe by email
+    let customer;
     const customerSearchResponse = await fetch(`https://api.stripe.com/v1/customers/search?query=email:'${userEmail}'`, {
       headers: {
         'Authorization': `Bearer ${stripeSecretKey}`,
@@ -117,20 +118,29 @@ Deno.serve(async (req: Request) => {
     const customerSearch = await customerSearchResponse.json();
     
     if (customerSearch.data.length === 0) {
-      return new Response(
-        JSON.stringify({
-          error: "No Stripe customer found",
-          details: "User has no Stripe customer record"
+      // Create a new customer if none exists
+      console.log('Creating new Stripe customer for:', userEmail);
+      const createCustomerResponse = await fetch('https://api.stripe.com/v1/customers', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${stripeSecretKey}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          email: userEmail,
         }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      );
-    }
+      });
 
-    const customer = customerSearch.data[0];
-    console.log('Found Stripe customer:', customer.id);
+      if (!createCustomerResponse.ok) {
+        throw new Error('Failed to create customer in Stripe');
+      }
+
+      customer = await createCustomerResponse.json();
+      console.log('Created new Stripe customer:', customer.id);
+    } else {
+      customer = customerSearch.data[0];
+      console.log('Found existing Stripe customer:', customer.id);
+    }
 
     // Get customer's subscriptions
     const subscriptionsResponse = await fetch(`https://api.stripe.com/v1/subscriptions?customer=${customer.id}&status=active`, {
@@ -166,7 +176,8 @@ Deno.serve(async (req: Request) => {
         JSON.stringify({
           success: true,
           message: "User set to free plan (no active subscriptions)",
-          plan: 'free'
+          plan: 'free',
+          customerId: customer.id
         }),
         {
           status: 200,
@@ -259,7 +270,8 @@ Deno.serve(async (req: Request) => {
         message: "Subscription synced successfully",
         plan: plan,
         status: subscription.status,
-        messageQuota: messageQuota
+        messageQuota: messageQuota,
+        customerId: customer.id
       }),
       {
         status: 200,
