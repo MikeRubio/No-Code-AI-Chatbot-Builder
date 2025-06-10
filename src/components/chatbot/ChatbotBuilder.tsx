@@ -79,7 +79,6 @@ function ChatbotBuilderContent() {
   const [skippedTemplate, setSkippedTemplate] = useState(false);
   const [chatbotName, setChatbotName] = useState("");
   const [chatbotDescription, setChatbotDescription] = useState("");
-  // const [draggedNodeType, setDraggedNodeType] = useState<string | null>(null);
 
   const {
     chatbots,
@@ -142,7 +141,7 @@ function ChatbotBuilderContent() {
 
   // Handle node selection
   const onNodeClick = useCallback(
-    (event: React.MouseEvent, node: Node) => {
+    (_event: React.MouseEvent, node: Node) => {
       setSelectedNode(node);
       // Update all nodes to show selection state
       setNodes((nds) =>
@@ -213,7 +212,7 @@ function ChatbotBuilderContent() {
 
   // Update node properties
   const updateNodeData = useCallback(
-    (nodeId: string, newData: any) => {
+    (nodeId: string, newData: Partial<Node["data"]>) => {
       setNodes((nds) =>
         nds.map((node) =>
           node.id === nodeId
@@ -551,7 +550,12 @@ function ChatbotBuilderContent() {
                     <motion.div
                       key={nodeType.type}
                       draggable={canUseFeature(nodeType.type)}
-                      onDragStart={(e) => onDragStart(e, nodeType.type)}
+                      onDragStart={(e) =>
+                        onDragStart(
+                          e as unknown as React.DragEvent,
+                          nodeType.type
+                        )
+                      }
                       whileHover={{
                         scale: canUseFeature(nodeType.type) ? 1.05 : 1,
                       }}

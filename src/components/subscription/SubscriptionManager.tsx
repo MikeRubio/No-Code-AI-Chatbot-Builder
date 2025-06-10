@@ -48,8 +48,9 @@ export function SubscriptionManager({
           "Price ID not configured. Please set up Stripe products first."
         );
       }
-    } catch (error: any) {
-      toast.error(error.message || "Failed to start checkout");
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to start checkout");
     } finally {
       setIsLoading(false);
     }
@@ -64,8 +65,9 @@ export function SubscriptionManager({
     setIsLoading(true);
     try {
       await stripeService.createPortalSession(profile.subscription_id);
-    } catch (error: any) {
-      toast.error(error.message || "Failed to open billing portal");
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to open billing portal");
     } finally {
       setIsLoading(false);
     }
@@ -121,7 +123,7 @@ export function SubscriptionManager({
                   </div>
                 </div>
 
-                {profile.plan !== "free" && (
+                {profile?.plan !== "free" && (
                   <Button
                     variant="outline"
                     onClick={handleManageBilling}
@@ -142,12 +144,12 @@ export function SubscriptionManager({
                   <span
                     className={`px-2 py-1 rounded-full text-xs font-medium ${getUsageColor()}`}
                   >
-                    {profile.message_quota === -1
+                    {profile?.message_quota === -1
                       ? `${profile.messages_used} messages (Unlimited)`
-                      : `${profile.messages_used} / ${profile.message_quota} messages`}
+                      : `${profile?.messages_used} / ${profile?.message_quota} messages`}
                   </span>
                 </div>
-                {profile.message_quota !== -1 && (
+                {profile?.message_quota !== -1 && (
                   <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2">
                     <div
                       className="bg-blue-600 h-2 rounded-full transition-all duration-300"
@@ -281,12 +283,6 @@ export function SubscriptionManager({
           </div>
         </div>
       </Modal>
-
-      {/* Webhook Setup Modal */}
-      {/* <StripeWebhookSetup
-        isOpen={showWebhookSetup}
-        onClose={() => setShowWebhookSetup(false)}
-      /> */}
 
       {/* Pricing Plans Modal */}
       <PricingPlans />

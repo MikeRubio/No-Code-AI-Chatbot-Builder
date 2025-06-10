@@ -1,17 +1,11 @@
-import OpenAI from "openai";
-
-// Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: import.meta.env.VITE_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true, // Only for demo purposes - in production, use server-side
-});
-
+// Production-ready OpenAI service that uses server-side endpoints
 interface AIResponse {
   response: string;
   intent: string;
   confidence: number;
   tokens_used?: number;
   processing_time?: number;
+  fallback?: boolean;
 }
 
 interface FAQEntry {
@@ -23,25 +17,6 @@ interface FAQEntry {
 class OpenAIService {
   private faqContext: FAQEntry[] = [];
   private chatbotContext: string = "";
-
-  constructor() {
-    this.validateApiKey();
-  }
-
-  private validateApiKey(): boolean {
-    const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-    if (
-      !apiKey ||
-      apiKey.includes("your_") ||
-      apiKey === "---------------------------"
-    ) {
-      console.warn(
-        "OpenAI API key not configured. AI features will use fallback responses."
-      );
-      return false;
-    }
-    return true;
-  }
 
   /**
    * Set FAQ context for the AI to reference
@@ -58,82 +33,49 @@ class OpenAIService {
   }
 
   /**
-   * Generate AI response based on user input and context
+   * Generate AI response using server-side endpoint
    */
   async generateResponse(
     userInput: string,
     systemPrompt?: string,
     conversationHistory: Array<{ sender: string; content: string }> = [],
-    nodeContext?: any
+    nodeContext?: Record<string, unknown> & { chatbotInfo?: { id?: string } }
   ): Promise<AIResponse> {
-    const startTime = Date.now();
-
     try {
-      // Check if API key is configured
-      if (!this.validateApiKey()) {
-        return this.getFallbackResponse(userInput);
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/openai-chat`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userInput,
+            systemPrompt: this.buildSystemPrompt(systemPrompt, nodeContext),
+            conversationHistory,
+            nodeContext,
+            chatbotId: nodeContext?.chatbotInfo?.id,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      // Build context-aware system prompt
-      const contextualPrompt = this.buildSystemPrompt(
-        systemPrompt,
-        nodeContext
-      );
+      const result = await response.json();
 
-      // Prepare conversation messages
-      const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
-        { role: "system", content: contextualPrompt },
-      ];
+      if (result.error && !result.fallback) {
+        throw new Error(result.error);
+      }
 
-      // Add conversation history (last 10 messages to stay within token limits)
-      const recentHistory = conversationHistory.slice(-10);
-      recentHistory.forEach((msg) => {
-        messages.push({
-          role: msg.sender === "user" ? "user" : "assistant",
-          content: msg.content,
-        });
-      });
+      return result;
+    } catch (error) {
+      console.error("AI response generation failed:", error);
 
-      // Add current user input
-      messages.push({ role: "user", content: userInput });
-
-      // Generate response
-      const completion = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
-        messages,
-        max_tokens: 500,
-        temperature: 0.7,
-        presence_penalty: 0.1,
-        frequency_penalty: 0.1,
-      });
-
-      const response =
-        completion.choices[0]?.message?.content ||
-        "I apologize, but I couldn't generate a response at this time.";
-      const tokensUsed = completion.usage?.total_tokens || 0;
-      const processingTime = Date.now() - startTime;
-
-      // Analyze intent and confidence
-      const { intent, confidence } = await this.analyzeIntent(
-        userInput,
-        response
-      );
-
-      return {
-        response: response.trim(),
-        intent,
-        confidence,
-        tokens_used: tokensUsed,
-        processing_time: processingTime,
-      };
-    } catch (error: any) {
-      console.error("OpenAI API Error:", error);
-
-      // Return fallback response on error
-      return {
-        ...this.getFallbackResponse(userInput),
-        processing_time: Date.now() - startTime,
-      };
+      // Return local fallback response
+      return this.getFallbackResponse(userInput);
     }
   }
 
@@ -146,7 +88,7 @@ class OpenAIService {
     }
 
     try {
-      // Simple keyword matching for now
+      // Simple keyword matching
       const queryLower = query.toLowerCase();
       const matches = this.faqContext.filter((faq) => {
         const questionMatch = faq.question.toLowerCase().includes(queryLower);
@@ -159,14 +101,7 @@ class OpenAIService {
       });
 
       if (matches.length > 0) {
-        // Return the best match (first one for now)
         return matches[0];
-      }
-
-      // If no direct match, use AI to find semantic similarity
-      if (this.validateApiKey()) {
-        const semanticMatch = await this.findSemanticMatch(query);
-        return semanticMatch;
       }
 
       return null;
@@ -177,72 +112,42 @@ class OpenAIService {
   }
 
   /**
-   * Generate embeddings for FAQ entries (for semantic search)
-   */
-  async generateEmbeddings(text: string): Promise<number[]> {
-    try {
-      if (!this.validateApiKey()) {
-        return [];
-      }
-
-      const response = await openai.embeddings.create({
-        model: "text-embedding-ada-002",
-        input: text,
-      });
-
-      return response.data[0]?.embedding || [];
-    } catch (error) {
-      console.error("Embedding generation error:", error);
-      return [];
-    }
-  }
-
-  /**
-   * Process and extract FAQ entries from uploaded documents
+   * Process and extract FAQ entries from uploaded documents using server-side endpoint
    */
   async processFAQDocument(
     content: string,
     filename: string
   ): Promise<FAQEntry[]> {
     try {
-      if (!this.validateApiKey()) {
-        return this.parseFAQFallback(content);
+      const response = await fetch(
+        `${
+          import.meta.env.VITE_SUPABASE_URL
+        }/functions/v1/process-faq-document`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            content,
+            filename,
+            chatbotId: "temp", // This would be passed from the calling component
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      const prompt = `
-        Extract FAQ entries from the following document content. 
-        Return a JSON array of objects with "question", "answer", and "keywords" fields.
-        Keywords should be an array of relevant terms for each FAQ entry.
-        
-        Document: ${filename}
-        Content: ${content}
-        
-        Format:
-        [
-          {
-            "question": "What are your business hours?",
-            "answer": "We're open Monday-Friday 9AM-6PM",
-            "keywords": ["hours", "open", "schedule", "time"]
-          }
-        ]
-      `;
+      const result = await response.json();
 
-      const completion = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 2000,
-        temperature: 0.3,
-      });
-
-      const response = completion.choices[0]?.message?.content || "[]";
-
-      try {
-        const faqEntries = JSON.parse(response);
-        return Array.isArray(faqEntries) ? faqEntries : [];
-      } catch (parseError) {
-        console.error("Failed to parse FAQ JSON:", parseError);
-        return this.parseFAQFallback(content);
+      if (result.error) {
+        throw new Error(result.error);
       }
+
+      return result.entries || [];
     } catch (error) {
       console.error("FAQ processing error:", error);
       return this.parseFAQFallback(content);
@@ -250,59 +155,15 @@ class OpenAIService {
   }
 
   /**
-   * Analyze user intent and confidence
-   */
-  private async analyzeIntent(
-    userInput: string,
-    aiResponse: string
-  ): Promise<{ intent: string; confidence: number }> {
-    // Simple intent classification based on keywords
-    const input = userInput.toLowerCase();
-
-    if (
-      input.includes("hello") ||
-      input.includes("hi") ||
-      input.includes("hey")
-    ) {
-      return { intent: "greeting", confidence: 0.9 };
-    }
-
-    if (
-      input.includes("help") ||
-      input.includes("support") ||
-      input.includes("assist")
-    ) {
-      return { intent: "help_request", confidence: 0.85 };
-    }
-
-    if (
-      input.includes("price") ||
-      input.includes("cost") ||
-      input.includes("fee")
-    ) {
-      return { intent: "pricing_inquiry", confidence: 0.8 };
-    }
-
-    if (input.includes("thank") || input.includes("thanks")) {
-      return { intent: "gratitude", confidence: 0.9 };
-    }
-
-    if (
-      input.includes("bye") ||
-      input.includes("goodbye") ||
-      input.includes("exit")
-    ) {
-      return { intent: "farewell", confidence: 0.85 };
-    }
-
-    // Default to general inquiry
-    return { intent: "general_inquiry", confidence: 0.7 };
-  }
-
-  /**
    * Build context-aware system prompt
    */
-  private buildSystemPrompt(customPrompt?: string, nodeContext?: any): string {
+  private buildSystemPrompt(
+    customPrompt?: string,
+    nodeContext?: Record<string, unknown> & {
+      conversationState?: unknown;
+      userInfo?: unknown;
+    }
+  ): string {
     let prompt =
       customPrompt || "You are a helpful AI assistant for a business chatbot.";
 
@@ -334,67 +195,11 @@ class OpenAIService {
       }
     }
 
-    prompt += `
-    
-Guidelines:
-- Be helpful, friendly, and professional
-- Keep responses concise but informative
-- If you don't know something, say so and offer to connect them with a human
-- Use the FAQ information when relevant
-- Personalize responses using any available user information
-- Stay in character as a business assistant`;
-
     return prompt;
   }
 
   /**
-   * Find semantic match using AI
-   */
-  private async findSemanticMatch(query: string): Promise<FAQEntry | null> {
-    try {
-      const faqText = this.faqContext
-        .map((faq) => `Q: ${faq.question}\nA: ${faq.answer}`)
-        .join("\n\n");
-
-      const prompt = `
-        Given this query: "${query}"
-        
-        Find the most relevant FAQ entry from the following list:
-        ${faqText}
-        
-        Return only the JSON object of the most relevant FAQ entry in this format:
-        {
-          "question": "...",
-          "answer": "...",
-          "keywords": [...]
-        }
-        
-        If no relevant entry is found, return null.
-      `;
-
-      const completion = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 300,
-        temperature: 0.1,
-      });
-
-      const response = completion.choices[0]?.message?.content || "null";
-
-      try {
-        const result = JSON.parse(response);
-        return result && typeof result === "object" ? result : null;
-      } catch {
-        return null;
-      }
-    } catch (error) {
-      console.error("Semantic search error:", error);
-      return null;
-    }
-  }
-
-  /**
-   * Fallback response when OpenAI is not available
+   * Fallback response when server-side AI is not available
    */
   private getFallbackResponse(userInput: string): AIResponse {
     const input = userInput.toLowerCase();
@@ -425,11 +230,17 @@ Guidelines:
         "I understand you're asking about that. For the most accurate information, I'd recommend speaking with one of our team members who can provide detailed assistance.";
     }
 
-    return { response, intent, confidence };
+    return {
+      response,
+      intent,
+      confidence,
+      fallback: true,
+      processing_time: 100,
+    };
   }
 
   /**
-   * Fallback FAQ parsing when OpenAI is not available
+   * Fallback FAQ parsing when server-side processing is not available
    */
   private parseFAQFallback(content: string): FAQEntry[] {
     const entries: FAQEntry[] = [];

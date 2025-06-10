@@ -54,11 +54,9 @@ export function PricingPlans({
         plan.priceId,
         profile?.subscription_id || undefined
       );
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error selecting plan:", error);
-      toast.error(
-        error.message || "Failed to process payment. Please try again."
-      );
+      toast.error("Failed to process payment. Please try again.");
     } finally {
       setIsLoading(null);
     }
@@ -236,36 +234,44 @@ export function PricingPlans({
                   </div>
 
                   {/* CTA Button */}
-                  <Button
-                    onClick={() => handlePlanSelect(planId)}
-                    disabled={loading || isCurrent}
-                    className={`w-full ${
-                      isPopular
-                        ? "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 dark:from-blue-700 dark:to-purple-800 dark:hover:from-blue-800 dark:hover:to-purple-900"
-                        : isCurrent
-                        ? "bg-green-500 hover:bg-green-600 dark:bg-green-700 dark:hover:bg-green-800"
-                        : ""
-                    }`}
-                    variant={
-                      isPopular ? "primary" : isCurrent ? "primary" : "outline"
-                    }
-                  >
-                    {loading ? (
-                      <>
-                        <Loader className="w-4 h-4 mr-2 animate-spin" />
-                        Processing...
-                      </>
-                    ) : isCurrent ? (
-                      "Current Plan"
-                    ) : planId === "free" ? (
-                      "Get Started Free"
-                    ) : (
-                      <>
-                        Upgrade to {plan.name}
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </>
-                    )}
-                  </Button>
+                  {/* Only show CTA if this is NOT the user's current plan */}
+                  {profile?.plan !== planId && (
+                    <Button
+                      onClick={() => handlePlanSelect(planId)}
+                      disabled={loading}
+                      className={`w-full ${
+                        isPopular
+                          ? "bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 dark:from-blue-700 dark:to-purple-800 dark:hover:from-blue-800 dark:hover:to-purple-900"
+                          : ""
+                      }`}
+                      variant={isPopular ? "primary" : "outline"}
+                    >
+                      {loading ? (
+                        <>
+                          <Loader className="w-4 h-4 mr-2 animate-spin" />
+                          Processing...
+                        </>
+                      ) : planId === "free" ? (
+                        "Get Started Free"
+                      ) : (
+                        <>
+                          Upgrade to {plan.name}
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </>
+                      )}
+                    </Button>
+                  )}
+
+                  {/* If this is the current plan, show a "Current Plan" badge or disabled button */}
+                  {profile?.plan === planId && (
+                    <Button
+                      disabled
+                      className="w-full bg-green-500 hover:bg-green-600 dark:bg-green-700 dark:hover:bg-green-800 cursor-default"
+                      variant="primary"
+                    >
+                      Current Plan
+                    </Button>
+                  )}
 
                   {/* Additional Info */}
                   {planId === "enterprise" && (

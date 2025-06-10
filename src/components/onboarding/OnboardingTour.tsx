@@ -30,14 +30,6 @@ const onboardingSteps: OnboardingStep[] = [
     position: "left",
   },
   {
-    id: "sidebar-nav",
-    title: "Navigation Menu",
-    description:
-      "Use this sidebar to navigate between your dashboard, chatbots, analytics, and settings.",
-    target: ".sidebar-nav",
-    position: "right",
-  },
-  {
     id: "analytics",
     title: "Track Performance",
     description:
@@ -123,14 +115,20 @@ export function OnboardingTour() {
       {isVisible && (
         <>
           {/* Overlay */}
-          <div className="fixed inset-0 bg-black/50 z-1000" />
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.5 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/70 z-[9999] backdrop-blur-sm"
+          />
 
           {/* Tooltip */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
-            className="fixed z-1002 bg-white rounded-xl shadow-2xl p-6 max-w-sm"
+            transition={{ type: "spring", stiffness: 280, damping: 32 }}
+            className="fixed z-[10000] bg-white/90 dark:bg-gray-900/95 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl p-7 max-w-md w-full backdrop-blur-xl"
             style={{
               top: targetElement
                 ? getTooltipPosition(targetElement, step.position).top
@@ -141,47 +139,64 @@ export function OnboardingTour() {
               transform: targetElement ? "none" : "translate(-50%, -50%)",
             }}
           >
+            {/* Blue accent bar */}
+            <div className="absolute top-0 left-0 w-full h-1 rounded-t-2xl bg-gradient-to-r from-blue-500 via-cyan-400 to-purple-500" />
+
+            {/* Close button */}
+            <button
+              onClick={skipTour}
+              className="absolute top-3 right-3 p-2 rounded-full bg-white/60 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 shadow hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5 text-gray-400 dark:text-gray-300" />
+            </button>
+
             {/* Progress bar */}
-            <div className="w-full bg-gray-200 rounded-full h-1 mb-4">
-              <div
-                className="bg-blue-600 h-1 rounded-full transition-all duration-300"
+            <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-1 mb-6 overflow-hidden">
+              <motion.div
+                className="bg-gradient-to-r from-blue-500 to-purple-500 h-1 rounded-full"
                 style={{ width: `${progress}%` }}
+                layout
+                transition={{ type: "spring", stiffness: 200, damping: 24 }}
               />
             </div>
 
             {/* Content */}
             <div className="mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                 {step.title}
               </h3>
-              <p className="text-gray-600 text-sm leading-relaxed">
+              <p className="text-gray-700 dark:text-gray-300 text-base leading-relaxed">
                 {step.description}
               </p>
             </div>
 
             {/* Step counter */}
-            <div className="text-xs text-gray-500 mb-4">
+            <div className="text-xs text-gray-500 dark:text-gray-400 mb-6">
               Step {currentStep + 1} of {onboardingSteps.length}
             </div>
 
             {/* Actions */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-3">
               <button
                 onClick={skipTour}
-                className="text-gray-500 hover:text-gray-700 text-sm font-medium"
+                className="text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 text-sm font-medium underline underline-offset-2 transition"
               >
                 Skip tour
               </button>
-
               <div className="flex items-center space-x-2">
                 {currentStep > 0 && (
-                  <Button variant="outline" size="sm" onClick={prevStep}>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={prevStep}
+                    className="rounded-lg"
+                  >
                     <ArrowLeft className="w-4 h-4 mr-1" />
                     Back
                   </Button>
                 )}
-
-                <Button size="sm" onClick={nextStep}>
+                <Button size="sm" onClick={nextStep} className="rounded-lg">
                   {currentStep === onboardingSteps.length - 1 ? (
                     <>
                       <Check className="w-4 h-4 mr-1" />
@@ -196,14 +211,6 @@ export function OnboardingTour() {
                 </Button>
               </div>
             </div>
-
-            {/* Close button */}
-            <button
-              onClick={skipTour}
-              className="absolute top-2 right-2 p-1 text-gray-400 hover:text-gray-600"
-            >
-              <X className="w-4 h-4" />
-            </button>
           </motion.div>
         </>
       )}
@@ -216,32 +223,62 @@ function getTooltipPosition(element: HTMLElement, position: string) {
   const tooltipWidth = 320; // max-w-sm
   const tooltipHeight = 200; // approximate
   const offset = 16;
+  const viewportWidth = window.innerWidth;
+  const viewportHeight = window.innerHeight;
+  let top = 0;
+  let left = 0;
+  let finalPosition = position;
 
+  // Preferred positions
   switch (position) {
     case "top":
-      return {
-        top: rect.top - tooltipHeight - offset,
-        left: rect.left + rect.width / 2 - tooltipWidth / 2,
-      };
+      top = rect.top - tooltipHeight - offset;
+      left = rect.left + rect.width / 2 - tooltipWidth / 2;
+      break;
     case "bottom":
-      return {
-        top: rect.bottom + offset,
-        left: rect.left + rect.width / 2 - tooltipWidth / 2,
-      };
+      top = rect.bottom + offset;
+      left = rect.left + rect.width / 2 - tooltipWidth / 2;
+      break;
     case "left":
-      return {
-        top: rect.top + rect.height / 2 - tooltipHeight / 2,
-        left: rect.left - tooltipWidth - offset,
-      };
+      top = rect.top + rect.height / 2 - tooltipHeight / 2;
+      left = rect.left - tooltipWidth - offset;
+      break;
     case "right":
-      return {
-        top: rect.top + rect.height / 2 - tooltipHeight / 2,
-        left: rect.right + offset,
-      };
+      top = rect.top + rect.height / 2 - tooltipHeight / 2;
+      left = rect.right + offset;
+      break;
     default:
-      return {
-        top: rect.bottom + offset,
-        left: rect.left + rect.width / 2 - tooltipWidth / 2,
-      };
+      top = rect.bottom + offset;
+      left = rect.left + rect.width / 2 - tooltipWidth / 2;
   }
+  // Flip if out of bounds (right/left)
+  if (position === "right" && left + tooltipWidth > viewportWidth - 8) {
+    // Not enough space on right, try left
+    left = rect.left - tooltipWidth - offset;
+    finalPosition = "left";
+  } else if (position === "left" && left < 8) {
+    // Not enough space on left, try right
+    left = rect.right + offset;
+    finalPosition = "right";
+  }
+
+  // Flip if out of bounds (top/bottom)
+  if (position === "top" && top < 8) {
+    // Not enough space on top, try bottom
+    top = rect.bottom + offset;
+    finalPosition = "bottom";
+  } else if (
+    position === "bottom" &&
+    top + tooltipHeight > viewportHeight - 8
+  ) {
+    // Not enough space on bottom, try top
+    top = rect.top - tooltipHeight - offset;
+    finalPosition = "top";
+  }
+
+  // Clamp to viewport as a last resort
+  top = Math.max(8, Math.min(top, viewportHeight - tooltipHeight - 8));
+  left = Math.max(8, Math.min(left, viewportWidth - tooltipWidth - 8));
+
+  return { top, left, position: finalPosition };
 }

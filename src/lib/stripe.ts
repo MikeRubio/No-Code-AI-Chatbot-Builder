@@ -38,6 +38,7 @@ export const STRIPE_CONFIG = {
         analytics: false,
         customBranding: false,
       },
+      priceId: null,
     },
     pro: {
       id: "pro",
@@ -139,7 +140,7 @@ export class StripeService {
           throw new Error(
             errorData.error || `HTTP ${response.status}: ${response.statusText}`
           );
-        } catch (parseError) {
+        } catch {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
       }
@@ -153,7 +154,7 @@ export class StripeService {
       let session;
       try {
         session = JSON.parse(responseText);
-      } catch (parseError) {
+      } catch {
         console.error("Failed to parse response as JSON:", responseText);
         throw new Error("Invalid response format from server");
       }
@@ -213,7 +214,7 @@ export class StripeService {
           throw new Error(
             errorData.error || `HTTP ${response.status}: ${response.statusText}`
           );
-        } catch (parseError) {
+        } catch {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
       }

@@ -67,7 +67,7 @@ export function useChatbots() {
       queryClient.invalidateQueries({ queryKey: ["chatbots"] });
       toast.success("Chatbot created successfully!");
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast.error(error.message || "Failed to create chatbot");
     },
   });
@@ -94,7 +94,7 @@ export function useChatbots() {
       queryClient.invalidateQueries({ queryKey: ["chatbots"] });
       toast.success("Chatbot updated successfully!");
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast.error(error.message || "Failed to update chatbot");
     },
   });
@@ -109,7 +109,7 @@ export function useChatbots() {
       queryClient.invalidateQueries({ queryKey: ["chatbots"] });
       toast.success("Chatbot deleted successfully!");
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast.error(error.message || "Failed to delete chatbot");
     },
   });
@@ -130,7 +130,7 @@ export function useChatbots() {
       queryClient.invalidateQueries({ queryKey: ["chatbots"] });
       toast.success("Chatbot published successfully!");
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       toast.error(error.message || "Failed to publish chatbot");
     },
   });
