@@ -10,7 +10,6 @@ import {
 import { Card } from "../ui/Card";
 import { Button } from "../ui/Button";
 import { Modal } from "../ui/Modal";
-import { StripeWebhookSetup } from "./StripeWebhookSetup";
 import { PricingPlans } from "./PricingPlans";
 import { useProfile } from "../../hooks/useProfile";
 import { stripeService, STRIPE_CONFIG } from "../../lib/stripe";
@@ -26,7 +25,7 @@ export function SubscriptionManager({
   onClose,
 }: SubscriptionManagerProps) {
   const { profile } = useProfile();
-  const [showWebhookSetup, setShowWebhookSetup] = useState(false);
+  // const [showWebhookSetup, setShowWebhookSetup] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const currentPlan = profile
@@ -284,10 +283,10 @@ export function SubscriptionManager({
       </Modal>
 
       {/* Webhook Setup Modal */}
-      <StripeWebhookSetup
+      {/* <StripeWebhookSetup
         isOpen={showWebhookSetup}
         onClose={() => setShowWebhookSetup(false)}
-      />
+      /> */}
 
       {/* Pricing Plans Modal */}
       <PricingPlans />

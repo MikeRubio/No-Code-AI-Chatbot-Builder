@@ -1,53 +1,58 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, ArrowRight, ArrowLeft, Check } from 'lucide-react';
-import { Button } from '../ui/Button';
-import { useProfile } from '../../hooks/useProfile';
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { X, ArrowRight, ArrowLeft, Check } from "lucide-react";
+import { Button } from "../ui/Button";
+import { useProfile } from "../../hooks/useProfile";
 
 interface OnboardingStep {
   id: string;
   title: string;
   description: string;
   target: string;
-  position: 'top' | 'bottom' | 'left' | 'right';
+  position: "top" | "bottom" | "left" | "right";
 }
 
 const onboardingSteps: OnboardingStep[] = [
   {
-    id: 'welcome',
-    title: 'Welcome to BotBuilder Pro!',
-    description: 'Let\'s take a quick tour to get you started with building your first AI chatbot.',
-    target: '.dashboard-welcome',
-    position: 'bottom'
+    id: "welcome",
+    title: "Welcome to BotForge!",
+    description:
+      "Let's take a quick tour to get you started with building your first AI chatbot.",
+    target: ".dashboard-welcome",
+    position: "bottom",
   },
   {
-    id: 'create-bot',
-    title: 'Create Your First Bot',
-    description: 'Click here to start building your first chatbot. You can create different types of bots for various purposes.',
-    target: '.create-bot-button',
-    position: 'left'
+    id: "create-bot",
+    title: "Create Your First Bot",
+    description:
+      "Click here to start building your first chatbot. You can create different types of bots for various purposes.",
+    target: ".create-bot-button",
+    position: "left",
   },
   {
-    id: 'sidebar-nav',
-    title: 'Navigation Menu',
-    description: 'Use this sidebar to navigate between your dashboard, chatbots, analytics, and settings.',
-    target: '.sidebar-nav',
-    position: 'right'
+    id: "sidebar-nav",
+    title: "Navigation Menu",
+    description:
+      "Use this sidebar to navigate between your dashboard, chatbots, analytics, and settings.",
+    target: ".sidebar-nav",
+    position: "right",
   },
   {
-    id: 'analytics',
-    title: 'Track Performance',
-    description: 'Monitor your chatbot\'s performance with detailed analytics and insights.',
-    target: '.analytics-link',
-    position: 'right'
+    id: "analytics",
+    title: "Track Performance",
+    description:
+      "Monitor your chatbot's performance with detailed analytics and insights.",
+    target: ".analytics-link",
+    position: "right",
   },
   {
-    id: 'upgrade',
-    title: 'Upgrade for More Features',
-    description: 'Start with our free plan and upgrade anytime to unlock more chatbots and advanced features.',
-    target: '.upgrade-banner',
-    position: 'top'
-  }
+    id: "upgrade",
+    title: "Upgrade for More Features",
+    description:
+      "Start with our free plan and upgrade anytime to unlock more chatbots and advanced features.",
+    target: ".upgrade-banner",
+    position: "top",
+  },
 ];
 
 export function OnboardingTour() {
@@ -64,13 +69,15 @@ export function OnboardingTour() {
 
   useEffect(() => {
     if (isVisible && onboardingSteps[currentStep]) {
-      const element = document.querySelector(onboardingSteps[currentStep].target) as HTMLElement;
+      const element = document.querySelector(
+        onboardingSteps[currentStep].target
+      ) as HTMLElement;
       setTargetElement(element);
-      
+
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        element.style.position = 'relative';
-        element.style.zIndex = '1001';
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+        element.style.position = "relative";
+        element.style.zIndex = "1001";
       }
     }
   }, [currentStep, isVisible]);
@@ -92,12 +99,12 @@ export function OnboardingTour() {
   const finishOnboarding = () => {
     setIsVisible(false);
     completeOnboarding();
-    
+
     // Reset z-index for all elements
-    onboardingSteps.forEach(step => {
+    onboardingSteps.forEach((step) => {
       const element = document.querySelector(step.target) as HTMLElement;
       if (element) {
-        element.style.zIndex = '';
+        element.style.zIndex = "";
       }
     });
   };
@@ -117,7 +124,7 @@ export function OnboardingTour() {
         <>
           {/* Overlay */}
           <div className="fixed inset-0 bg-black/50 z-1000" />
-          
+
           {/* Tooltip */}
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
@@ -125,14 +132,18 @@ export function OnboardingTour() {
             exit={{ opacity: 0, scale: 0.8 }}
             className="fixed z-1002 bg-white rounded-xl shadow-2xl p-6 max-w-sm"
             style={{
-              top: targetElement ? getTooltipPosition(targetElement, step.position).top : '50%',
-              left: targetElement ? getTooltipPosition(targetElement, step.position).left : '50%',
-              transform: targetElement ? 'none' : 'translate(-50%, -50%)',
+              top: targetElement
+                ? getTooltipPosition(targetElement, step.position).top
+                : "50%",
+              left: targetElement
+                ? getTooltipPosition(targetElement, step.position).left
+                : "50%",
+              transform: targetElement ? "none" : "translate(-50%, -50%)",
             }}
           >
             {/* Progress bar */}
             <div className="w-full bg-gray-200 rounded-full h-1 mb-4">
-              <div 
+              <div
                 className="bg-blue-600 h-1 rounded-full transition-all duration-300"
                 style={{ width: `${progress}%` }}
               />
@@ -161,23 +172,16 @@ export function OnboardingTour() {
               >
                 Skip tour
               </button>
-              
+
               <div className="flex items-center space-x-2">
                 {currentStep > 0 && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={prevStep}
-                  >
+                  <Button variant="outline" size="sm" onClick={prevStep}>
                     <ArrowLeft className="w-4 h-4 mr-1" />
                     Back
                   </Button>
                 )}
-                
-                <Button
-                  size="sm"
-                  onClick={nextStep}
-                >
+
+                <Button size="sm" onClick={nextStep}>
                   {currentStep === onboardingSteps.length - 1 ? (
                     <>
                       <Check className="w-4 h-4 mr-1" />
@@ -214,30 +218,30 @@ function getTooltipPosition(element: HTMLElement, position: string) {
   const offset = 16;
 
   switch (position) {
-    case 'top':
+    case "top":
       return {
         top: rect.top - tooltipHeight - offset,
-        left: rect.left + (rect.width / 2) - (tooltipWidth / 2),
+        left: rect.left + rect.width / 2 - tooltipWidth / 2,
       };
-    case 'bottom':
+    case "bottom":
       return {
         top: rect.bottom + offset,
-        left: rect.left + (rect.width / 2) - (tooltipWidth / 2),
+        left: rect.left + rect.width / 2 - tooltipWidth / 2,
       };
-    case 'left':
+    case "left":
       return {
-        top: rect.top + (rect.height / 2) - (tooltipHeight / 2),
+        top: rect.top + rect.height / 2 - tooltipHeight / 2,
         left: rect.left - tooltipWidth - offset,
       };
-    case 'right':
+    case "right":
       return {
-        top: rect.top + (rect.height / 2) - (tooltipHeight / 2),
+        top: rect.top + rect.height / 2 - tooltipHeight / 2,
         left: rect.right + offset,
       };
     default:
       return {
         top: rect.bottom + offset,
-        left: rect.left + (rect.width / 2) - (tooltipWidth / 2),
+        left: rect.left + rect.width / 2 - tooltipWidth / 2,
       };
   }
 }

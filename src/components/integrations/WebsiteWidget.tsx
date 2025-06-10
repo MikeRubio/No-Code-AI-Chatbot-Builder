@@ -117,7 +117,7 @@ export function WebsiteWidget({
   };
 
   const generateVanillaCode = (baseUrl: string, widgetId: string) => {
-    return `<!-- BotBuilder Pro Widget -->
+    return `<!-- BotForge Widget -->
 <div id="${widgetId}"></div>
 <script>
   (function() {
@@ -710,7 +710,7 @@ export class ChatbotWidgetComponent implements OnInit, OnDestroy {
                         className="mr-2"
                       />
                       <span className="text-sm text-gray-700">
-                        Show BotBuilder branding
+                        Show BotForge branding
                       </span>
                     </label>
 
@@ -1101,8 +1101,7 @@ function WidgetPreviewModal({
                 {config.showBranding && (
                   <div className="px-4 pb-2">
                     <p className="text-xs text-gray-500 text-center">
-                      Powered by{" "}
-                      <span className="font-medium">BotBuilder Pro</span>
+                      Powered by <span className="font-medium">BotForge</span>
                     </p>
                   </div>
                 )}

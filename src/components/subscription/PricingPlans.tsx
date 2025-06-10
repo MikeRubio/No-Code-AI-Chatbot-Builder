@@ -273,7 +273,7 @@ export function PricingPlans({
                       <p className="text-sm text-gray-600 dark:text-gray-300">
                         Need custom features?{" "}
                         <a
-                          href="mailto:sales@botbuilder.com"
+                          href="mailto:sales@BotForge.site"
                           className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium"
                         >
                           Contact Sales

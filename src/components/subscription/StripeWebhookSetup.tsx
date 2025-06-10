@@ -193,7 +193,7 @@ export function StripeWebhookSetup({
                 <span className="bg-blue-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mt-0.5">
                   4
                 </span>
-                <span>Add description: "BotBuilder Pro Webhook"</span>
+                <span>Add description: "BotForge Webhook"</span>
               </li>
             </ol>
           </div>

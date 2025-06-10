@@ -253,7 +253,7 @@ export const quickStartGuides: QuickStartGuide[] = [
           "Add your chatbot to your website with a customizable widget.",
         action:
           '1. Go to Multi-Channel Setup in your chatbot settings\n2. Select "Website" as your deployment channel\n3. Customize the chat widget appearance and behavior\n4. Copy the provided embed code\n5. Add the code to your website\'s HTML',
-        code: '<!-- Add this code before closing </body> tag -->\n<script>\n  window.chatbotConfig = {\n    botId: "your-bot-id",\n    theme: "blue",\n    position: "bottom-right"\n  };\n</script>\n<script src="https://cdn.botbuilder.pro/widget.js"></script>',
+        code: '<!-- Add this code before closing </body> tag -->\n<script>\n  window.chatbotConfig = {\n    botId: "your-bot-id",\n    theme: "blue",\n    position: "bottom-right"\n  };\n</script>\n<script src="https://cdn.BotForge.site/widget.js"></script>',
         note: "The widget is responsive and works on both desktop and mobile devices.",
       },
       {
