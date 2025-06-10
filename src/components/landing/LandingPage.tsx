@@ -1,6 +1,5 @@
 import { motion } from "framer-motion";
 import {
-  Bot,
   MessageCircle,
   Zap,
   Shield,
@@ -11,18 +10,13 @@ import {
   BookOpen,
   ArrowRight,
   Play,
-  Award,
   Sparkles,
-  Github,
-  Twitter,
-  Linkedin,
-  Mail,
-  Phone,
-  MapPin,
+  Bot,
 } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
 import { Link } from "react-router-dom";
+import boltlogo from "../../../public/bolt/boltlogo.png";
 
 export function LandingPage() {
   const features = [
@@ -154,10 +148,9 @@ export function LandingPage() {
               <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                 <Bot className="w-5 h-5 text-white" />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                BotBuilder Pro
+              <span className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+                BotForge
               </span>
-              <BoldBadge />
             </div>
             <div className="flex items-center space-x-6">
               <nav className="hidden md:flex items-center space-x-6">
@@ -189,7 +182,7 @@ export function LandingPage() {
                   Sign In
                 </Link>
                 <Link to="/auth">
-                  <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+                  <Button className="bg-gray-900 border border-gray-800 hover:bg-gray-800 shadow-none">
                     Get Started Free
                   </Button>
                 </Link>
@@ -201,7 +194,6 @@ export function LandingPage() {
 
       {/* Hero Section */}
       <section className="relative py-20 overflow-hidden">
-        {/* Background Effects */}
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10" />
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl" />
         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl" />
@@ -213,7 +205,7 @@ export function LandingPage() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
             >
-              <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-full border border-blue-500/30 mb-8">
+              <div className="inline-flex items-center px-4 py-2 bg-gray-900/20 rounded-full border border-gray-700/30 mb-8">
                 <Sparkles className="w-4 h-4 text-blue-400 mr-2" />
                 <span className="text-blue-300 text-sm font-medium">
                   The future of customer automation is here
@@ -222,22 +214,22 @@ export function LandingPage() {
 
               <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
                 Build AI Chatbots
-                <span className="block bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  Without Code
+                <span className="block text-blue-400">
+                  Visually, Effortlessly
                 </span>
               </h1>
 
               <p className="text-xl text-gray-300 mb-8 max-w-3xl mx-auto leading-relaxed">
                 Create, train, and deploy intelligent chatbots for your business
                 in minutes. No technical skills required. Start automating
-                customer support today with our powerful no-code platform.
+                customer support today with BotForge.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
                 <Link to="/auth">
                   <Button
                     size="lg"
-                    className="text-lg px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    className="text-lg px-8 py-4 bg-gray-900 border border-gray-800 hover:bg-gray-800 shadow-none"
                   >
                     <Play className="w-5 h-5 mr-2" />
                     Start Building Free
@@ -254,7 +246,6 @@ export function LandingPage() {
                   </Button>
                 </Link>
               </div>
-
               {/* Benefits Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto">
                 {benefits.map((benefit, index) => (
@@ -382,10 +373,10 @@ export function LandingPage() {
                 className="text-center"
               >
                 <div className="relative mb-6">
-                  <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <step.icon className="w-8 h-8 text-white" />
+                  <div className="w-16 h-16 bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <step.icon className="w-8 h-8 text-blue-500" />
                   </div>
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
                     {step.step}
                   </div>
                 </div>
@@ -418,7 +409,6 @@ export function LandingPage() {
               </p>
             </motion.div>
           </div>
-
           <div className="grid md:grid-cols-3 gap-8">
             {pricingPlans.map((plan, index) => (
               <motion.div
@@ -431,7 +421,7 @@ export function LandingPage() {
               >
                 {plan.popular && (
                   <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
-                    <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-1 rounded-full text-sm font-medium flex items-center">
+                    <div className="bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-medium flex items-center">
                       <Star className="w-4 h-4 mr-1" />
                       Most Popular
                     </div>
@@ -465,7 +455,7 @@ export function LandingPage() {
                       variant={plan.popular ? "primary" : "outline"}
                       className={`w-full ${
                         plan.popular
-                          ? "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                          ? "bg-blue-600"
                           : "border-gray-600 text-gray-300 hover:bg-gray-800"
                       }`}
                       size="lg"
@@ -501,7 +491,7 @@ export function LandingPage() {
               <Link to="/auth">
                 <Button
                   size="lg"
-                  className="text-lg px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                  className="text-lg px-8 py-4 bg-gray-900 border border-gray-800 hover:bg-gray-800 shadow-none"
                 >
                   Start Building Free
                   <ArrowRight className="w-5 h-5 ml-2" />
@@ -531,37 +521,38 @@ export function LandingPage() {
                 <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                   <Bot className="w-5 h-5 text-white" />
                 </div>
-                <span className="text-xl font-bold text-white">
-                  BotBuilder Pro
-                </span>
-                <BoldBadge />
+                <span className="text-xl font-bold text-white">BotForge</span>
               </div>
               <p className="text-gray-400 mb-6 max-w-md">
                 The modern no-code platform for building intelligent chatbots.
                 Empower your business with AI-driven customer automation.
               </p>
-              <div className="flex space-x-4">
-                <a
-                  href="https://twitter.com"
-                  className="text-gray-400 hover:text-white transition-colors"
+              <div>
+                <motion.a
+                  href="https://bolt.new/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  whileHover={{
+                    scale: 1.08,
+                    rotate: -2,
+                    filter: "drop-shadow(0 4px 24px #38bdf8cc)",
+                  }}
+                  whileTap={{ scale: 0.97, rotate: 1 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 15 }}
+                  aria-label="Powered by BotForge"
+                  className="inline-block"
                 >
-                  <Twitter className="w-5 h-5" />
-                </a>
-                <a
-                  href="https://linkedin.com"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  <Linkedin className="w-5 h-5" />
-                </a>
-                <a
-                  href="https://github.com"
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  <Github className="w-5 h-5" />
-                </a>
+                  <img
+                    src={boltlogo}
+                    alt="Powered by BotForge"
+                    className="h-20 w-auto transition-all duration-300"
+                    style={{
+                      filter: "grayscale(0.2) brightness(0.95)",
+                    }}
+                  />
+                </motion.a>
               </div>
             </div>
-
             {/* Product */}
             <div>
               <h3 className="text-white font-semibold mb-4">Product</h3>
@@ -590,33 +581,8 @@ export function LandingPage() {
                     Documentation
                   </Link>
                 </li>
-                <li>
-                  <a
-                    href="/api"
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    API Reference
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="/integrations"
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    Integrations
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="/templates"
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    Templates
-                  </a>
-                </li>
               </ul>
             </div>
-
             {/* Company */}
             <div>
               <h3 className="text-white font-semibold mb-4">Company</h3>
@@ -629,56 +595,15 @@ export function LandingPage() {
                     About Us
                   </a>
                 </li>
-                <li>
-                  <a
-                    href="/careers"
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    Careers
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="/blog"
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    Blog
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="/press"
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    Press Kit
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="/partners"
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    Partners
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="/investors"
-                    className="text-gray-400 hover:text-white transition-colors"
-                  >
-                    Investors
-                  </a>
-                </li>
               </ul>
             </div>
-
             {/* Support */}
             <div>
               <h3 className="text-white font-semibold mb-4">Support</h3>
               <ul className="space-y-3">
                 <li>
                   <a
-                    href="/help"
+                    href="/docs"
                     className="text-gray-400 hover:text-white transition-colors"
                   >
                     Help Center
@@ -692,14 +617,14 @@ export function LandingPage() {
                     Contact Us
                   </a>
                 </li>
-                <li>
+                {/* <li>
                   <a
                     href="/community"
                     className="text-gray-400 hover:text-white transition-colors"
                   >
                     Community
                   </a>
-                </li>
+                </li> */}
                 <li>
                   <a
                     href="/status"
@@ -709,7 +634,7 @@ export function LandingPage() {
                     <div className="w-2 h-2 bg-green-400 rounded-full ml-2"></div>
                   </a>
                 </li>
-                <li>
+                {/* <li>
                   <a
                     href="/security"
                     className="text-gray-400 hover:text-white transition-colors"
@@ -724,17 +649,16 @@ export function LandingPage() {
                   >
                     Compliance
                   </a>
-                </li>
+                </li> */}
               </ul>
             </div>
           </div>
-
           {/* Contact Info */}
-          <div className="border-t border-gray-800 mt-12 pt-8">
+          {/* <div className="border-t border-gray-800 mt-12 pt-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div className="flex items-center text-gray-400">
                 <Mail className="w-5 h-5 mr-3" />
-                <span>support@botbuilder.pro</span>
+                <span>support@botforge.site</span>
               </div>
               <div className="flex items-center text-gray-400">
                 <Phone className="w-5 h-5 mr-3" />
@@ -745,13 +669,12 @@ export function LandingPage() {
                 <span>San Francisco, CA</span>
               </div>
             </div>
-          </div>
-
+          </div> */}
           {/* Bottom Bar */}
           <div className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">
             <div className="flex flex-wrap items-center space-x-6 mb-4 md:mb-0">
               <p className="text-gray-400 text-sm">
-                © 2024 BotBuilder Pro. All rights reserved.
+                © 2025 BotForge. All rights reserved.
               </p>
               <a
                 href="/privacy"
@@ -766,39 +689,17 @@ export function LandingPage() {
                 Terms of Service
               </a>
               <a
-                href="/cookies"
+                href="https://www.termsfeed.com/live/122aaa3f-df83-4ce7-8540-7dde414e7c51"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-gray-400 hover:text-white text-sm transition-colors"
               >
                 Cookie Policy
               </a>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center text-gray-400 text-sm">
-                <Award className="w-4 h-4 mr-2" />
-                <span>SOC 2 Type II Certified</span>
-              </div>
-              <div className="flex items-center text-gray-400 text-sm">
-                <Shield className="w-4 h-4 mr-2" />
-                <span>GDPR Compliant</span>
-              </div>
-            </div>
           </div>
         </div>
       </footer>
-    </div>
-  );
-}
-
-// Bold Badge Component
-function BoldBadge() {
-  return (
-    <div className="inline-flex items-center">
-      <div className="relative">
-        <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-bold px-2 py-1 rounded-md transform -rotate-12 shadow-lg">
-          BOLD
-        </div>
-        <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-red-400 text-white text-xs font-bold px-2 py-1 rounded-md transform -rotate-12 blur-sm opacity-50"></div>
-      </div>
     </div>
   );
 }

@@ -25,6 +25,7 @@ import { DocumentationPage } from "./components/help/DocumentationPage";
 import { HelpButton } from "./components/help/HelpButton";
 import { Button } from "./components/ui/Button";
 import { Card } from "./components/ui/Card";
+import PrivacyPolicy from "./components/landing/PrivacyPolicy";
 
 const queryClient = new QueryClient();
 
@@ -51,6 +52,7 @@ function App() {
             {/* Public routes */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/docs" element={<DocumentationPage />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route
               path="/auth"
               element={
