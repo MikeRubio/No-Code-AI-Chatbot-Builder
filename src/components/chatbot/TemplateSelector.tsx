@@ -43,14 +43,14 @@ const difficultyColors = {
 
 // Pro node types that require a paid plan
 const PRO_NODE_TYPES = [
-  "ai_response",
-  "conditional",
-  "api_webhook",
-  "survey",
-  "file_upload",
-  "human_handoff",
-  "appointment",
-  "action",
+  'ai_response',
+  'conditional',
+  'api_webhook',
+  'survey',
+  'file_upload',
+  'human_handoff',
+  'appointment',
+  'action'
 ];
 
 export function TemplateSelector({
@@ -69,15 +69,15 @@ export function TemplateSelector({
 
   // Check if a template uses Pro features
   const templateUsesPro = (template: ChatbotTemplate): boolean => {
-    return template.flow.nodes.some((node: any) =>
+    return template.flow.nodes.some((node: any) => 
       PRO_NODE_TYPES.includes(node.data?.nodeType || node.type)
     );
   };
 
   // Filter templates based on user's plan
   const getAvailableTemplates = () => {
-    if (profile?.plan === "free") {
-      return chatbotTemplates.filter((template) => !templateUsesPro(template));
+    if (profile?.plan === 'free') {
+      return chatbotTemplates.filter(template => !templateUsesPro(template));
     }
     return chatbotTemplates;
   };
@@ -134,11 +134,11 @@ export function TemplateSelector({
 
   const handleSelectTemplate = (template: ChatbotTemplate) => {
     // Double-check Pro features for free users
-    if (profile?.plan === "free" && templateUsesPro(template)) {
+    if (profile?.plan === 'free' && templateUsesPro(template)) {
       // This shouldn't happen due to filtering, but just in case
       return;
     }
-
+    
     onSelectTemplate(template);
     onClose();
   };
@@ -171,9 +171,9 @@ export function TemplateSelector({
               Choose from our collection of proven chatbot templates designed
               for different use cases
             </p>
-
+            
             {/* Plan limitation notice for free users */}
-            {profile?.plan === "free" && proTemplatesCount > 0 && (
+            {profile?.plan === 'free' && proTemplatesCount > 0 && (
               <div className="mt-4 p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
                 <div className="flex items-center justify-center space-x-2 text-orange-800 dark:text-orange-200">
                   <Crown className="w-5 h-5" />
@@ -182,8 +182,7 @@ export function TemplateSelector({
                   </span>
                 </div>
                 <p className="text-sm text-orange-700 dark:text-orange-300 mt-1">
-                  Upgrade to Pro or Enterprise to access advanced templates with
-                  AI features, integrations, and more
+                  Upgrade to Pro or Enterprise to access advanced templates with AI features, integrations, and more
                 </p>
               </div>
             )}
@@ -319,12 +318,10 @@ export function TemplateSelector({
                       </div>
                       <div className="flex items-center text-xs text-gray-600 dark:text-gray-300">
                         <Check className="w-3 h-3 mr-1" />
-                        {usesPro
-                          ? "Advanced features included"
-                          : "Basic features included"}
+                        {usesPro ? 'Advanced features included' : 'Basic features included'}
                       </div>
                     </div>
-
+                    
                     {/* Actions */}
                     <div className="flex space-x-2">
                       <Button
@@ -339,7 +336,7 @@ export function TemplateSelector({
                         size="sm"
                         onClick={() => handleSelectTemplate(template)}
                         className="flex-1"
-                        disabled={profile?.plan === "free" && usesPro}
+                        disabled={profile?.plan === 'free' && usesPro}
                       >
                         Use Template
                         <ArrowRight className="w-3 h-3 ml-1" />
@@ -403,7 +400,7 @@ export function TemplateSelector({
           template={selectedTemplate}
           onClose={() => setShowPreview(false)}
           onSelect={() => handleSelectTemplate(selectedTemplate)}
-          userPlan={profile?.plan || "free"}
+          userPlan={profile?.plan || 'free'}
         />
       )}
     </>
@@ -427,11 +424,11 @@ function TemplatePreviewModal({
     iconMap[template.icon as keyof typeof iconMap] || Building2;
 
   // Check if template uses Pro features
-  const templateUsesPro = template.flow.nodes.some((node: any) =>
+  const templateUsesPro = template.flow.nodes.some((node: any) => 
     PRO_NODE_TYPES.includes(node.data?.nodeType || node.type)
   );
 
-  const canUseTemplate = userPlan !== "free" || !templateUsesPro;
+  const canUseTemplate = userPlan !== 'free' || !templateUsesPro;
 
   return (
     <Modal isOpen={true} onClose={onClose} title="Template Preview" size="xl">
@@ -488,9 +485,8 @@ function TemplatePreviewModal({
               <span className="font-medium">Pro Template</span>
             </div>
             <p className="text-sm text-orange-700 dark:text-orange-300">
-              This template includes advanced features that require a Pro or
-              Enterprise plan. Upgrade your plan to use this template with AI
-              responses, integrations, and advanced logic.
+              This template includes advanced features that require a Pro or Enterprise plan. 
+              Upgrade your plan to use this template with AI responses, integrations, and advanced logic.
             </p>
           </div>
         )}
@@ -547,7 +543,7 @@ function TemplatePreviewModal({
             </div>
           </div>
         </div>
-
+        
         {/* Node Types */}
         <div>
           <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3">
@@ -555,9 +551,7 @@ function TemplatePreviewModal({
           </h4>
           <div className="grid grid-cols-2 gap-3">
             {Array.from(
-              new Set(
-                template.flow.nodes.map((n) => n.data?.nodeType || n.type)
-              )
+              new Set(template.flow.nodes.map((n) => n.data?.nodeType || n.type))
             ).map((nodeType) => {
               const isPro = PRO_NODE_TYPES.includes(nodeType);
               return (
@@ -569,7 +563,9 @@ function TemplatePreviewModal({
                   <span className="text-gray-700 dark:text-gray-200 capitalize">
                     {nodeType.replace("_", " ")} Node
                   </span>
-                  {isPro && <Crown className="w-3 h-3 text-purple-500" />}
+                  {isPro && (
+                    <Crown className="w-3 h-3 text-purple-500" />
+                  )}
                 </div>
               );
             })}
@@ -589,8 +585,7 @@ function TemplatePreviewModal({
                 </div>
                 <div>
                   <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
-                    {node.data?.label ||
-                      `${node.data?.nodeType || node.type} Node`}
+                    {node.data?.label || `${node.data?.nodeType || node.type} Node`}
                   </div>
                   <div className="text-xs text-gray-600 dark:text-gray-300 mt-1">
                     {node.data?.content?.substring(0, 100)}
@@ -612,8 +607,8 @@ function TemplatePreviewModal({
           <Button variant="outline" onClick={onClose} className="flex-1">
             Close Preview
           </Button>
-          <Button
-            onClick={onSelect}
+          <Button 
+            onClick={onSelect} 
             className="flex-1"
             disabled={!canUseTemplate}
           >

@@ -1,21 +1,27 @@
-import { useState } from "react";
-import { motion } from "framer-motion";
-import {
-  Copy,
-  Code,
-  Eye,
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { 
+  Code, 
+  Copy, 
+  Check, 
+  Download, 
+  ExternalLink, 
+  Settings, 
   Palette,
   Monitor,
   Smartphone,
-  Check,
-  ExternalLink,
-  Download,
-  Send,
-} from "lucide-react";
-import { Button } from "../ui/Button";
-import { Card } from "../ui/Card";
-import { Modal } from "../ui/Modal";
-import toast from "react-hot-toast";
+  Tablet,
+  Eye,
+  Globe,
+  Package,
+  FileCode,
+  Zap,
+  MessageCircle
+} from 'lucide-react';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
+import { Modal } from '../ui/Modal';
+import toast from 'react-hot-toast';
 
 interface WebsiteWidgetProps {
   chatbot: any;
@@ -23,625 +29,804 @@ interface WebsiteWidgetProps {
   onClose: () => void;
 }
 
-export function WebsiteWidget({
-  chatbot,
-  isOpen,
-  onClose,
-}: WebsiteWidgetProps) {
-  const [activeTab, setActiveTab] = useState<"embed" | "customize" | "preview">(
-    "embed"
-  );
-  const [widgetConfig, setWidgetConfig] = useState({
-    position: "bottom-right",
-    theme: "light",
-    primaryColor: "#3B82F6",
-    greeting: "Hi! How can I help you today?",
-    placeholder: "Type your message...",
-    width: "400px",
-    height: "600px",
-    borderRadius: "12px",
+interface WidgetConfig {
+  position: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
+  theme: 'light' | 'dark' | 'auto';
+  primaryColor: string;
+  size: 'small' | 'medium' | 'large';
+  showBranding: boolean;
+  customCSS: string;
+  greeting: string;
+  placeholder: string;
+  borderRadius: number;
+  shadow: boolean;
+  animation: 'none' | 'bounce' | 'pulse' | 'slide';
+}
+
+export function WebsiteWidget({ chatbot, isOpen, onClose }: WebsiteWidgetProps) {
+  const [activeTab, setActiveTab] = useState<'embed' | 'react' | 'vue' | 'angular' | 'svelte' | 'npm'>('embed');
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [config, setConfig] = useState<WidgetConfig>({
+    position: 'bottom-right',
+    theme: 'light',
+    primaryColor: '#3B82F6',
+    size: 'medium',
     showBranding: true,
+    customCSS: '',
+    greeting: 'Hi! How can I help you today?',
+    placeholder: 'Type your message...',
+    borderRadius: 12,
+    shadow: true,
+    animation: 'bounce'
   });
-  const [copied, setCopied] = useState(false);
+
+  // Ensure chatbot exists and has required properties
+  if (!chatbot) {
+    return (
+      <Modal isOpen={isOpen} onClose={onClose} title="Website Widget" size="xl">
+        <div className="text-center py-8">
+          <p className="text-gray-600 dark:text-gray-300">
+            Chatbot data is not available. Please try again.
+          </p>
+        </div>
+      </Modal>
+    );
+  }
+
+  const chatbotId = chatbot.id;
+  const chatbotName = chatbot.name || 'Chatbot';
+  const baseUrl = window.location.origin;
+
+  const copyToClipboard = async (text: string, type: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedCode(type);
+      toast.success('Code copied to clipboard!');
+      setTimeout(() => setCopiedCode(null), 2000);
+    } catch (error) {
+      toast.error('Failed to copy code');
+    }
+  };
 
   const generateEmbedCode = () => {
-    const baseUrl = window.location.origin;
-    const widgetUrl = `${baseUrl}/widget/${chatbot.id}`;
-
+    const configJson = JSON.stringify(config, null, 2);
     return `<!-- BotForge Chatbot Widget -->
 <div id="botforge-widget"></div>
 <script>
-  (function() {
-    var config = {
-      chatbotId: '${chatbot.id}',
-      position: '${widgetConfig.position}',
-      theme: '${widgetConfig.theme}',
-      primaryColor: '${widgetConfig.primaryColor}',
-      greeting: '${widgetConfig.greeting}',
-      placeholder: '${widgetConfig.placeholder}',
-      width: '${widgetConfig.width}',
-      height: '${widgetConfig.height}',
-      borderRadius: '${widgetConfig.borderRadius}',
-      showBranding: ${widgetConfig.showBranding}
+  window.BotForgeConfig = ${configJson.replace(/"/g, '"')};
+  window.BotForgeConfig.chatbotId = "${chatbotId}";
+  window.BotForgeConfig.apiUrl = "${baseUrl}";
+</script>
+<script src="${baseUrl}/widget/botforge-widget.js" async></script>`;
+  };
+
+  const generateReactComponent = () => {
+    return `import React, { useEffect } from 'react';
+
+interface BotForgeWidgetProps {
+  chatbotId: string;
+  config?: {
+    position?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
+    theme?: 'light' | 'dark' | 'auto';
+    primaryColor?: string;
+    size?: 'small' | 'medium' | 'large';
+    greeting?: string;
+    placeholder?: string;
+  };
+}
+
+export const BotForgeWidget: React.FC<BotForgeWidgetProps> = ({ 
+  chatbotId, 
+  config = {} 
+}) => {
+  useEffect(() => {
+    // Set global config
+    window.BotForgeConfig = {
+      chatbotId,
+      apiUrl: '${baseUrl}',
+      position: '${config.position}',
+      theme: '${config.theme}',
+      primaryColor: '${config.primaryColor}',
+      size: '${config.size}',
+      greeting: '${config.greeting}',
+      placeholder: '${config.placeholder}',
+      ...config
     };
-    
-    var script = document.createElement('script');
-    script.src = '${baseUrl}/widget.js';
-    script.onload = function() {
-      BotForgeWidget.init(config);
+
+    // Load widget script
+    const script = document.createElement('script');
+    script.src = '${baseUrl}/widget/botforge-widget.js';
+    script.async = true;
+    document.body.appendChild(script);
+
+    return () => {
+      // Cleanup
+      const existingScript = document.querySelector('script[src*="botforge-widget.js"]');
+      if (existingScript) {
+        existingScript.remove();
+      }
+      const widget = document.getElementById('botforge-widget');
+      if (widget) {
+        widget.remove();
+      }
     };
-    document.head.appendChild(script);
-  })();
+  }, [chatbotId, config]);
+
+  return <div id="botforge-widget" />;
+};
+
+// Usage Example:
+// <BotForgeWidget 
+//   chatbotId="${chatbotId}"
+//   config={{
+//     position: 'bottom-right',
+//     theme: 'light',
+//     primaryColor: '#3B82F6'
+//   }}
+// />`;
+  };
+
+  const generateVueComponent = () => {
+    return `<template>
+  <div id="botforge-widget"></div>
+</template>
+
+<script>
+export default {
+  name: 'BotForgeWidget',
+  props: {
+    chatbotId: {
+      type: String,
+      required: true,
+      default: '${chatbotId}'
+    },
+    config: {
+      type: Object,
+      default: () => ({
+        position: '${config.position}',
+        theme: '${config.theme}',
+        primaryColor: '${config.primaryColor}',
+        size: '${config.size}',
+        greeting: '${config.greeting}',
+        placeholder: '${config.placeholder}'
+      })
+    }
+  },
+  mounted() {
+    this.loadWidget();
+  },
+  beforeUnmount() {
+    this.cleanupWidget();
+  },
+  methods: {
+    loadWidget() {
+      // Set global config
+      window.BotForgeConfig = {
+        chatbotId: this.chatbotId,
+        apiUrl: '${baseUrl}',
+        ...this.config
+      };
+
+      // Load widget script
+      const script = document.createElement('script');
+      script.src = '${baseUrl}/widget/botforge-widget.js';
+      script.async = true;
+      document.body.appendChild(script);
+    },
+    cleanupWidget() {
+      const existingScript = document.querySelector('script[src*="botforge-widget.js"]');
+      if (existingScript) {
+        existingScript.remove();
+      }
+      const widget = document.getElementById('botforge-widget');
+      if (widget) {
+        widget.remove();
+      }
+    }
+  }
+};
+</script>
+
+<!-- Usage Example: -->
+<!-- <BotForgeWidget :chatbot-id="'${chatbotId}'" :config="widgetConfig" /> -->`;
+  };
+
+  const generateAngularComponent = () => {
+    return `import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+
+declare global {
+  interface Window {
+    BotForgeConfig: any;
+  }
+}
+
+@Component({
+  selector: 'app-botforge-widget',
+  template: '<div id="botforge-widget"></div>'
+})
+export class BotForgeWidgetComponent implements OnInit, OnDestroy {
+  @Input() chatbotId: string = '${chatbotId}';
+  @Input() config: any = {
+    position: '${config.position}',
+    theme: '${config.theme}',
+    primaryColor: '${config.primaryColor}',
+    size: '${config.size}',
+    greeting: '${config.greeting}',
+    placeholder: '${config.placeholder}'
+  };
+
+  ngOnInit() {
+    this.loadWidget();
+  }
+
+  ngOnDestroy() {
+    this.cleanupWidget();
+  }
+
+  private loadWidget() {
+    // Set global config
+    window.BotForgeConfig = {
+      chatbotId: this.chatbotId,
+      apiUrl: '${baseUrl}',
+      ...this.config
+    };
+
+    // Load widget script
+    const script = document.createElement('script');
+    script.src = '${baseUrl}/widget/botforge-widget.js';
+    script.async = true;
+    document.body.appendChild(script);
+  }
+
+  private cleanupWidget() {
+    const existingScript = document.querySelector('script[src*="botforge-widget.js"]');
+    if (existingScript) {
+      existingScript.remove();
+    }
+    const widget = document.getElementById('botforge-widget');
+    if (widget) {
+      widget.remove();
+    }
+  }
+}
+
+// Usage in template:
+// <app-botforge-widget [chatbotId]="'${chatbotId}'" [config]="widgetConfig"></app-botforge-widget>`;
+  };
+
+  const generateSvelteComponent = () => {
+    return `<script>
+  import { onMount, onDestroy } from 'svelte';
+
+  export let chatbotId = '${chatbotId}';
+  export let config = {
+    position: '${config.position}',
+    theme: '${config.theme}',
+    primaryColor: '${config.primaryColor}',
+    size: '${config.size}',
+    greeting: '${config.greeting}',
+    placeholder: '${config.placeholder}'
+  };
+
+  onMount(() => {
+    loadWidget();
+  });
+
+  onDestroy(() => {
+    cleanupWidget();
+  });
+
+  function loadWidget() {
+    // Set global config
+    window.BotForgeConfig = {
+      chatbotId,
+      apiUrl: '${baseUrl}',
+      ...config
+    };
+
+    // Load widget script
+    const script = document.createElement('script');
+    script.src = '${baseUrl}/widget/botforge-widget.js';
+    script.async = true;
+    document.body.appendChild(script);
+  }
+
+  function cleanupWidget() {
+    const existingScript = document.querySelector('script[src*="botforge-widget.js"]');
+    if (existingScript) {
+      existingScript.remove();
+    }
+    const widget = document.getElementById('botforge-widget');
+    if (widget) {
+      widget.remove();
+    }
+  }
+</script>
+
+<div id="botforge-widget"></div>
+
+<!-- Usage Example: -->
+<!-- <BotForgeWidget chatbotId="${chatbotId}" config={{theme: 'dark'}} /> -->`;
+  };
+
+  const generateNPMPackage = () => {
+    return `// Install the package
+npm install @botforge/widget
+
+// ES6 Import
+import BotForgeWidget from '@botforge/widget';
+
+// Initialize the widget
+const widget = new BotForgeWidget({
+  chatbotId: '${chatbotId}',
+  apiUrl: '${baseUrl}',
+  config: {
+    position: '${config.position}',
+    theme: '${config.theme}',
+    primaryColor: '${config.primaryColor}',
+    size: '${config.size}',
+    greeting: '${config.greeting}',
+    placeholder: '${config.placeholder}',
+    showBranding: ${config.showBranding},
+    borderRadius: ${config.borderRadius},
+    shadow: ${config.shadow},
+    animation: '${config.animation}'
+  }
+});
+
+// Mount the widget
+widget.mount();
+
+// Widget API Methods
+widget.open();        // Open the chat
+widget.close();       // Close the chat
+widget.toggle();      // Toggle chat state
+widget.destroy();     // Remove widget
+widget.updateConfig(newConfig); // Update configuration
+
+// Event Listeners
+widget.on('open', () => console.log('Chat opened'));
+widget.on('close', () => console.log('Chat closed'));
+widget.on('message', (data) => console.log('Message sent:', data));
+
+// CommonJS (Node.js)
+const BotForgeWidget = require('@botforge/widget');
+
+// CDN Usage
+<script src="https://unpkg.com/@botforge/widget@latest/dist/botforge-widget.min.js"></script>
+<script>
+  const widget = new BotForgeWidget({
+    chatbotId: '${chatbotId}',
+    apiUrl: '${baseUrl}'
+  });
+  widget.mount();
 </script>`;
   };
 
-  const generateIframeCode = () => {
-    const baseUrl = window.location.origin;
-    const params = new URLSearchParams({
-      theme: widgetConfig.theme,
-      color: widgetConfig.primaryColor.replace("#", ""),
-      greeting: widgetConfig.greeting,
-      placeholder: widgetConfig.placeholder,
-      branding: widgetConfig.showBranding.toString(),
-    });
-
-    return `<iframe 
-  src="${baseUrl}/widget/${chatbot.id}?${params.toString()}"
-  width="${widgetConfig.width}"
-  height="${widgetConfig.height}"
-  style="border: none; border-radius: ${widgetConfig.borderRadius};"
-  title="${chatbot.name} Chatbot">
-</iframe>`;
+  const getCodeForTab = () => {
+    switch (activeTab) {
+      case 'embed': return generateEmbedCode();
+      case 'react': return generateReactComponent();
+      case 'vue': return generateVueComponent();
+      case 'angular': return generateAngularComponent();
+      case 'svelte': return generateSvelteComponent();
+      case 'npm': return generateNPMPackage();
+      default: return generateEmbedCode();
+    }
   };
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopied(true);
-      toast.success("Code copied to clipboard!");
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
-
-  const downloadHtmlFile = () => {
-    const embedCode = generateEmbedCode();
-    const htmlContent = `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Website with ${chatbot.name} Chatbot</title>
-</head>
-<body>
-    <h1>Welcome to My Website</h1>
-    <p>This is a sample page with the ${chatbot.name} chatbot integrated.</p>
+  const downloadCode = () => {
+    const code = getCodeForTab();
+    const extensions = {
+      embed: 'html',
+      react: 'tsx',
+      vue: 'vue',
+      angular: 'ts',
+      svelte: 'svelte',
+      npm: 'js'
+    };
     
-    ${embedCode}
-</body>
-</html>`;
-
-    const blob = new Blob([htmlContent], { type: "text/html" });
+    const blob = new Blob([code], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
+    const a = document.createElement('a');
     a.href = url;
-    a.download = `${chatbot.name.toLowerCase().replace(/\s+/g, "-")}-demo.html`;
+    a.download = `botforge-widget.${extensions[activeTab]}`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
   const tabs = [
-    { id: "embed", name: "Embed Code", icon: Code },
-    { id: "customize", name: "Customize", icon: Palette },
-    { id: "preview", name: "Preview", icon: Eye },
+    { id: 'embed', name: 'HTML Embed', icon: Code, description: 'Simple script tag integration' },
+    { id: 'react', name: 'React', icon: FileCode, description: 'React component' },
+    { id: 'vue', name: 'Vue.js', icon: FileCode, description: 'Vue component' },
+    { id: 'angular', name: 'Angular', icon: FileCode, description: 'Angular component' },
+    { id: 'svelte', name: 'Svelte', icon: FileCode, description: 'Svelte component' },
+    { id: 'npm', name: 'NPM Package', icon: Package, description: 'JavaScript package' }
   ];
 
-  const positions = [
-    { id: "bottom-right", name: "Bottom Right", preview: "bottom-4 right-4" },
-    { id: "bottom-left", name: "Bottom Left", preview: "bottom-4 left-4" },
-    { id: "top-right", name: "Top Right", preview: "top-4 right-4" },
-    { id: "top-left", name: "Top Left", preview: "top-4 left-4" },
-  ];
-
-  if (!isOpen) return null;
+  const deviceSizes = {
+    desktop: { width: '100%', height: '600px' },
+    tablet: { width: '768px', height: '500px' },
+    mobile: { width: '375px', height: '400px' }
+  };
 
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title="Website Widget Deployment"
-      size="xl"
-    >
+    <Modal isOpen={isOpen} onClose={onClose} title="Website Widget Integration" size="xl">
       <div className="space-y-6">
         {/* Header */}
-        <div className="text-center">
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">
-            Deploy {chatbot.name} to Your Website
-          </h3>
-          <p className="text-gray-600">
-            Add your chatbot to any website with a simple embed code
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              Deploy {chatbotName} to Your Website
+            </h3>
+            <p className="text-gray-600 dark:text-gray-300">
+              Choose your preferred integration method and customize the widget appearance
+            </p>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPreview(!showPreview)}
+            >
+              <Eye className="w-4 h-4 mr-2" />
+              {showPreview ? 'Hide' : 'Show'} Preview
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={downloadCode}
+            >
+              <Download className="w-4 h-4 mr-2" />
+              Download
+            </Button>
+          </div>
         </div>
 
-        {/* Tab Navigation */}
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center ${
-                  activeTab === tab.id
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
-              >
-                <tab.icon className="w-4 h-4 mr-2" />
-                {tab.name}
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        {/* Tab Content */}
-        {activeTab === "embed" && (
-          <div className="space-y-6">
-            <div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">
-                Choose Integration Method
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Configuration Panel */}
+          <div className="lg:col-span-1">
+            <Card className="p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
+                <Settings className="w-4 h-4 mr-2" />
+                Widget Configuration
               </h4>
-
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* JavaScript Widget */}
-                <Card className="p-6">
-                  <div className="flex items-center mb-4">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                      <Code className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <h5 className="font-semibold text-gray-900">
-                        JavaScript Widget
-                      </h5>
-                      <p className="text-sm text-gray-600">
-                        Recommended - Full features
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                    <pre className="text-sm text-gray-800 overflow-x-auto whitespace-pre-wrap">
-                      {generateEmbedCode()}
-                    </pre>
-                  </div>
-
-                  <div className="flex space-x-2">
-                    <Button
-                      onClick={() => copyToClipboard(generateEmbedCode())}
-                      size="sm"
-                      className="flex-1"
-                    >
-                      {copied ? (
-                        <Check className="w-4 h-4 mr-2" />
-                      ) : (
-                        <Copy className="w-4 h-4 mr-2" />
-                      )}
-                      {copied ? "Copied!" : "Copy Code"}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={downloadHtmlFile}
-                      size="sm"
-                    >
-                      <Download className="w-4 h-4 mr-2" />
-                      Download Demo
-                    </Button>
-                  </div>
-                </Card>
-
-                {/* iFrame Embed */}
-                <Card className="p-6">
-                  <div className="flex items-center mb-4">
-                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
-                      <ExternalLink className="w-5 h-5 text-green-600" />
-                    </div>
-                    <div>
-                      <h5 className="font-semibold text-gray-900">
-                        iFrame Embed
-                      </h5>
-                      <p className="text-sm text-gray-600">
-                        Simple - Works anywhere
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                    <pre className="text-sm text-gray-800 overflow-x-auto whitespace-pre-wrap">
-                      {generateIframeCode()}
-                    </pre>
-                  </div>
-
-                  <Button
-                    onClick={() => copyToClipboard(generateIframeCode())}
-                    size="sm"
-                    className="w-full"
+              
+              <div className="space-y-4">
+                {/* Position */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Position
+                  </label>
+                  <select
+                    value={config.position}
+                    onChange={(e) => setConfig(prev => ({ ...prev, position: e.target.value as any }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                   >
-                    {copied ? (
-                      <Check className="w-4 h-4 mr-2" />
+                    <option value="bottom-right">Bottom Right</option>
+                    <option value="bottom-left">Bottom Left</option>
+                    <option value="top-right">Top Right</option>
+                    <option value="top-left">Top Left</option>
+                  </select>
+                </div>
+
+                {/* Theme */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Theme
+                  </label>
+                  <select
+                    value={config.theme}
+                    onChange={(e) => setConfig(prev => ({ ...prev, theme: e.target.value as any }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                  >
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                    <option value="auto">Auto (System)</option>
+                  </select>
+                </div>
+
+                {/* Primary Color */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Primary Color
+                  </label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="color"
+                      value={config.primaryColor}
+                      onChange={(e) => setConfig(prev => ({ ...prev, primaryColor: e.target.value }))}
+                      className="w-12 h-10 border border-gray-300 dark:border-gray-700 rounded-lg"
+                    />
+                    <input
+                      type="text"
+                      value={config.primaryColor}
+                      onChange={(e) => setConfig(prev => ({ ...prev, primaryColor: e.target.value }))}
+                      className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                    />
+                  </div>
+                </div>
+
+                {/* Size */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Size
+                  </label>
+                  <select
+                    value={config.size}
+                    onChange={(e) => setConfig(prev => ({ ...prev, size: e.target.value as any }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                  >
+                    <option value="small">Small</option>
+                    <option value="medium">Medium</option>
+                    <option value="large">Large</option>
+                  </select>
+                </div>
+
+                {/* Greeting */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Greeting Message
+                  </label>
+                  <input
+                    type="text"
+                    value={config.greeting}
+                    onChange={(e) => setConfig(prev => ({ ...prev, greeting: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                  />
+                </div>
+
+                {/* Animation */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Animation
+                  </label>
+                  <select
+                    value={config.animation}
+                    onChange={(e) => setConfig(prev => ({ ...prev, animation: e.target.value as any }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                  >
+                    <option value="none">None</option>
+                    <option value="bounce">Bounce</option>
+                    <option value="pulse">Pulse</option>
+                    <option value="slide">Slide</option>
+                  </select>
+                </div>
+
+                {/* Show Branding */}
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="showBranding"
+                    checked={config.showBranding}
+                    onChange={(e) => setConfig(prev => ({ ...prev, showBranding: e.target.checked }))}
+                    className="mr-2"
+                  />
+                  <label htmlFor="showBranding" className="text-sm text-gray-700 dark:text-gray-300">
+                    Show BotForge branding
+                  </label>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Code Panel */}
+          <div className="lg:col-span-2">
+            <Card className="p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+              {/* Framework Tabs */}
+              <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as any)}
+                    className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      activeTab === tab.id
+                        ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 border border-blue-200 dark:border-blue-800'
+                        : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <tab.icon className="w-4 h-4 mr-2" />
+                    <div className="text-left">
+                      <div>{tab.name}</div>
+                      <div className="text-xs opacity-75">{tab.description}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Code Display */}
+              <div className="relative">
+                <div className="flex items-center justify-between mb-3">
+                  <h4 className="font-medium text-gray-900 dark:text-gray-100">
+                    {tabs.find(t => t.id === activeTab)?.name} Integration Code
+                  </h4>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => copyToClipboard(getCodeForTab(), activeTab)}
+                  >
+                    {copiedCode === activeTab ? (
+                      <Check className="w-4 h-4 mr-2 text-green-600" />
                     ) : (
                       <Copy className="w-4 h-4 mr-2" />
                     )}
-                    {copied ? "Copied!" : "Copy iFrame Code"}
+                    {copiedCode === activeTab ? 'Copied!' : 'Copy Code'}
                   </Button>
-                </Card>
+                </div>
+                
+                <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
+                  <pre className="text-sm text-gray-100 whitespace-pre-wrap">
+                    <code>{getCodeForTab()}</code>
+                  </pre>
+                </div>
               </div>
-            </div>
 
-            {/* Instructions */}
-            <Card className="p-6 bg-blue-50 border-blue-200">
-              <h5 className="font-semibold text-blue-900 mb-3">
-                Integration Instructions
-              </h5>
-              <ol className="list-decimal list-inside space-y-2 text-blue-800 text-sm">
-                <li>Copy the embed code above</li>
-                <li>
-                  Paste it into your website's HTML, just before the closing
-                  &lt;/body&gt; tag
-                </li>
-                <li>Save and publish your website</li>
-                <li>Your chatbot will appear automatically!</li>
-              </ol>
+              {/* Integration Instructions */}
+              <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                <h5 className="font-medium text-blue-900 dark:text-blue-200 mb-2">
+                  Integration Instructions
+                </h5>
+                <div className="text-sm text-blue-800 dark:text-blue-300 space-y-2">
+                  {activeTab === 'embed' && (
+                    <div>
+                      <p>1. Copy the code above and paste it into your HTML file</p>
+                      <p>{`2. Place it just before the closing </body> tag`}</p>
+                      <p>3. The widget will automatically load and position itself</p>
+                    </div>
+                  )}
+                  {activeTab === 'react' && (
+                    <div>
+                      <p>1. Copy the component code into a new file (e.g., BotForgeWidget.tsx)</p>
+                      <p>2. Import and use the component in your React app</p>
+                      <p>3. Pass your chatbot ID and configuration as props</p>
+                    </div>
+                  )}
+                  {activeTab === 'vue' && (
+                    <div>
+                      <p>1. Create a new Vue component with the code above</p>
+                      <p>2. Register the component in your Vue app</p>
+                      <p>3. Use the component with your chatbot ID and config</p>
+                    </div>
+                  )}
+                  {activeTab === 'angular' && (
+                    <div>
+                      <p>1. Create a new Angular component with the code above</p>
+                      <p>2. Add the component to your module declarations</p>
+                      <p>3. Use the component selector in your templates</p>
+                    </div>
+                  )}
+                  {activeTab === 'svelte' && (
+                    <div>
+                      <p>1. Create a new Svelte component with the code above</p>
+                      <p>2. Import and use the component in your Svelte app</p>
+                      <p>3. Pass props for chatbot ID and configuration</p>
+                    </div>
+                  )}
+                  {activeTab === 'npm' && (
+                    <div>
+                      <p>1. Install the package using npm or yarn</p>
+                      <p>2. Import and initialize the widget in your JavaScript</p>
+                      <p>3. Use the API methods to control the widget behavior</p>
+                    </div>
+                  )}
+                </div>
+              </div>
             </Card>
           </div>
-        )}
+        </div>
 
-        {activeTab === "customize" && (
-          <div className="space-y-6">
-            <h4 className="text-lg font-semibold text-gray-900">
-              Customize Widget Appearance
-            </h4>
-
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Position */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Widget Position
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {positions.map((position) => (
-                    <button
-                      key={position.id}
-                      onClick={() =>
-                        setWidgetConfig((prev) => ({
-                          ...prev,
-                          position: position.id,
-                        }))
-                      }
-                      className={`p-3 text-sm rounded-lg border-2 transition-colors ${
-                        widgetConfig.position === position.id
-                          ? "border-blue-500 bg-blue-50 text-blue-700"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                    >
-                      {position.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Theme */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
-                  Theme
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {["light", "dark"].map((theme) => (
-                    <button
-                      key={theme}
-                      onClick={() =>
-                        setWidgetConfig((prev) => ({ ...prev, theme }))
-                      }
-                      className={`p-3 text-sm rounded-lg border-2 transition-colors capitalize ${
-                        widgetConfig.theme === theme
-                          ? "border-blue-500 bg-blue-50 text-blue-700"
-                          : "border-gray-200 hover:border-gray-300"
-                      }`}
-                    >
-                      {theme}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Primary Color */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Primary Color
-                </label>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="color"
-                    value={widgetConfig.primaryColor}
-                    onChange={(e) =>
-                      setWidgetConfig((prev) => ({
-                        ...prev,
-                        primaryColor: e.target.value,
-                      }))
-                    }
-                    className="w-12 h-10 rounded border border-gray-300"
-                  />
-                  <input
-                    type="text"
-                    value={widgetConfig.primaryColor}
-                    onChange={(e) =>
-                      setWidgetConfig((prev) => ({
-                        ...prev,
-                        primaryColor: e.target.value,
-                      }))
-                    }
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-              </div>
-
-              {/* Dimensions */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Widget Size
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">
-                      Width
-                    </label>
-                    <input
-                      type="text"
-                      value={widgetConfig.width}
-                      onChange={(e) =>
-                        setWidgetConfig((prev) => ({
-                          ...prev,
-                          width: e.target.value,
-                        }))
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs text-gray-600 mb-1">
-                      Height
-                    </label>
-                    <input
-                      type="text"
-                      value={widgetConfig.height}
-                      onChange={(e) =>
-                        setWidgetConfig((prev) => ({
-                          ...prev,
-                          height: e.target.value,
-                        }))
-                      }
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Greeting Message */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Greeting Message
-                </label>
-                <input
-                  type="text"
-                  value={widgetConfig.greeting}
-                  onChange={(e) =>
-                    setWidgetConfig((prev) => ({
-                      ...prev,
-                      greeting: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Hi! How can I help you today?"
-                />
-              </div>
-
-              {/* Placeholder */}
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Input Placeholder
-                </label>
-                <input
-                  type="text"
-                  value={widgetConfig.placeholder}
-                  onChange={(e) =>
-                    setWidgetConfig((prev) => ({
-                      ...prev,
-                      placeholder: e.target.value,
-                    }))
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Type your message..."
-                />
-              </div>
-
-              {/* Show Branding */}
-              <div className="md:col-span-2">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={widgetConfig.showBranding}
-                    onChange={(e) =>
-                      setWidgetConfig((prev) => ({
-                        ...prev,
-                        showBranding: e.target.checked,
-                      }))
-                    }
-                    className="mr-2"
-                  />
-                  <span className="text-sm font-medium text-gray-700">
-                    Show "Powered by BotForge" branding
-                  </span>
-                </label>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === "preview" && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h4 className="text-lg font-semibold text-gray-900">
-                Widget Preview
-              </h4>
-              <div className="flex items-center space-x-2">
-                <Monitor className="w-4 h-4 text-gray-500" />
-                <span className="text-sm text-gray-600">Desktop View</span>
-              </div>
-            </div>
-
-            {/* Preview Container */}
-            <div className="relative bg-gray-100 rounded-lg p-8 min-h-96">
-              {/* Mock Website Content */}
-              <div className="bg-white rounded-lg p-6 shadow-sm">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                  Your Website
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  This is how your chatbot widget will appear on your website.
-                </p>
-                <div className="space-y-2">
-                  <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                  <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-                </div>
-              </div>
-
-              {/* Widget Preview */}
-              <div
-                className={`absolute ${
-                  positions.find((p) => p.id === widgetConfig.position)?.preview
-                }`}
-              >
-                <motion.div
-                  initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  className={`w-80 h-96 rounded-lg shadow-xl border ${
-                    widgetConfig.theme === "dark"
-                      ? "bg-gray-900 border-gray-700"
-                      : "bg-white border-gray-200"
-                  }`}
-                  style={{ borderRadius: widgetConfig.borderRadius }}
-                >
-                  {/* Widget Header */}
-                  <div
-                    className="p-4 rounded-t-lg flex items-center space-x-3"
-                    style={{
-                      backgroundColor: widgetConfig.primaryColor,
-                      borderRadius: `${widgetConfig.borderRadius} ${widgetConfig.borderRadius} 0 0`,
-                    }}
-                  >
-                    <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm font-bold">
-                        {chatbot.name.charAt(0)}
-                      </span>
-                    </div>
-                    <div>
-                      <h4 className="text-white font-semibold text-sm">
-                        {chatbot.name}
-                      </h4>
-                      <p className="text-white/80 text-xs">Online</p>
-                    </div>
-                  </div>
-
-                  {/* Widget Body */}
-                  <div
-                    className={`p-4 flex-1 ${
-                      widgetConfig.theme === "dark"
-                        ? "text-white"
-                        : "text-gray-900"
-                    }`}
-                  >
-                    <div className="mb-4">
-                      <div className="flex items-start space-x-2">
-                        <div
-                          className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                          style={{ backgroundColor: widgetConfig.primaryColor }}
-                        >
-                          B
-                        </div>
-                        <div
-                          className={`p-2 rounded-lg max-w-xs ${
-                            widgetConfig.theme === "dark"
-                              ? "bg-gray-800"
-                              : "bg-gray-100"
+        {/* Preview Modal */}
+        {showPreview && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden"
+            >
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    Widget Preview
+                  </h3>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                      {(['desktop', 'tablet', 'mobile'] as const).map((device) => (
+                        <button
+                          key={device}
+                          onClick={() => setPreviewDevice(device)}
+                          className={`p-2 rounded-lg ${
+                            previewDevice === device
+                              ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200'
+                              : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
                           }`}
                         >
-                          <p className="text-sm">{widgetConfig.greeting}</p>
-                        </div>
-                      </div>
+                          {device === 'desktop' && <Monitor className="w-4 h-4" />}
+                          {device === 'tablet' && <Tablet className="w-4 h-4" />}
+                          {device === 'mobile' && <Smartphone className="w-4 h-4" />}
+                        </button>
+                      ))}
                     </div>
+                    <Button variant="ghost" onClick={() => setShowPreview(false)}>
+                      ×
+                    </Button>
                   </div>
-
-                  {/* Widget Input */}
-                  <div className="p-4 border-t border-gray-200">
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="text"
-                        placeholder={widgetConfig.placeholder}
-                        className={`flex-1 px-3 py-2 rounded-lg border text-sm ${
-                          widgetConfig.theme === "dark"
-                            ? "bg-gray-800 border-gray-700 text-white placeholder-gray-400"
-                            : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
-                        }`}
-                        disabled
-                      />
-                      <button
-                        className="p-2 rounded-lg text-white"
-                        style={{ backgroundColor: widgetConfig.primaryColor }}
-                        disabled
-                      >
-                        <Send className="w-4 h-4" />
-                      </button>
-                    </div>
-
-                    {widgetConfig.showBranding && (
-                      <div className="mt-2 text-center">
-                        <span className="text-xs text-gray-500">
-                          Powered by BotForge
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
+                </div>
               </div>
-            </div>
-
-            {/* Mobile Preview Toggle */}
-            <div className="flex items-center justify-center">
-              <button className="flex items-center space-x-2 px-4 py-2 bg-gray-100 rounded-lg text-sm text-gray-600 hover:bg-gray-200 transition-colors">
-                <Smartphone className="w-4 h-4" />
-                <span>View Mobile Preview</span>
-              </button>
-            </div>
+              
+              <div className="p-6 bg-gray-50 dark:bg-gray-800 flex justify-center">
+                <div 
+                  className="bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 relative overflow-hidden"
+                  style={deviceSizes[previewDevice]}
+                >
+                  {/* Mock website content */}
+                  <div className="p-8 h-full">
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+                      Your Website
+                    </h1>
+                    <p className="text-gray-600 dark:text-gray-300 mb-4">
+                      This is a preview of how the chatbot widget will appear on your website.
+                    </p>
+                    <div className="space-y-4">
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+                    </div>
+                  </div>
+                  
+                  {/* Widget Preview */}
+                  <div 
+                    className={`absolute ${
+                      config.position.includes('bottom') ? 'bottom-4' : 'top-4'
+                    } ${
+                      config.position.includes('right') ? 'right-4' : 'left-4'
+                    }`}
+                  >
+                    <div 
+                      className={`w-14 h-14 rounded-full flex items-center justify-center cursor-pointer shadow-lg ${
+                        config.animation === 'bounce' ? 'animate-bounce' : 
+                        config.animation === 'pulse' ? 'animate-pulse' : ''
+                      }`}
+                      style={{ 
+                        backgroundColor: config.primaryColor,
+                        borderRadius: `${config.borderRadius}px`
+                      }}
+                    >
+                      <MessageCircle className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </div>
         )}
 
-        {/* Footer Actions */}
-        <div className="flex items-center justify-between pt-6 border-t border-gray-200">
-          <div className="text-sm text-gray-600">
-            Widget will be available at:{" "}
-            <code className="bg-gray-100 px-2 py-1 rounded">
-              {window.location.origin}/widget/{chatbot.id}
-            </code>
+        {/* Quick Actions */}
+        <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex items-center space-x-4">
+            <a
+              href={`${baseUrl}/widget/docs`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm flex items-center"
+            >
+              <ExternalLink className="w-4 h-4 mr-1" />
+              View Documentation
+            </a>
+            <a
+              href={`${baseUrl}/widget/examples`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm flex items-center"
+            >
+              <Globe className="w-4 h-4 mr-1" />
+              Live Examples
+            </a>
           </div>
-          <div className="flex space-x-3">
-            <Button variant="outline" onClick={onClose}>
-              Close
-            </Button>
-            <Button onClick={() => copyToClipboard(generateEmbedCode())}>
-              {copied ? (
-                <Check className="w-4 h-4 mr-2" />
-              ) : (
-                <Copy className="w-4 h-4 mr-2" />
-              )}
-              Copy Embed Code
-            </Button>
+          
+          <div className="text-sm text-gray-500 dark:text-gray-400">
+            Widget ID: {chatbotId}
           </div>
         </div>
       </div>

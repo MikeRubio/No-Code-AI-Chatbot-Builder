@@ -1,0 +1,5 @@
+# Netlify redirects file
+/*    /index.html   200
+
+# Widget routes
+/widget/*  /widget/:splat  200

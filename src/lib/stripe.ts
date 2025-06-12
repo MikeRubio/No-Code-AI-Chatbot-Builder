@@ -5,9 +5,12 @@ let stripePromise: Promise<Stripe | null>;
 
 const getStripe = () => {
   if (!stripePromise) {
-    stripePromise = loadStripe(
-      import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || ""
-    );
+    const publishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+    if (!publishableKey) {
+      console.error('VITE_STRIPE_PUBLISHABLE_KEY is not set');
+      return Promise.resolve(null);
+    }
+    stripePromise = loadStripe(publishableKey);
   }
   return stripePromise;
 };
@@ -96,7 +99,12 @@ export class StripeService {
   private stripe: Stripe | null = null;
 
   async initialize() {
-    this.stripe = await getStripe();
+    if (!this.stripe) {
+      this.stripe = await getStripe();
+      if (!this.stripe) {
+        throw new Error('Failed to initialize Stripe. Please check your configuration.');
+      }
+    }
     return this.stripe;
   }
 
@@ -110,10 +118,17 @@ export class StripeService {
       const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
       if (!supabaseUrl || !supabaseAnonKey) {
-        throw new Error("Supabase configuration is missing");
+        throw new Error("Supabase configuration is missing. Please check your environment variables.");
       }
 
       const apiUrl = `${supabaseUrl}/functions/v1/stripe-checkout`;
+
+      console.log('Creating checkout session with:', {
+        priceId,
+        customerId,
+        userEmail,
+        apiUrl
+      });
 
       const response = await fetch(apiUrl, {
         method: "POST",
@@ -130,22 +145,26 @@ export class StripeService {
         }),
       });
 
+      console.log('Checkout session response status:', response.status);
+
       // Check if response is ok before trying to parse JSON
       if (!response.ok) {
         const errorText = await response.text();
         console.error("HTTP error response:", response.status, errorText);
 
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
         try {
           const errorData = JSON.parse(errorText);
-          throw new Error(
-            errorData.error || `HTTP ${response.status}: ${response.statusText}`
-          );
+          errorMessage = errorData.error || errorMessage;
         } catch {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          // If we can't parse the error as JSON, use the status text
         }
+        
+        throw new Error(errorMessage);
       }
 
       const responseText = await response.text();
+      console.log('Checkout session response text:', responseText);
 
       if (!responseText) {
         throw new Error("Empty response from server");
@@ -164,14 +183,16 @@ export class StripeService {
       }
 
       if (!this.stripe) {
-        throw new Error("Stripe not initialized");
+        await this.initialize();
       }
 
       if (!session.id) {
         throw new Error("No session ID received from server");
       }
 
-      const result = await this.stripe.redirectToCheckout({
+      console.log('Redirecting to checkout with session ID:', session.id);
+
+      const result = await this.stripe!.redirectToCheckout({
         sessionId: session.id,
       });
 
@@ -190,10 +211,12 @@ export class StripeService {
       const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
       if (!supabaseUrl || !supabaseAnonKey) {
-        throw new Error("Supabase configuration is missing");
+        throw new Error("Supabase configuration is missing. Please check your environment variables.");
       }
 
       const apiUrl = `${supabaseUrl}/functions/v1/stripe-portal`;
+
+      console.log('Creating portal session for customer:', customerId);
 
       const response = await fetch(apiUrl, {
         method: "POST",
@@ -209,14 +232,17 @@ export class StripeService {
 
       if (!response.ok) {
         const errorText = await response.text();
+        console.error("Portal session error response:", response.status, errorText);
+        
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
         try {
           const errorData = JSON.parse(errorText);
-          throw new Error(
-            errorData.error || `HTTP ${response.status}: ${response.statusText}`
-          );
+          errorMessage = errorData.error || errorMessage;
         } catch {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          // If we can't parse the error as JSON, use the status text
         }
+        
+        throw new Error(errorMessage);
       }
 
       const session = await response.json();
@@ -226,6 +252,7 @@ export class StripeService {
       }
 
       if (session.url) {
+        console.log('Redirecting to portal URL:', session.url);
         window.location.href = session.url;
       } else {
         throw new Error("No portal URL received from server");

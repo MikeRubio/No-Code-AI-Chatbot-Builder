@@ -67,7 +67,7 @@ export function useProfile() {
           .from('subscriptions')
           .select('stripe_customer_id')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         if (!subscriptionError && subscriptionData) {
           profile.stripe_customer_id = subscriptionData.stripe_customer_id;

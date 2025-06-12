@@ -1,0 +1,12 @@
+src/
+rollup.config.js
+tsconfig.json
+.git/
+.gitignore
+*.log
+node_modules/
+coverage/
+.nyc_output/
+.DS_Store
+*.tgz
+*.tar.gz

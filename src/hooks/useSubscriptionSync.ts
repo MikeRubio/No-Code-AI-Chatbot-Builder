@@ -16,6 +16,8 @@ export function useSubscriptionSync() {
 
     setIsLoading(true);
     try {
+      console.log('Syncing subscription for user:', user.email, 'with session:', sessionId);
+      
       // Call our sync function
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/sync-subscription`, {
         method: 'POST',
@@ -29,12 +31,24 @@ export function useSubscriptionSync() {
         }),
       });
 
+      console.log('Sync response status:', response.status);
+
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        const errorText = await response.text();
+        console.error('Sync error response:', errorText);
+        
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { error: `HTTP ${response.status}: ${response.statusText}` };
+        }
+        
         throw new Error(errorData.error || 'Failed to sync subscription');
       }
 
       const result = await response.json();
+      console.log('Sync result:', result);
       
       // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['profile'] });

@@ -1,70 +1,69 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useSubscriptionSync } from '../../hooks/useSubscriptionSync';
-import { useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '../../hooks/useAuth';
 import toast from 'react-hot-toast';
 
 export function SubscriptionSuccessHandler() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { syncSubscriptionFromStripe } = useSubscriptionSync();
-  const queryClient = useQueryClient();
-  const [isProcessing, setIsProcessing] = useState(false);
+  const { syncSubscriptionFromStripe, isLoading } = useSubscriptionSync();
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
     const success = searchParams.get('success');
     const sessionId = searchParams.get('session_id');
     const canceled = searchParams.get('canceled');
 
-    if (success === 'true' && sessionId && !isProcessing) {
-      handlePaymentSuccess(sessionId);
-    } else if (canceled === 'true') {
-      handlePaymentCanceled();
+    // Handle canceled payment immediately (no auth required)
+    if (canceled === 'true') {
+      toast.error('Payment was canceled. You can try again anytime.');
+      setSearchParams(new URLSearchParams());
+      return;
     }
-  }, [searchParams, isProcessing]);
 
-  const handlePaymentSuccess = async (sessionId: string) => {
-    setIsProcessing(true);
-    
+    // Only proceed with success handling if user is authenticated
+    if (success === 'true' && sessionId && user && !authLoading) {
+      handleSubscriptionSuccess(sessionId);
+    }
+  }, [searchParams, setSearchParams, user, authLoading]);
+
+  const handleSubscriptionSuccess = async (sessionId: string) => {
     try {
-      // Show immediate success message
-      toast.success('Payment successful! Updating your subscription...');
-
-      // Wait a moment for Stripe webhook to process
-      await new Promise(resolve => setTimeout(resolve, 3000));
-
-      // Sync subscription data
+      console.log('Processing successful subscription with session ID:', sessionId);
+      
+      // Show loading toast
+      const loadingToast = toast.loading('Processing your subscription...');
+      
+      // Sync subscription data from Stripe
       await syncSubscriptionFromStripe(sessionId);
-
-      // Refresh all relevant queries
-      queryClient.invalidateQueries({ queryKey: ['profile'] });
-      queryClient.invalidateQueries({ queryKey: ['subscription'] });
-
-      // Show final success message
-      toast.success('Subscription updated successfully! Welcome to your new plan!');
-
+      
+      // Dismiss loading toast
+      toast.dismiss(loadingToast);
+      
+      // Show success message
+      toast.success('🎉 Subscription activated successfully! Welcome to your new plan!', {
+        duration: 5000,
+      });
+      
       // Clean up URL parameters
-      const newSearchParams = new URLSearchParams(searchParams);
-      newSearchParams.delete('success');
-      newSearchParams.delete('session_id');
-      setSearchParams(newSearchParams);
-
+      setSearchParams(new URLSearchParams());
+      
+      // Reload the page to ensure all data is fresh
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+      
     } catch (error: any) {
-      console.error('Error processing payment success:', error);
-      toast.error('Payment was successful, but there was an issue updating your subscription. Please contact support if this persists.');
-    } finally {
-      setIsProcessing(false);
+      console.error('Subscription sync error:', error);
+      toast.error(
+        error.message || 'There was an issue processing your subscription. Please contact support if this persists.'
+      );
+      
+      // Clean up URL even on error
+      setSearchParams(new URLSearchParams());
     }
   };
 
-  const handlePaymentCanceled = () => {
-    toast.error('Payment was canceled. You can try again anytime.');
-    
-    // Clean up URL parameters
-    const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.delete('canceled');
-    setSearchParams(newSearchParams);
-  };
-
-  // Don't render anything - this is just a handler component
+  // Don't render anything visible
   return null;
 }

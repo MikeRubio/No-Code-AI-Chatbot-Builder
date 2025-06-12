@@ -26,6 +26,7 @@ import {
   Globe,
   BarChart3,
   Sparkles,
+  MessageCircle,
   Code,
 } from "lucide-react";
 import { Card } from "../ui/Card";
@@ -485,7 +486,7 @@ function ChatbotBuilderContent() {
                 <Share className="w-4 h-4 mr-2" />
                 Publish
               </Button>
-
+              
               {/* Website Widget - Available for all users */}
               <Button
                 variant="outline"
@@ -495,7 +496,7 @@ function ChatbotBuilderContent() {
                 <Code className="w-4 h-4 mr-2" />
                 Website Widget
               </Button>
-
+              
               <Button
                 variant="outline"
                 className="w-full justify-start"

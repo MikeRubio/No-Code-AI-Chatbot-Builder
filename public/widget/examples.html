@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BotForge Widget Examples</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        .examples-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        .example-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .example-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+        .example-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2d3748;
+        }
+        .example-description {
+            color: #4a5568;
+            margin-bottom: 20px;
+        }
+        .demo-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .code-toggle {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            color: #4a5568;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        .code-block {
+            background: #1a202c;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-top: 15px;
+            display: none;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.9rem;
+        }
+        .code-block.show {
+            display: block;
+        }
+        .controls {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        .controls h3 {
+            margin-top: 0;
+            color: #2d3748;
+        }
+        .control-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .control-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .control-item label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #4a5568;
+        }
+        .control-item select,
+        .control-item input {
+            padding: 8px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        .color-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .color-input input[type="color"] {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            opacity: 0.9;
+        }
+        .footer a {
+            color: #90cdf4;
+            text-decoration: none;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>BotForge Widget Examples</h1>
+            <p>Interactive demos showcasing different widget configurations and use cases</p>
+        </div>
+
+        <div class="controls">
+            <h3>🎛️ Live Configuration</h3>
+            <p>Customize the widget settings below and see the changes in real-time:</p>
+            
+            <div class="control-group">
+                <div class="control-item">
+                    <label>Position</label>
+                    <select id="position">
+                        <option value="bottom-right">Bottom Right</option>
+                        <option value="bottom-left">Bottom Left</option>
+                        <option value="top-right">Top Right</option>
+                        <option value="top-left">Top Left</option>
+                    </select>
+                </div>
+                
+                <div class="control-item">
+                    <label>Theme</label>
+                    <select id="theme">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                        <option value="auto">Auto</option>
+                    </select>
+                </div>
+                
+                <div class="control-item">
+                    <label>Size</label>
+                    <select id="size">
+                        <option value="small">Small</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="large">Large</option>
+                    </select>
+                </div>
+                
+                <div class="control-item">
+                    <label>Animation</label>
+                    <select id="animation">
+                        <option value="none">None</option>
+                        <option value="bounce" selected>Bounce</option>
+                        <option value="pulse">Pulse</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <div class="control-item">
+                    <label>Primary Color</label>
+                    <div class="color-input">
+                        <input type="color" id="primaryColor" value="#3B82F6">
+                        <input type="text" id="primaryColorText" value="#3B82F6">
+                    </div>
+                </div>
+                
+                <div class="control-item">
+                    <label>Greeting Message</label>
+                    <input type="text" id="greeting" value="Hi! How can I help you today?">
+                </div>
+                
+                <div class="control-item">
+                    <label>Placeholder Text</label>
+                    <input type="text" id="placeholder" value="Type your message...">
+                </div>
+                
+                <div class="control-item">
+                    <label>Border Radius</label>
+                    <input type="range" id="borderRadius" min="0" max="30" value="12">
+                    <span id="borderRadiusValue">12px</span>
+                </div>
+            </div>
+            
+            <button class="demo-button" onclick="updateWidget()">🔄 Update Widget</button>
+            <button class="demo-button" onclick="resetWidget()">↩️ Reset to Default</button>
+        </div>
+
+        <div class="examples-grid">
+            <div class="example-card">
+                <div class="example-title">🏢 Corporate Style</div>
+                <div class="example-description">
+                    Professional appearance with subtle colors and minimal animation, perfect for business websites.
+                </div>
+                <button class="demo-button" onclick="loadExample('corporate')">Try Corporate Style</button>
+                <button class="code-toggle" onclick="toggleCode('corporate')">View Code</button>
+                <div class="code-block" id="corporate-code">
+window.BotForgeConfig = {
+  chatbotId: "demo-corporate",
+  apiUrl: "https://botforge.site",
+  position: "bottom-right",
+  theme: "light",
+  primaryColor: "#2563EB",
+  size: "medium",
+  greeting: "Hello! How may I assist you today?",
+  placeholder: "Type your message here...",
+  showBranding: false,
+  borderRadius: 8,
+  shadow: true,
+  animation: "none"
+};
+                </div>
+            </div>
+
+            <div class="example-card">
+                <div class="example-title">🎨 Creative Agency</div>
+                <div class="example-description">
+                    Vibrant colors with playful animations, ideal for creative and design-focused businesses.
+                </div>
+                <button class="demo-button" onclick="loadExample('creative')">Try Creative Style</button>
+                <button class="code-toggle" onclick="toggleCode('creative')">View Code</button>
+                <div class="code-block" id="creative-code">
+window.BotForgeConfig = {
+  chatbotId: "demo-creative",
+  apiUrl: "https://botforge.site",
+  position: "bottom-left",
+  theme: "light",
+  primaryColor: "#8B5CF6",
+  size: "large",
+  greeting: "Hey there! 👋 Ready to create something amazing?",
+  placeholder: "What's on your mind?",
+  showBranding: true,
+  borderRadius: 20,
+  shadow: true,
+  animation: "bounce"
+};
+                </div>
+            </div>
+
+            <div class="example-card">
+                <div class="example-title">🌙 Dark Mode</div>
+                <div class="example-description">
+                    Sleek dark theme with modern aesthetics, perfect for tech companies and modern applications.
+                </div>
+                <button class="demo-button" onclick="loadExample('dark')">Try Dark Mode</button>
+                <button class="code-toggle" onclick="toggleCode('dark')">View Code</button>
+                <div class="code-block" id="dark-code">
+window.BotForgeConfig = {
+  chatbotId: "demo-dark",
+  apiUrl: "https://botforge.site",
+  position: "bottom-right",
+  theme: "dark",
+  primaryColor: "#10B981",
+  size: "medium",
+  greeting: "Welcome to the future of chat! 🚀",
+  placeholder: "Ask me anything...",
+  showBranding: false,
+  borderRadius: 12,
+  shadow: true,
+  animation: "pulse"
+};
+                </div>
+            </div>
+
+            <div class="example-card">
+                <div class="example-title">🏥 Healthcare</div>
+                <div class="example-description">
+                    Calm and trustworthy design with healthcare-appropriate colors and professional tone.
+                </div>
+                <button class="demo-button" onclick="loadExample('healthcare')">Try Healthcare Style</button>
+                <button class="code-toggle" onclick="toggleCode('healthcare')">View Code</button>
+                <div class="code-block" id="healthcare-code">
+window.BotForgeConfig = {
+  chatbotId: "demo-healthcare",
+  apiUrl: "https://botforge.site",
+  position: "bottom-right",
+  theme: "light",
+  primaryColor: "#059669",
+  size: "medium",
+  greeting: "Hello! I'm here to help with your healthcare questions.",
+  placeholder: "How can I help you today?",
+  showBranding: false,
+  borderRadius: 10,
+  shadow: true,
+  animation: "none"
+};
+                </div>
+            </div>
+
+            <div class="example-card">
+                <div class="example-title">🛍️ E-commerce</div>
+                <div class="example-description">
+                    Shopping-focused design with warm colors and friendly messaging to boost sales conversions.
+                </div>
+                <button class="demo-button" onclick="loadExample('ecommerce')">Try E-commerce Style</button>
+                <button class="code-toggle" onclick="toggleCode('ecommerce')">View Code</button>
+                <div class="code-block" id="ecommerce-code">
+window.BotForgeConfig = {
+  chatbotId: "demo-ecommerce",
+  apiUrl: "https://botforge.site",
+  position: "bottom-right",
+  theme: "light",
+  primaryColor: "#F59E0B",
+  size: "medium",
+  greeting: "Hi! Need help finding the perfect product? 🛒",
+  placeholder: "Ask about products, orders, returns...",
+  showBranding: true,
+  borderRadius: 15,
+  shadow: true,
+  animation: "bounce"
+};
+                </div>
+            </div>
+
+            <div class="example-card">
+                <div class="example-title">🎓 Education</div>
+                <div class="example-description">
+                    Educational theme with approachable design, perfect for schools and learning platforms.
+                </div>
+                <button class="demo-button" onclick="loadExample('education')">Try Education Style</button>
+                <button class="code-toggle" onclick="toggleCode('education')">View Code</button>
+                <div class="code-block" id="education-code">
+window.BotForgeConfig = {
+  chatbotId: "demo-education",
+  apiUrl: "https://botforge.site",
+  position: "bottom-left",
+  theme: "light",
+  primaryColor: "#3B82F6",
+  size: "medium",
+  greeting: "Hello, student! Ready to learn something new? 📚",
+  placeholder: "Ask me about courses, schedules...",
+  showBranding: true,
+  borderRadius: 12,
+  shadow: true,
+  animation: "pulse"
+};
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>
+                <strong>BotForge Widget Examples</strong><br>
+                <a href="https://botforge.site">Visit BotForge</a> | 
+                <a href="/widget/docs.html">Documentation</a> | 
+                <a href="mailto:support@botforge.site">Support</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- BotForge Widget -->
+    <div id="botforge-widget"></div>
+    <script>
+        // Default configuration
+        let currentConfig = {
+            chatbotId: "demo-default",
+            apiUrl: "https://botforge.site",
+            position: "bottom-right",
+            theme: "light",
+            primaryColor: "#3B82F6",
+            size: "medium",
+            greeting: "Hi! How can I help you today?",
+            placeholder: "Type your message...",
+            showBranding: true,
+            borderRadius: 12,
+            shadow: true,
+            animation: "bounce"
+        };
+
+        // Initialize widget
+        window.BotForgeConfig = currentConfig;
+
+        // Load widget script
+        const script = document.createElement('script');
+        script.src = 'https://botforge.site/widget/botforge-widget.js';
+        script.async = true;
+        document.body.appendChild(script);
+
+        // Example configurations
+        const examples = {
+            corporate: {
+                chatbotId: "demo-corporate",
+                position: "bottom-right",
+                theme: "light",
+                primaryColor: "#2563EB",
+                size: "medium",
+                greeting: "Hello! How may I assist you today?",
+                placeholder: "Type your message here...",
+                showBranding: false,
+                borderRadius: 8,
+                animation: "none"
+            },
+            creative: {
+                chatbotId: "demo-creative",
+                position: "bottom-left",
+                theme: "light",
+                primaryColor: "#8B5CF6",
+                size: "large",
+                greeting: "Hey there! 👋 Ready to create something amazing?",
+                placeholder: "What's on your mind?",
+                showBranding: true,
+                borderRadius: 20,
+                animation: "bounce"
+            },
+            dark: {
+                chatbotId: "demo-dark",
+                position: "bottom-right",
+                theme: "dark",
+                primaryColor: "#10B981",
+                size: "medium",
+                greeting: "Welcome to the future of chat! 🚀",
+                placeholder: "Ask me anything...",
+                showBranding: false,
+                borderRadius: 12,
+                animation: "pulse"
+            },
+            healthcare: {
+                chatbotId: "demo-healthcare",
+                position: "bottom-right",
+                theme: "light",
+                primaryColor: "#059669",
+                size: "medium",
+                greeting: "Hello! I'm here to help with your healthcare questions.",
+                placeholder: "How can I help you today?",
+                showBranding: false,
+                borderRadius: 10,
+                animation: "none"
+            },
+            ecommerce: {
+                chatbotId: "demo-ecommerce",
+                position: "bottom-right",
+                theme: "light",
+                primaryColor: "#F59E0B",
+                size: "medium",
+                greeting: "Hi! Need help finding the perfect product? 🛒",
+                placeholder: "Ask about products, orders, returns...",
+                showBranding: true,
+                borderRadius: 15,
+                animation: "bounce"
+            },
+            education: {
+                chatbotId: "demo-education",
+                position: "bottom-left",
+                theme: "light",
+                primaryColor: "#3B82F6",
+                size: "medium",
+                greeting: "Hello, student! Ready to learn something new? 📚",
+                placeholder: "Ask me about courses, schedules...",
+                showBranding: true,
+                borderRadius: 12,
+                animation: "pulse"
+            }
+        };
+
+        function loadExample(exampleName) {
+            const config = examples[exampleName];
+            if (config) {
+                currentConfig = { ...currentConfig, ...config };
+                updateWidgetConfig();
+                updateControlsFromConfig();
+            }
+        }
+
+        function updateWidget() {
+            // Get values from controls
+            currentConfig.position = document.getElementById('position').value;
+            currentConfig.theme = document.getElementById('theme').value;
+            currentConfig.size = document.getElementById('size').value;
+            currentConfig.animation = document.getElementById('animation').value;
+            currentConfig.primaryColor = document.getElementById('primaryColor').value;
+            currentConfig.greeting = document.getElementById('greeting').value;
+            currentConfig.placeholder = document.getElementById('placeholder').value;
+            currentConfig.borderRadius = parseInt(document.getElementById('borderRadius').value);
+
+            updateWidgetConfig();
+        }
+
+        function resetWidget() {
+            currentConfig = {
+                chatbotId: "demo-default",
+                apiUrl: "https://botforge.site",
+                position: "bottom-right",
+                theme: "light",
+                primaryColor: "#3B82F6",
+                size: "medium",
+                greeting: "Hi! How can I help you today?",
+                placeholder: "Type your message...",
+                showBranding: true,
+                borderRadius: 12,
+                shadow: true,
+                animation: "bounce"
+            };
+            updateWidgetConfig();
+            updateControlsFromConfig();
+        }
+
+        function updateWidgetConfig() {
+            if (window.BotForgeWidget && window.BotForgeWidget.updateConfig) {
+                window.BotForgeWidget.updateConfig(currentConfig);
+            } else {
+                // Recreate widget if not available
+                window.BotForgeConfig = currentConfig;
+                location.reload();
+            }
+        }
+
+        function updateControlsFromConfig() {
+            document.getElementById('position').value = currentConfig.position;
+            document.getElementById('theme').value = currentConfig.theme;
+            document.getElementById('size').value = currentConfig.size;
+            document.getElementById('animation').value = currentConfig.animation;
+            document.getElementById('primaryColor').value = currentConfig.primaryColor;
+            document.getElementById('primaryColorText').value = currentConfig.primaryColor;
+            document.getElementById('greeting').value = currentConfig.greeting;
+            document.getElementById('placeholder').value = currentConfig.placeholder;
+            document.getElementById('borderRadius').value = currentConfig.borderRadius;
+            document.getElementById('borderRadiusValue').textContent = currentConfig.borderRadius + 'px';
+        }
+
+        function toggleCode(exampleName) {
+            const codeBlock = document.getElementById(exampleName + '-code');
+            codeBlock.classList.toggle('show');
+        }
+
+        // Sync color inputs
+        document.getElementById('primaryColor').addEventListener('change', function() {
+            document.getElementById('primaryColorText').value = this.value;
+        });
+
+        document.getElementById('primaryColorText').addEventListener('change', function() {
+            document.getElementById('primaryColor').value = this.value;
+        });
+
+        // Update border radius display
+        document.getElementById('borderRadius').addEventListener('input', function() {
+            document.getElementById('borderRadiusValue').textContent = this.value + 'px';
+        });
+
+        // Initialize controls
+        updateControlsFromConfig();
+    </script>
+</body>
+</html>

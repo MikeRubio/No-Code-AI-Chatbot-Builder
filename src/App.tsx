@@ -25,6 +25,7 @@ import { DocumentationPage } from "./components/help/DocumentationPage";
 import { HelpButton } from "./components/help/HelpButton";
 import { Button } from "./components/ui/Button";
 import { Card } from "./components/ui/Card";
+import { Modal } from "./components/ui/Modal";
 import PrivacyPolicy from "./components/landing/PrivacyPolicy";
 
 const queryClient = new QueryClient();
@@ -143,6 +144,26 @@ function App() {
 // Chatbot List Component
 function ChatbotList() {
   const { chatbots, deleteChatbot, isLoading } = useChatbots();
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [chatbotToDelete, setChatbotToDelete] = useState<any>(null);
+
+  const handleDeleteClick = (chatbot: any) => {
+    setChatbotToDelete(chatbot);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (chatbotToDelete) {
+      deleteChatbot(chatbotToDelete.id);
+      setShowDeleteModal(false);
+      setChatbotToDelete(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setChatbotToDelete(null);
+  };
 
   if (isLoading) {
     return (
@@ -225,13 +246,7 @@ function ChatbotList() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => {
-                      if (
-                        confirm("Are you sure you want to delete this chatbot?")
-                      ) {
-                        deleteChatbot(chatbot.id);
-                      }
-                    }}
+                    onClick={() => handleDeleteClick(chatbot)}
                     className="text-red-400 hover:text-red-300 hover:bg-red-900/20"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -242,6 +257,59 @@ function ChatbotList() {
           ))}
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={handleCancelDelete}
+        title="Delete Chatbot"
+        size="md"
+      >
+        <div className="space-y-6">
+          <div className="flex items-start space-x-4">
+            <div className="w-12 h-12 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+              <Trash2 className="w-6 h-6 text-red-600 dark:text-red-400" />
+            </div>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                Delete "{chatbotToDelete?.name}"?
+              </h3>
+              <div className="space-y-3 text-gray-600 dark:text-gray-300">
+                <p>
+                  This action will permanently delete your chatbot and all associated data, including:
+                </p>
+                <ul className="list-disc list-inside space-y-1 text-sm ml-4">
+                  <li>All conversation flows and configurations</li>
+                  <li>Chat history and analytics data</li>
+                  <li>FAQ documents and training data</li>
+                  <li>Integration settings and deployments</li>
+                </ul>
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3 mt-4">
+                  <p className="text-amber-800 dark:text-amber-200 text-sm font-medium">
+                    ⚠️ This action cannot be undone. Please make sure you have backed up any important data.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+            <Button
+              variant="outline"
+              onClick={handleCancelDelete}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmDelete}
+              className="flex-1 bg-red-600 hover:bg-red-700 text-white"
+            >
+              Delete Chatbot
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

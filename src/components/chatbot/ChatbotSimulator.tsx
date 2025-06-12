@@ -4,8 +4,8 @@ import { Send, Bot, User, RotateCcw, Star } from "lucide-react";
 import { Button } from "../ui/Button";
 import { useConversationLogger } from "../../hooks/useConversationLogger";
 import { openAIService } from "../../lib/openai";
+import { supabase } from "../../lib/supabase";
 import { v4 as uuidv4 } from "uuid";
-import { Edge, Node } from "reactflow";
 
 interface Message {
   id: string;
@@ -42,6 +42,8 @@ export function ChatbotSimulator({
   const [conversationHistory, setConversationHistory] = useState<
     Array<{ sender: string; content: string }>
   >([]);
+  const [abTestVariant, setAbTestVariant] = useState<'A' | 'B' | null>(null);
+  const [activeFlow, setActiveFlow] = useState(flow);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const logger = useConversationLogger();
@@ -177,19 +179,71 @@ export function ChatbotSimulator({
     return substitutedContent;
   };
 
+  const checkForActiveABTest = async () => {
+    try {
+      // Check if there's an active A/B test for this chatbot
+      const { data: activeTest, error } = await supabase
+        .from('ab_tests')
+        .select('*')
+        .eq('chatbot_id', chatbot.id)
+        .eq('status', 'running')
+        .single();
+
+      if (error || !activeTest) {
+        return null;
+      }
+
+      // Assign user to variant based on traffic split
+      const random = Math.random();
+      const variant = random < activeTest.traffic_split ? 'A' : 'B';
+      
+      setAbTestVariant(variant);
+
+      // Use the appropriate flow variant
+      const flowToUse = variant === 'A' ? activeTest.variant_a_flow : activeTest.variant_b_flow;
+      
+      if (flowToUse && flowToUse.nodes && flowToUse.nodes.length > 0) {
+        setActiveFlow(flowToUse);
+        
+        // Log A/B test assignment
+        await supabase
+          .from('ab_test_results')
+          .insert({
+            test_id: activeTest.id,
+            variant: variant,
+            conversation_id: conversationId,
+            goal_achieved: false,
+            session_duration: 0
+          });
+      }
+
+      return { test: activeTest, variant };
+    } catch (error) {
+      console.error('Error checking for A/B test:', error);
+      return null;
+    }
+  };
+
   const initializeChat = async () => {
+    // Check for active A/B test first
+    await checkForActiveABTest();
+
     // Log conversation start
     await logger.logConversationStart(
       conversationId,
       chatbot.id,
       userIdentifier,
       "web",
-      { simulator: true, chatbotName: chatbot.name }
+      { 
+        simulator: true, 
+        chatbotName: chatbot.name,
+        abTestVariant: abTestVariant
+      }
     );
 
-    // Find the start node
-    const startNode = flow.nodes.find(
-      (node: any) => node.data.nodeType === "start"
+    // Find the start node in the active flow
+    const startNode = activeFlow.nodes.find(
+      (node: any) => node.data?.nodeType === "start" || node.type === "start"
     );
 
     if (startNode) {
@@ -197,7 +251,7 @@ export function ChatbotSimulator({
         id: Date.now().toString(),
         sender: "bot",
         content: substituteVariables(
-          startNode.data.content || "Hello! How can I help you today?",
+          startNode.data?.content || "Hello! How can I help you today?",
           conversationState
         ),
         timestamp: new Date(),
@@ -249,6 +303,8 @@ export function ChatbotSimulator({
     setConversationHistory([]);
     setShowFeedback(false);
     setFeedbackGiven(false);
+    setAbTestVariant(null);
+    setActiveFlow(flow); // Reset to original flow
 
     // Start new conversation
     setTimeout(() => {
@@ -302,7 +358,7 @@ export function ChatbotSimulator({
   ) => {
     if (!currentNodeId) return;
 
-    const currentNode = flow.nodes.find(
+    const currentNode = activeFlow.nodes.find(
       (node: any) => node.id === currentNodeId
     );
     if (!currentNode) return;
@@ -313,10 +369,10 @@ export function ChatbotSimulator({
     let confidenceScore = null;
 
     // Handle different node types and update conversation state
-    switch (currentNode.data.nodeType) {
+    switch (currentNode.data?.nodeType || currentNode.type) {
       case "lead_capture": {
         // Store the captured information with multiple key mappings
-        const fieldName = currentNode.data.fields?.[0]?.name || "user_input";
+        const fieldName = currentNode.data?.fields?.[0]?.name || "user_input";
         const newState = {
           ...conversationState,
           [fieldName]: userInput,
@@ -356,7 +412,7 @@ export function ChatbotSimulator({
 
       case "question": {
         // Check if user input matches any option
-        const selectedOption = currentNode.data.options?.find(
+        const selectedOption = currentNode.data?.options?.find(
           (option: string) =>
             userInput.toLowerCase().includes(option.toLowerCase()) ||
             option.toLowerCase().includes(userInput.toLowerCase())
@@ -370,28 +426,28 @@ export function ChatbotSimulator({
             selected_option: selectedOption,
             last_user_input: userInput,
             // Store for different template types
-            visitor_type: currentNode.data.label?.includes("Visitor")
+            visitor_type: currentNode.data?.label?.includes("Visitor")
               ? selectedOption
               : conversationState.visitor_type,
-            company_size: currentNode.data.label?.includes("Company")
+            company_size: currentNode.data?.label?.includes("Company")
               ? selectedOption
               : conversationState.company_size,
-            current_challenge: currentNode.data.label?.includes("Challenge")
+            current_challenge: currentNode.data?.label?.includes("Challenge")
               ? selectedOption
               : conversationState.current_challenge,
-            timeline: currentNode.data.label?.includes("Timeline")
+            timeline: currentNode.data?.label?.includes("Timeline")
               ? selectedOption
               : conversationState.timeline,
-            budget: currentNode.data.label?.includes("Budget")
+            budget: currentNode.data?.label?.includes("Budget")
               ? selectedOption
               : conversationState.budget,
-            selected_category: currentNode.data.label?.includes("Categories")
+            selected_category: currentNode.data?.label?.includes("Categories")
               ? selectedOption
               : conversationState.selected_category,
-            helpful_response: currentNode.data.label?.includes("helpful")
+            helpful_response: currentNode.data?.label?.includes("helpful")
               ? selectedOption
               : conversationState.helpful_response,
-            followup_choice: currentNode.data.label?.includes("Anything Else")
+            followup_choice: currentNode.data?.label?.includes("Anything Else")
               ? selectedOption
               : conversationState.followup_choice,
           };
@@ -490,12 +546,14 @@ export function ChatbotSimulator({
       // Use OpenAI service to generate response
       const aiResponse = await openAIService.generateResponse(
         userInput,
-        node.data.systemPrompt || node.data.content,
+        node.data?.systemPrompt || node.data?.content,
         conversationHistory,
         {
           conversationState,
           nodeContext: node.data,
           chatbotInfo: {
+            name: chatbot.name,
+            description: chatbot.description,
             id: chatbot.id,
           },
         }
@@ -562,9 +620,9 @@ export function ChatbotSimulator({
   };
 
   const moveToNextNode = (fromNodeId: string, userInput?: string) => {
-    // Find outgoing edges from current node
-    const outgoingEdges = flow.edges.filter(
-      (edge: Edge) => edge.source === fromNodeId
+    // Find outgoing edges from current node in the active flow
+    const outgoingEdges = activeFlow.edges.filter(
+      (edge: any) => edge.source === fromNodeId
     );
 
     if (outgoingEdges.length === 0) {
@@ -591,8 +649,8 @@ export function ChatbotSimulator({
 
     // For simplicity, take the first edge (in a real implementation, you'd handle conditions)
     const nextEdge = outgoingEdges[0];
-    const nextNode = flow.nodes.find(
-      (node: Node) => node.id === nextEdge.target
+    const nextNode = activeFlow.nodes.find(
+      (node: any) => node.id === nextEdge.target
     );
 
     if (!nextNode) return;
@@ -603,14 +661,16 @@ export function ChatbotSimulator({
     let botResponse = "";
     let options: string[] | undefined;
 
-    switch (nextNode.data.nodeType) {
+    const nodeType = nextNode.data?.nodeType || nextNode.type;
+
+    switch (nodeType) {
       case "message":
-        botResponse = nextNode.data.content || "Hello!";
+        botResponse = nextNode.data?.content || "Hello!";
         break;
 
       case "question":
-        botResponse = nextNode.data.content || "Please choose an option:";
-        options = nextNode.data.options;
+        botResponse = nextNode.data?.content || "Please choose an option:";
+        options = nextNode.data?.options;
         if (options && options.length > 0) {
           botResponse +=
             "\n\n" +
@@ -621,20 +681,20 @@ export function ChatbotSimulator({
         break;
 
       case "lead_capture": {
-        const fields = nextNode.data.fields || [];
+        const fields = nextNode.data?.fields || [];
         if (fields.length > 0) {
           botResponse =
-            nextNode.data.content || `Please provide your ${fields[0].name}:`;
+            nextNode.data?.content || `Please provide your ${fields[0].name}:`;
         } else {
           botResponse =
-            nextNode.data.content || "Please provide your information:";
+            nextNode.data?.content || "Please provide your information:";
         }
         break;
       }
 
       case "conditional": {
         // Handle conditional logic - this is where the flow was breaking
-        const conditions = nextNode.data.conditions || [];
+        const conditions = nextNode.data?.conditions || [];
         let conditionMet = false;
         let targetNodeId = null;
 
@@ -667,7 +727,7 @@ export function ChatbotSimulator({
           if (matches) {
             conditionMet = true;
             // Find the edge with this condition
-            const conditionalEdge = flow.edges.find(
+            const conditionalEdge = activeFlow.edges.find(
               (edge: any) =>
                 edge.source === nextNode.id &&
                 edge.condition === condition.action
@@ -681,7 +741,7 @@ export function ChatbotSimulator({
 
         // If no condition met, take the first edge without condition
         if (!conditionMet) {
-          const defaultEdge = flow.edges.find(
+          const defaultEdge = activeFlow.edges.find(
             (edge: any) => edge.source === nextNode.id && !edge.condition
           );
           if (defaultEdge) {
@@ -700,19 +760,19 @@ export function ChatbotSimulator({
 
       case "appointment":
         botResponse =
-          nextNode.data.content ||
+          nextNode.data?.content ||
           "I can help you book an appointment. Please let me know your preferred time.";
         break;
 
       case "action":
         botResponse = `Action executed: ${
-          nextNode.data.content || "Processing your request..."
+          nextNode.data?.content || "Processing your request..."
         }`;
         break;
 
       case "human_handoff":
         botResponse =
-          nextNode.data.content ||
+          nextNode.data?.content ||
           "Let me connect you with a human agent who can help you.";
         break;
 
@@ -726,8 +786,8 @@ export function ChatbotSimulator({
 
       case "survey": {
         botResponse =
-          nextNode.data.surveyConfig?.title || "Please provide your feedback:";
-        const questions = nextNode.data.surveyConfig?.questions || [];
+          nextNode.data?.surveyConfig?.title || "Please provide your feedback:";
+        const questions = nextNode.data?.surveyConfig?.questions || [];
         if (questions.length > 0) {
           botResponse += "\n\n" + questions[0].question;
         }
@@ -735,7 +795,7 @@ export function ChatbotSimulator({
       }
 
       default:
-        botResponse = nextNode.data.content || "How can I help you?";
+        botResponse = nextNode.data?.content || "How can I help you?";
     }
 
     if (botResponse) {
@@ -813,6 +873,21 @@ export function ChatbotSimulator({
       }
     );
 
+    // Update A/B test results if applicable
+    if (abTestVariant) {
+      try {
+        await supabase
+          .from('ab_test_results')
+          .update({
+            goal_achieved: rating >= 4,
+            session_duration: Date.now() - new Date(messages[0]?.timestamp || new Date()).getTime()
+          })
+          .eq('conversation_id', conversationId);
+      } catch (error) {
+        console.error('Error updating A/B test results:', error);
+      }
+    }
+
     setFeedbackGiven(true);
     setShowFeedback(false);
   };
@@ -825,17 +900,24 @@ export function ChatbotSimulator({
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.9 }}
-        className="w-full max-w-md h-[600px] bg-white rounded-xl shadow-2xl flex flex-col"
+        className="w-full max-w-md h-[600px] bg-white dark:bg-gray-900 rounded-xl shadow-2xl flex flex-col"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
               <Bot className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900">{chatbot.name}</h3>
-              <p className="text-sm text-green-600">● Online</p>
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100">{chatbot.name}</h3>
+              <div className="flex items-center space-x-2">
+                <p className="text-sm text-green-600 dark:text-green-400">● Online</p>
+                {abTestVariant && (
+                  <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full">
+                    Variant {abTestVariant}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
           <div className="flex items-center space-x-2">
@@ -889,7 +971,7 @@ export function ChatbotSimulator({
                     className={`rounded-lg p-3 ${
                       message.sender === "user"
                         ? "bg-blue-500 text-white"
-                        : "bg-gray-100 text-gray-900"
+                        : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                     }`}
                   >
                     <p className="text-sm whitespace-pre-wrap">
@@ -899,7 +981,7 @@ export function ChatbotSimulator({
                       className={`flex items-center justify-between mt-2 text-xs ${
                         message.sender === "user"
                           ? "text-blue-100"
-                          : "text-gray-500"
+                          : "text-gray-500 dark:text-gray-400"
                       }`}
                     >
                       <span>
@@ -922,7 +1004,7 @@ export function ChatbotSimulator({
                             <button
                               key={index}
                               onClick={() => handleOptionClick(option)}
-                              className="block w-full text-left px-3 py-2 text-sm bg-white text-gray-700 rounded border hover:bg-gray-50 transition-colors"
+                              className="block w-full text-left px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
                             >
                               {option}
                             </button>
@@ -946,15 +1028,15 @@ export function ChatbotSimulator({
                 <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                   <Bot className="w-4 h-4 text-white" />
                 </div>
-                <div className="bg-gray-100 rounded-lg p-3">
+                <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-3">
                   <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+                    <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" />
                     <div
-                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                      className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce"
                       style={{ animationDelay: "0.1s" }}
                     />
                     <div
-                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                      className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce"
                       style={{ animationDelay: "0.2s" }}
                     />
                   </div>
@@ -975,7 +1057,7 @@ export function ChatbotSimulator({
         )}
 
         {/* Input */}
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-2">
             <input
               type="text"
@@ -983,7 +1065,7 @@ export function ChatbotSimulator({
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Type your message..."
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               disabled={isTyping}
             />
             <Button
@@ -1021,9 +1103,9 @@ function FeedbackModal({ onSubmit, onClose }: FeedbackModalProps) {
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-lg p-6 w-full max-w-sm"
+        className="bg-white dark:bg-gray-900 rounded-lg p-6 w-full max-w-sm"
       >
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
           How was your experience?
         </h3>
 
@@ -1033,7 +1115,7 @@ function FeedbackModal({ onSubmit, onClose }: FeedbackModalProps) {
               key={star}
               onClick={() => setRating(star)}
               className={`p-1 ${
-                rating >= star ? "text-yellow-500" : "text-gray-300"
+                rating >= star ? "text-yellow-500" : "text-gray-300 dark:text-gray-600"
               }`}
             >
               <Star className="w-6 h-6 fill-current" />
@@ -1045,7 +1127,7 @@ function FeedbackModal({ onSubmit, onClose }: FeedbackModalProps) {
           value={feedback}
           onChange={(e) => setFeedback(e.target.value)}
           placeholder="Tell us more about your experience (optional)"
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4"
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
           rows={3}
         />
 

@@ -165,8 +165,6 @@ export function FAQUploader({ chatbotId, onUploadComplete }: FAQUploaderProps) {
           onUploadComplete();
         } catch (error: unknown) {
           console.error("Upload error:", error);
-
-          // Extract error message safely
           const errorMessage =
             error instanceof Error
               ? error.message
@@ -235,10 +233,10 @@ export function FAQUploader({ chatbotId, onUploadComplete }: FAQUploaderProps) {
     <div className="space-y-6">
       {/* Upload Area */}
       <Card className="p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
           Upload FAQ Documents
         </h3>
-        <p className="text-gray-600 mb-4">
+        <p className="text-gray-600 dark:text-gray-400 mb-4">
           Upload your FAQ documents to train your chatbot. Our server-side AI
           processing will automatically extract questions and answers. Supported
           formats: TXT, CSV, PDF (up to 10MB each).
@@ -248,21 +246,25 @@ export function FAQUploader({ chatbotId, onUploadComplete }: FAQUploaderProps) {
           {...getRootProps()}
           className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
             isDragActive
-              ? "border-blue-500 bg-blue-50"
-              : "border-gray-300 hover:border-gray-400"
+              ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+              : "border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600"
           }`}
         >
           <input {...getInputProps()} />
-          <Upload className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <Upload className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
           {isDragActive ? (
-            <p className="text-blue-600 font-medium">Drop the files here...</p>
+            <p className="text-blue-600 dark:text-blue-400 font-medium">
+              Drop the files here...
+            </p>
           ) : (
             <div>
-              <p className="text-gray-600 mb-2">
+              <p className="text-gray-600 dark:text-gray-400 mb-2">
                 Drag & drop files here, or{" "}
-                <span className="text-blue-600 font-medium">browse</span>
+                <span className="text-blue-600 dark:text-blue-400 font-medium">
+                  browse
+                </span>
               </p>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-500">
                 TXT, CSV, PDF files up to 10MB
               </p>
             </div>
@@ -270,12 +272,12 @@ export function FAQUploader({ chatbotId, onUploadComplete }: FAQUploaderProps) {
         </div>
 
         {/* AI Processing Info */}
-        <div className="mt-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4">
-          <h4 className="font-medium text-gray-900 mb-2 flex items-center">
+        <div className="mt-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-4">
+          <h4 className="font-medium text-gray-900 dark:text-gray-200 mb-2 flex items-center">
             <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
             Server-Side AI Processing
           </h4>
-          <p className="text-sm text-gray-700">
+          <p className="text-sm text-gray-700 dark:text-gray-300">
             Our secure server-side AI will automatically extract questions and
             answers from your documents, generate relevant keywords, and
             optimize them for intelligent responses. No API keys required on
@@ -285,11 +287,11 @@ export function FAQUploader({ chatbotId, onUploadComplete }: FAQUploaderProps) {
 
         {/* Format Examples */}
         <div className="mt-6 grid md:grid-cols-2 gap-4">
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h4 className="font-medium text-gray-900 mb-2">
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+            <h4 className="font-medium text-gray-900 dark:text-gray-200 mb-2">
               TXT Format Example:
             </h4>
-            <pre className="text-xs text-gray-600 bg-white p-2 rounded border">
+            <pre className="text-xs text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-700">
               {`Q: What are your business hours?
 A: We're open Monday-Friday 9AM-6PM
 
@@ -297,11 +299,11 @@ Q: How can I contact support?
 A: Email us at support@company.com`}
             </pre>
           </div>
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h4 className="font-medium text-gray-900 mb-2">
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+            <h4 className="font-medium text-gray-900 dark:text-gray-200 mb-2">
               CSV Format Example:
             </h4>
-            <pre className="text-xs text-gray-600 bg-white p-2 rounded border">
+            <pre className="text-xs text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-700">
               {`question,answer
 "What are your hours?","9AM-6PM Mon-Fri"
 "How to contact?","support@company.com"`}
@@ -313,7 +315,7 @@ A: Email us at support@company.com`}
       {/* Uploaded Files */}
       {uploadedFiles.length > 0 && (
         <Card className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
             Processing Files
           </h3>
           <div className="space-y-3">
@@ -322,14 +324,16 @@ A: Email us at support@company.com`}
                 key={file.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
               >
                 <div className="flex items-center space-x-3">
-                  <File className="w-5 h-5 text-gray-400" />
+                  <File className="w-5 h-5 text-gray-400 dark:text-gray-500" />
                   <div>
-                    <p className="font-medium text-gray-900">{file.filename}</p>
+                    <p className="font-medium text-gray-900 dark:text-gray-200">
+                      {file.filename}
+                    </p>
                     <div className="flex items-center space-x-2">
-                      <div className="w-32 bg-gray-200 rounded-full h-2">
+                      <div className="w-32 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                         <div
                           className={`h-2 rounded-full transition-all duration-300 ${
                             file.status === "completed"
@@ -341,37 +345,39 @@ A: Email us at support@company.com`}
                           style={{ width: `${file.progress}%` }}
                         />
                       </div>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
                         {file.progress}%
                       </span>
                     </div>
                     {file.status === "completed" && file.faqCount && (
-                      <p className="text-xs text-green-600 mt-1">
+                      <p className="text-xs text-green-600 dark:text-green-400 mt-1">
                         ✓ {file.faqCount} FAQ entries extracted
                       </p>
                     )}
                     {file.error && (
-                      <p className="text-xs text-red-600 mt-1">{file.error}</p>
+                      <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                        {file.error}
+                      </p>
                     )}
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   {file.status === "uploading" && (
-                    <Loader className="w-5 h-5 text-blue-600 animate-spin" />
+                    <Loader className="w-5 h-5 text-blue-600 dark:text-blue-400 animate-spin" />
                   )}
                   {file.status === "processing" && (
                     <div className="flex items-center space-x-1">
-                      <Loader className="w-5 h-5 text-orange-600 animate-spin" />
-                      <span className="text-xs text-orange-600">
+                      <Loader className="w-5 h-5 text-orange-600 dark:text-orange-400 animate-spin" />
+                      <span className="text-xs text-orange-600 dark:text-orange-400">
                         Server Processing...
                       </span>
                     </div>
                   )}
                   {file.status === "completed" && (
-                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
                   )}
                   {file.status === "failed" && (
-                    <XCircle className="w-5 h-5 text-red-600" />
+                    <XCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
                   )}
                   <Button
                     variant="ghost"
