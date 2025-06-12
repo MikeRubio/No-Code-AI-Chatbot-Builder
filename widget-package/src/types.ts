@@ -16,9 +16,11 @@ export interface BotForgeTheme {
   textColor?: string;
   borderRadius?: string;
   fontFamily?: string;
-  buttonSize?: 'small' | 'medium' | 'large';
+  buttonSize?: "small" | "medium" | "large";
   chatHeight?: string;
   chatWidth?: string;
+  shadow?: boolean;
+  animation?: string;
 }
 
 export interface BotForgePosition {
@@ -33,16 +35,16 @@ export interface BotForgeUser {
   name?: string;
   email?: string;
   avatar?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface BotForgeMessage {
   id: string;
   content: string;
-  sender: 'user' | 'bot';
+  sender: "user" | "bot";
   timestamp: Date;
-  type?: 'text' | 'image' | 'file' | 'quick_reply';
-  metadata?: Record<string, any>;
+  type?: "text" | "image" | "file" | "quick_reply";
+  metadata?: Record<string, unknown>;
 }
 
 export interface BotForgeEvents {

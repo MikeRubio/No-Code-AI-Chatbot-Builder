@@ -13,8 +13,8 @@ npm install @botforge/widget
 ### React
 
 ```jsx
-import React from 'react';
-import { BotForgeWidget } from '@botforge/widget';
+import React from "react";
+import { BotForgeWidget } from "@botforge/widget";
 
 function App() {
   return (
@@ -23,16 +23,16 @@ function App() {
       <BotForgeWidget
         chatbotId="your-chatbot-id"
         theme={{
-          primaryColor: '#3b82f6',
-          borderRadius: '12px',
+          primaryColor: "#3b82f6",
+          borderRadius: "12px",
         }}
         position={{
-          bottom: '20px',
-          right: '20px',
+          bottom: "20px",
+          right: "20px",
         }}
         events={{
-          onOpen: () => console.log('Chat opened'),
-          onMessage: (message) => console.log('New message:', message),
+          onOpen: () => console.log("Chat opened"),
+          onMessage: (message) => console.log("New message:", message),
         }}
       />
     </div>
@@ -47,31 +47,31 @@ export default App;
 ```html
 <!DOCTYPE html>
 <html>
-<head>
-  <title>My Website</title>
-</head>
-<body>
-  <h1>My Website</h1>
-  
-  <script src="https://unpkg.com/@botforge/widget/dist/botforge-widget.umd.js"></script>
-  <script>
-    const widget = BotForge.initBotForge({
-      chatbotId: 'your-chatbot-id',
-      theme: {
-        primaryColor: '#3b82f6',
-        borderRadius: '12px',
-      },
-      position: {
-        bottom: '20px',
-        right: '20px',
-      },
-      events: {
-        onOpen: () => console.log('Chat opened'),
-        onMessage: (message) => console.log('New message:', message),
-      },
-    });
-  </script>
-</body>
+  <head>
+    <title>My Website</title>
+  </head>
+  <body>
+    <h1>My Website</h1>
+
+    <script src="https://unpkg.com/@botforge/widget/dist/botforge-widget.umd.js"></script>
+    <script>
+      const widget = BotForge.initBotForge({
+        chatbotId: "your-chatbot-id",
+        theme: {
+          primaryColor: "#3b82f6",
+          borderRadius: "12px",
+        },
+        position: {
+          bottom: "20px",
+          right: "20px",
+        },
+        events: {
+          onOpen: () => console.log("Chat opened"),
+          onMessage: (message) => console.log("New message:", message),
+        },
+      });
+    </script>
+  </body>
 </html>
 ```
 
@@ -91,7 +91,7 @@ export default App;
 </template>
 
 <script>
-import { BotForgeWidget } from '@botforge/widget';
+import { BotForgeWidget } from "@botforge/widget";
 
 export default {
   components: {
@@ -99,18 +99,18 @@ export default {
   },
   data() {
     return {
-      chatbotId: 'your-chatbot-id',
+      chatbotId: "your-chatbot-id",
       theme: {
-        primaryColor: '#3b82f6',
-        borderRadius: '12px',
+        primaryColor: "#3b82f6",
+        borderRadius: "12px",
       },
       position: {
-        bottom: '20px',
-        right: '20px',
+        bottom: "20px",
+        right: "20px",
       },
       events: {
-        onOpen: () => console.log('Chat opened'),
-        onMessage: (message) => console.log('New message:', message),
+        onOpen: () => console.log("Chat opened"),
+        onMessage: (message) => console.log("New message:", message),
       },
     };
   },
@@ -122,10 +122,10 @@ export default {
 
 ```typescript
 // app.component.ts
-import { Component } from '@angular/core';
+import { Component } from "@angular/core";
 
 @Component({
-  selector: 'app-root',
+  selector: "app-root",
   template: `
     <h1>My Website</h1>
     <div id="botforge-widget"></div>
@@ -133,20 +133,20 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   ngOnInit() {
-    import('@botforge/widget').then(({ initBotForge }) => {
+    import("@botforge/widget").then(({ initBotForge }) => {
       initBotForge({
-        chatbotId: 'your-chatbot-id',
+        chatbotId: "your-chatbot-id",
         theme: {
-          primaryColor: '#3b82f6',
-          borderRadius: '12px',
+          primaryColor: "#3b82f6",
+          borderRadius: "12px",
         },
         position: {
-          bottom: '20px',
-          right: '20px',
+          bottom: "20px",
+          right: "20px",
         },
         events: {
-          onOpen: () => console.log('Chat opened'),
-          onMessage: (message) => console.log('New message:', message),
+          onOpen: () => console.log("Chat opened"),
+          onMessage: (message) => console.log("New message:", message),
         },
       });
     });
@@ -174,14 +174,14 @@ export class AppComponent {
 
 ```typescript
 interface BotForgeTheme {
-  primaryColor?: string;        // Main color (default: '#3b82f6')
-  backgroundColor?: string;     // Chat background (default: '#ffffff')
-  textColor?: string;          // Text color (default: '#1f2937')
-  borderRadius?: string;       // Border radius (default: '12px')
-  fontFamily?: string;         // Font family
-  buttonSize?: 'small' | 'medium' | 'large'; // Chat button size
-  chatHeight?: string;         // Chat window height (default: '500px')
-  chatWidth?: string;          // Chat window width (default: '380px')
+  primaryColor?: string; // Main color (default: '#3b82f6')
+  backgroundColor?: string; // Chat background (default: '#ffffff')
+  textColor?: string; // Text color (default: '#1f2937')
+  borderRadius?: string; // Border radius (default: '12px')
+  fontFamily?: string; // Font family
+  buttonSize?: "small" | "medium" | "large"; // Chat button size
+  chatHeight?: string; // Chat window height (default: '500px')
+  chatWidth?: string; // Chat window width (default: '380px')
 }
 ```
 
@@ -189,10 +189,10 @@ interface BotForgeTheme {
 
 ```typescript
 interface BotForgePosition {
-  bottom?: string;  // Distance from bottom (default: '20px')
-  right?: string;   // Distance from right (default: '20px')
-  left?: string;    // Distance from left
-  top?: string;     // Distance from top
+  bottom?: string; // Distance from bottom (default: '20px')
+  right?: string; // Distance from right (default: '20px')
+  left?: string; // Distance from left
+  top?: string; // Distance from top
 }
 ```
 
@@ -200,13 +200,13 @@ interface BotForgePosition {
 
 ```typescript
 interface BotForgeEvents {
-  onOpen?: () => void;                           // Chat opened
-  onClose?: () => void;                          // Chat closed
+  onOpen?: () => void; // Chat opened
+  onClose?: () => void; // Chat closed
   onMessage?: (message: BotForgeMessage) => void; // Any message
   onUserMessage?: (message: BotForgeMessage) => void; // User message
-  onBotMessage?: (message: BotForgeMessage) => void;  // Bot message
-  onError?: (error: Error) => void;              // Error occurred
-  onReady?: () => void;                          // Widget ready
+  onBotMessage?: (message: BotForgeMessage) => void; // Bot message
+  onError?: (error: Error) => void; // Error occurred
+  onReady?: () => void; // Widget ready
 }
 ```
 
@@ -215,8 +215,8 @@ interface BotForgeEvents {
 When using React, you can access the widget API using a ref:
 
 ```jsx
-import React, { useRef } from 'react';
-import { BotForgeWidget } from '@botforge/widget';
+import React, { useRef } from "react";
+import { BotForgeWidget } from "@botforge/widget";
 
 function App() {
   const widgetRef = useRef();
@@ -226,18 +226,15 @@ function App() {
   };
 
   const handleSendMessage = () => {
-    widgetRef.current?.sendMessage('Hello from the parent app!');
+    widgetRef.current?.sendMessage("Hello from the parent app!");
   };
 
   return (
     <div>
       <button onClick={handleOpenChat}>Open Chat</button>
       <button onClick={handleSendMessage}>Send Message</button>
-      
-      <BotForgeWidget
-        ref={widgetRef}
-        chatbotId="your-chatbot-id"
-      />
+
+      <BotForgeWidget ref={widgetRef} chatbotId="your-chatbot-id" />
     </div>
   );
 }
@@ -305,22 +302,12 @@ function App() {
     <div>
       <h1>My Website</h1>
       {showWidget && (
-        <BotForgeWidget
-          chatbotId="your-chatbot-id"
-          autoOpen={true}
-        />
+        <BotForgeWidget chatbotId="your-chatbot-id" autoOpen={true} />
       )}
     </div>
   );
 }
 ```
-
-## Browser Support
-
-- Chrome 60+
-- Firefox 60+
-- Safari 12+
-- Edge 79+
 
 ## TypeScript Support
 

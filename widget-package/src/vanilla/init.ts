@@ -1,19 +1,22 @@
-import { BotForgeConfig, BotForgeAPI } from '../types';
+import { BotForgeConfig, BotForgeAPI, BotForgeUser } from "../types";
 
 // Global registry for widget instances
-const widgetInstances = new Map<string, any>();
+const widgetInstances = new Map<
+  string,
+  ReturnType<typeof createVanillaWidget>
+>();
 
 export function initBotForge(config: BotForgeConfig): BotForgeAPI {
   const containerId = `botforge-widget-${Date.now()}`;
-  
+
   // Create container element
-  const container = document.createElement('div');
+  const container = document.createElement("div");
   container.id = containerId;
   document.body.appendChild(container);
 
   // Create widget instance (this would be the actual implementation)
   const widget = createVanillaWidget(container, config);
-  
+
   // Store instance
   widgetInstances.set(containerId, widget);
 
@@ -23,7 +26,7 @@ export function initBotForge(config: BotForgeConfig): BotForgeAPI {
     close: () => widget.close(),
     toggle: () => widget.toggle(),
     sendMessage: (message: string) => widget.sendMessage(message),
-    setUser: (user: any) => widget.setUser(user),
+    setUser: (user: import("../types").BotForgeUser) => widget.setUser(user),
     destroy: () => {
       widget.destroy();
       widgetInstances.delete(containerId);
@@ -36,19 +39,24 @@ export function initBotForge(config: BotForgeConfig): BotForgeAPI {
 // Vanilla JavaScript widget implementation
 function createVanillaWidget(container: HTMLElement, config: BotForgeConfig) {
   let isOpen = config.autoOpen || false;
-  let messages: any[] = [];
+  const messages: {
+    id: string;
+    content: string;
+    sender: "user" | "bot";
+    timestamp: Date;
+  }[] = [];
 
   const theme = {
-    primaryColor: '#3b82f6',
-    backgroundColor: '#ffffff',
-    textColor: '#1f2937',
-    borderRadius: '12px',
+    primaryColor: "#3b82f6",
+    backgroundColor: "#ffffff",
+    textColor: "#1f2937",
+    borderRadius: "12px",
     ...config.theme,
   };
 
   const position = {
-    bottom: '20px',
-    right: '20px',
+    bottom: "20px",
+    right: "20px",
     ...config.position,
   };
 
@@ -60,18 +68,18 @@ function createVanillaWidget(container: HTMLElement, config: BotForgeConfig) {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       bottom: ${position.bottom};
       right: ${position.right};
-      ${position.left ? `left: ${position.left};` : ''}
-      ${position.top ? `top: ${position.top};` : ''}
+      ${position.left ? `left: ${position.left};` : ""}
+      ${position.top ? `top: ${position.top};` : ""}
     ">
       <div id="chat-window" style="
-        width: ${theme.chatWidth || '380px'};
-        height: ${theme.chatHeight || '500px'};
+        width: ${theme.chatWidth || "380px"};
+        height: ${theme.chatHeight || "500px"};
         background: ${theme.backgroundColor};
         border-radius: ${theme.borderRadius};
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         border: 1px solid #e5e7eb;
         margin-bottom: 80px;
-        display: ${isOpen ? 'flex' : 'none'};
+        display: ${isOpen ? "flex" : "none"};
         flex-direction: column;
         overflow: hidden;
       ">
@@ -146,7 +154,9 @@ function createVanillaWidget(container: HTMLElement, config: BotForgeConfig) {
               cursor: pointer;
             ">Send</button>
           </form>
-          ${config.showBranding !== false ? `
+          ${
+            config.showBranding !== false
+              ? `
             <div style="text-align: center; margin-top: 8px;">
               <a href="https://botforge.site" target="_blank" style="
                 font-size: 11px;
@@ -154,12 +164,26 @@ function createVanillaWidget(container: HTMLElement, config: BotForgeConfig) {
                 text-decoration: none;
               ">Powered by BotForge</a>
             </div>
-          ` : ''}
+          `
+              : ""
+          }
         </div>
       </div>
       <button id="chat-button" style="
-        width: ${theme.buttonSize === 'small' ? '48px' : theme.buttonSize === 'large' ? '64px' : '56px'};
-        height: ${theme.buttonSize === 'small' ? '48px' : theme.buttonSize === 'large' ? '64px' : '56px'};
+        width: ${
+          theme.buttonSize === "small"
+            ? "48px"
+            : theme.buttonSize === "large"
+            ? "64px"
+            : "56px"
+        };
+        height: ${
+          theme.buttonSize === "small"
+            ? "48px"
+            : theme.buttonSize === "large"
+            ? "64px"
+            : "56px"
+        };
         background: ${theme.primaryColor};
         border: none;
         border-radius: 50%;
@@ -169,25 +193,39 @@ function createVanillaWidget(container: HTMLElement, config: BotForgeConfig) {
         justify-content: center;
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         color: white;
-        font-size: ${theme.buttonSize === 'small' ? '20px' : theme.buttonSize === 'large' ? '28px' : '24px'};
+        font-size: ${
+          theme.buttonSize === "small"
+            ? "20px"
+            : theme.buttonSize === "large"
+            ? "28px"
+            : "24px"
+        };
         outline: none;
-      ">${isOpen ? '×' : '💬'}</button>
+      ">${isOpen ? "×" : "💬"}</button>
     </div>
   `;
 
   // Add event listeners
-  const chatButton = container.querySelector('#chat-button') as HTMLButtonElement;
-  const closeBtn = container.querySelector('#close-btn') as HTMLButtonElement;
-  const messageForm = container.querySelector('#message-form') as HTMLFormElement;
-  const messageInput = container.querySelector('#message-input') as HTMLInputElement;
-  const chatWindow = container.querySelector('#chat-window') as HTMLDivElement;
-  const messagesContainer = container.querySelector('#messages') as HTMLDivElement;
+  const chatButton = container.querySelector(
+    "#chat-button"
+  ) as HTMLButtonElement;
+  const closeBtn = container.querySelector("#close-btn") as HTMLButtonElement;
+  const messageForm = container.querySelector(
+    "#message-form"
+  ) as HTMLFormElement;
+  const messageInput = container.querySelector(
+    "#message-input"
+  ) as HTMLInputElement;
+  const chatWindow = container.querySelector("#chat-window") as HTMLDivElement;
+  const messagesContainer = container.querySelector(
+    "#messages"
+  ) as HTMLDivElement;
 
   const toggleChat = () => {
     isOpen = !isOpen;
-    chatWindow.style.display = isOpen ? 'flex' : 'none';
-    chatButton.textContent = isOpen ? '×' : '💬';
-    
+    chatWindow.style.display = isOpen ? "flex" : "none";
+    chatButton.textContent = isOpen ? "×" : "💬";
+
     if (isOpen) {
       config.events?.onOpen?.();
     } else {
@@ -202,10 +240,10 @@ function createVanillaWidget(container: HTMLElement, config: BotForgeConfig) {
     const userMessage = {
       id: `msg_${Date.now()}`,
       content,
-      sender: 'user',
+      sender: "user" as const,
       timestamp: new Date(),
     };
-    
+
     messages.push(userMessage);
     renderMessages();
 
@@ -214,10 +252,10 @@ function createVanillaWidget(container: HTMLElement, config: BotForgeConfig) {
       const botMessage = {
         id: `msg_${Date.now() + 1}`,
         content: "Thank you for your message! This is a demo response.",
-        sender: 'bot',
+        sender: "bot" as const,
         timestamp: new Date(),
       };
-      
+
       messages.push(botMessage);
       renderMessages();
       config.events?.onMessage?.(botMessage);
@@ -227,37 +265,45 @@ function createVanillaWidget(container: HTMLElement, config: BotForgeConfig) {
   };
 
   const renderMessages = () => {
-    messagesContainer.innerHTML = messages.map(message => `
-      <div style="display: flex; justify-content: ${message.sender === 'user' ? 'flex-end' : 'flex-start'};">
+    messagesContainer.innerHTML = messages
+      .map(
+        (message) => `
+      <div style="display: flex; justify-content: ${
+        message.sender === "user" ? "flex-end" : "flex-start"
+      };">
         <div style="
           max-width: 80%;
           padding: 8px 12px;
           border-radius: 12px;
-          background: ${message.sender === 'user' ? theme.primaryColor : '#f3f4f6'};
-          color: ${message.sender === 'user' ? 'white' : theme.textColor};
+          background: ${
+            message.sender === "user" ? theme.primaryColor : "#f3f4f6"
+          };
+          color: ${message.sender === "user" ? "white" : theme.textColor};
           font-size: 14px;
           line-height: 1.4;
         ">${message.content}</div>
       </div>
-    `).join('');
-    
+    `
+      )
+      .join("");
+
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
   };
 
-  chatButton.addEventListener('click', toggleChat);
-  closeBtn.addEventListener('click', toggleChat);
-  
-  messageForm.addEventListener('submit', (e) => {
+  chatButton.addEventListener("click", toggleChat);
+  closeBtn.addEventListener("click", toggleChat);
+
+  messageForm.addEventListener("submit", (e) => {
     e.preventDefault();
     sendMessage(messageInput.value);
-    messageInput.value = '';
+    messageInput.value = "";
   });
 
   // Initialize
   if (isOpen) {
     config.events?.onOpen?.();
   }
-  
+
   setTimeout(() => {
     config.events?.onReady?.();
   }, 100);
@@ -271,8 +317,10 @@ function createVanillaWidget(container: HTMLElement, config: BotForgeConfig) {
     },
     toggle: toggleChat,
     sendMessage,
-    setUser: (user: any) => {
-      // Update user context
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    setUser: (user: BotForgeUser) => {
+      // User context update not implemented yet
+      // (user parameter is currently unused)
     },
     destroy: () => {
       // Cleanup
