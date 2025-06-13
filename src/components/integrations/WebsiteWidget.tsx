@@ -1,27 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { 
-  Code, 
-  Copy, 
-  Check, 
-  Download, 
-  ExternalLink, 
-  Settings, 
+import { useState } from "react";
+import { motion } from "framer-motion";
+import {
+  Code,
+  Copy,
+  ExternalLink,
   Palette,
-  Monitor,
-  Smartphone,
-  Tablet,
+  Settings,
   Eye,
-  Globe,
+  Download,
   Package,
-  FileCode,
   Zap,
-  MessageCircle
-} from 'lucide-react';
-import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
-import { Modal } from '../ui/Modal';
-import toast from 'react-hot-toast';
+  Globe,
+  Smartphone,
+  Monitor,
+} from "lucide-react";
+import { Card } from "../ui/Card";
+import { Button } from "../ui/Button";
+import { Modal } from "../ui/Modal";
+import toast from "react-hot-toast";
 
 interface WebsiteWidgetProps {
   chatbot: any;
@@ -29,807 +25,705 @@ interface WebsiteWidgetProps {
   onClose: () => void;
 }
 
-interface WidgetConfig {
-  position: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
-  theme: 'light' | 'dark' | 'auto';
-  primaryColor: string;
-  size: 'small' | 'medium' | 'large';
-  showBranding: boolean;
-  customCSS: string;
-  greeting: string;
-  placeholder: string;
-  borderRadius: number;
-  shadow: boolean;
-  animation: 'none' | 'bounce' | 'pulse' | 'slide';
-}
-
-export function WebsiteWidget({ chatbot, isOpen, onClose }: WebsiteWidgetProps) {
-  const [activeTab, setActiveTab] = useState<'embed' | 'react' | 'vue' | 'angular' | 'svelte' | 'npm'>('embed');
-  const [copiedCode, setCopiedCode] = useState<string | null>(null);
-  const [showPreview, setShowPreview] = useState(false);
-  const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
-  const [config, setConfig] = useState<WidgetConfig>({
-    position: 'bottom-right',
-    theme: 'light',
-    primaryColor: '#3B82F6',
-    size: 'medium',
-    showBranding: true,
-    customCSS: '',
-    greeting: 'Hi! How can I help you today?',
-    placeholder: 'Type your message...',
-    borderRadius: 12,
-    shadow: true,
-    animation: 'bounce'
+export function WebsiteWidget({
+  chatbot,
+  isOpen,
+  onClose,
+}: WebsiteWidgetProps) {
+  const [activeTab, setActiveTab] = useState<"npm" | "script" | "iframe">(
+    "npm"
+  );
+  const [theme, setTheme] = useState({
+    primaryColor: "#3b82f6",
+    backgroundColor: "#ffffff",
+    borderRadius: "12px",
+    position: "bottom-right",
+    buttonSize: "medium",
   });
+  const [showPreview, setShowPreview] = useState(false);
 
-  // Ensure chatbot exists and has required properties
-  if (!chatbot) {
-    return (
-      <Modal isOpen={isOpen} onClose={onClose} title="Website Widget" size="xl">
-        <div className="text-center py-8">
-          <p className="text-gray-600 dark:text-gray-300">
-            Chatbot data is not available. Please try again.
-          </p>
-        </div>
-      </Modal>
-    );
-  }
+  const tabs = [
+    {
+      id: "npm",
+      name: "NPM Package",
+      icon: Package,
+      description: "Professional integration for modern frameworks",
+    },
+    {
+      id: "script",
+      name: "Script Tag",
+      icon: Code,
+      description: "Simple integration for any website",
+    },
+    {
+      id: "iframe",
+      name: "Iframe Embed",
+      icon: Globe,
+      description: "Basic embed for quick testing",
+    },
+  ];
 
-  const chatbotId = chatbot.id;
-  const chatbotName = chatbot.name || 'Chatbot';
-  const baseUrl = window.location.origin;
-
-  const copyToClipboard = async (text: string, type: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedCode(type);
-      toast.success('Code copied to clipboard!');
-      setTimeout(() => setCopiedCode(null), 2000);
-    } catch (error) {
-      toast.error('Failed to copy code');
-    }
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Code copied to clipboard!");
   };
 
-  const generateEmbedCode = () => {
-    const configJson = JSON.stringify(config, null, 2);
-    return `<!-- BotForge Chatbot Widget -->
-<div id="botforge-widget"></div>
-<script>
-  window.BotForgeConfig = ${configJson.replace(/"/g, '"')};
-  window.BotForgeConfig.chatbotId = "${chatbotId}";
-  window.BotForgeConfig.apiUrl = "${baseUrl}";
-</script>
-<script src="${baseUrl}/widget/botforge-widget.js" async></script>`;
-  };
+  const generateNPMCode = () => {
+    return {
+      install: `npm install @botforge/widget`,
+      react: `import React from 'react';
+import { BotForgeWidget } from '@botforge/widget';
 
-  const generateReactComponent = () => {
-    return `import React, { useEffect } from 'react';
-
-interface BotForgeWidgetProps {
-  chatbotId: string;
-  config?: {
-    position?: 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
-    theme?: 'light' | 'dark' | 'auto';
-    primaryColor?: string;
-    size?: 'small' | 'medium' | 'large';
-    greeting?: string;
-    placeholder?: string;
-  };
+function App() {
+  return (
+    <div>
+      <h1>My Website</h1>
+      <BotForgeWidget
+        chatbotId="${chatbot.id}"
+        theme={{
+          primaryColor: '${theme.primaryColor}',
+          backgroundColor: '${theme.backgroundColor}',
+          borderRadius: '${theme.borderRadius}',
+          buttonSize: '${theme.buttonSize}',
+        }}
+        position={{
+          ${
+            theme.position === "bottom-right"
+              ? 'bottom: "20px", right: "20px"'
+              : theme.position === "bottom-left"
+              ? 'bottom: "20px", left: "20px"'
+              : theme.position === "top-right"
+              ? 'top: "20px", right: "20px"'
+              : 'top: "20px", left: "20px"'
+          }
+        }}
+        events={{
+          onOpen: () => console.log('Chat opened'),
+          onMessage: (message) => console.log('New message:', message),
+        }}
+      />
+    </div>
+  );
 }
 
-export const BotForgeWidget: React.FC<BotForgeWidgetProps> = ({ 
-  chatbotId, 
-  config = {} 
-}) => {
-  useEffect(() => {
-    // Set global config
-    window.BotForgeConfig = {
-      chatbotId,
-      apiUrl: '${baseUrl}',
-      position: '${config.position}',
-      theme: '${config.theme}',
-      primaryColor: '${config.primaryColor}',
-      size: '${config.size}',
-      greeting: '${config.greeting}',
-      placeholder: '${config.placeholder}',
-      ...config
-    };
-
-    // Load widget script
-    const script = document.createElement('script');
-    script.src = '${baseUrl}/widget/botforge-widget.js';
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      // Cleanup
-      const existingScript = document.querySelector('script[src*="botforge-widget.js"]');
-      if (existingScript) {
-        existingScript.remove();
-      }
-      const widget = document.getElementById('botforge-widget');
-      if (widget) {
-        widget.remove();
-      }
-    };
-  }, [chatbotId, config]);
-
-  return <div id="botforge-widget" />;
-};
-
-// Usage Example:
-// <BotForgeWidget 
-//   chatbotId="${chatbotId}"
-//   config={{
-//     position: 'bottom-right',
-//     theme: 'light',
-//     primaryColor: '#3B82F6'
-//   }}
-// />`;
-  };
-
-  const generateVueComponent = () => {
-    return `<template>
-  <div id="botforge-widget"></div>
+export default App;`,
+      vue: `<template>
+  <div>
+    <h1>My Website</h1>
+    <BotForgeWidget
+      :chatbot-id="chatbotId"
+      :theme="theme"
+      :position="position"
+      :events="events"
+    />
+  </div>
 </template>
 
 <script>
+import { BotForgeWidget } from '@botforge/widget';
+
 export default {
-  name: 'BotForgeWidget',
-  props: {
-    chatbotId: {
-      type: String,
-      required: true,
-      default: '${chatbotId}'
-    },
-    config: {
-      type: Object,
-      default: () => ({
-        position: '${config.position}',
-        theme: '${config.theme}',
-        primaryColor: '${config.primaryColor}',
-        size: '${config.size}',
-        greeting: '${config.greeting}',
-        placeholder: '${config.placeholder}'
-      })
-    }
+  components: { BotForgeWidget },
+  data() {
+    return {
+      chatbotId: '${chatbot.id}',
+      theme: {
+        primaryColor: '${theme.primaryColor}',
+        backgroundColor: '${theme.backgroundColor}',
+        borderRadius: '${theme.borderRadius}',
+        buttonSize: '${theme.buttonSize}',
+      },
+      position: {
+        ${
+          theme.position === "bottom-right"
+            ? 'bottom: "20px", right: "20px"'
+            : theme.position === "bottom-left"
+            ? 'bottom: "20px", left: "20px"'
+            : theme.position === "top-right"
+            ? 'top: "20px", right: "20px"'
+            : 'top: "20px", left: "20px"'
+        }
+      },
+      events: {
+        onOpen: () => console.log('Chat opened'),
+        onMessage: (message) => console.log('New message:', message),
+      },
+    };
   },
-  mounted() {
-    this.loadWidget();
-  },
-  beforeUnmount() {
-    this.cleanupWidget();
-  },
-  methods: {
-    loadWidget() {
-      // Set global config
-      window.BotForgeConfig = {
-        chatbotId: this.chatbotId,
-        apiUrl: '${baseUrl}',
-        ...this.config
-      };
-
-      // Load widget script
-      const script = document.createElement('script');
-      script.src = '${baseUrl}/widget/botforge-widget.js';
-      script.async = true;
-      document.body.appendChild(script);
-    },
-    cleanupWidget() {
-      const existingScript = document.querySelector('script[src*="botforge-widget.js"]');
-      if (existingScript) {
-        existingScript.remove();
-      }
-      const widget = document.getElementById('botforge-widget');
-      if (widget) {
-        widget.remove();
-      }
-    }
-  }
 };
-</script>
-
-<!-- Usage Example: -->
-<!-- <BotForgeWidget :chatbot-id="'${chatbotId}'" :config="widgetConfig" /> -->`;
-  };
-
-  const generateAngularComponent = () => {
-    return `import { Component, Input, OnInit, OnDestroy } from '@angular/core';
-
-declare global {
-  interface Window {
-    BotForgeConfig: any;
-  }
-}
-
-@Component({
-  selector: 'app-botforge-widget',
-  template: '<div id="botforge-widget"></div>'
-})
-export class BotForgeWidgetComponent implements OnInit, OnDestroy {
-  @Input() chatbotId: string = '${chatbotId}';
-  @Input() config: any = {
-    position: '${config.position}',
-    theme: '${config.theme}',
-    primaryColor: '${config.primaryColor}',
-    size: '${config.size}',
-    greeting: '${config.greeting}',
-    placeholder: '${config.placeholder}'
-  };
-
-  ngOnInit() {
-    this.loadWidget();
-  }
-
-  ngOnDestroy() {
-    this.cleanupWidget();
-  }
-
-  private loadWidget() {
-    // Set global config
-    window.BotForgeConfig = {
-      chatbotId: this.chatbotId,
-      apiUrl: '${baseUrl}',
-      ...this.config
+</script>`,
+      vanilla: `<!DOCTYPE html>
+<html>
+<head>
+  <title>My Website</title>
+</head>
+<body>
+  <h1>My Website</h1>
+  
+  <script src="https://unpkg.com/@botforge/widget/dist/botforge-widget.umd.js"></script>
+  <script>
+    const widget = BotForge.initBotForge({
+      chatbotId: '${chatbot.id}',
+      theme: {
+        primaryColor: '${theme.primaryColor}',
+        backgroundColor: '${theme.backgroundColor}',
+        borderRadius: '${theme.borderRadius}',
+        buttonSize: '${theme.buttonSize}',
+      },
+      position: {
+        ${
+          theme.position === "bottom-right"
+            ? 'bottom: "20px", right: "20px"'
+            : theme.position === "bottom-left"
+            ? 'bottom: "20px", left: "20px"'
+            : theme.position === "top-right"
+            ? 'top: "20px", right: "20px"'
+            : 'top: "20px", left: "20px"'
+        }
+      },
+      events: {
+        onOpen: () => console.log('Chat opened'),
+        onMessage: (message) => console.log('New message:', message),
+      },
+    });
+  </script>
+</body>
+</html>`,
     };
-
-    // Load widget script
-    const script = document.createElement('script');
-    script.src = '${baseUrl}/widget/botforge-widget.js';
-    script.async = true;
-    document.body.appendChild(script);
-  }
-
-  private cleanupWidget() {
-    const existingScript = document.querySelector('script[src*="botforge-widget.js"]');
-    if (existingScript) {
-      existingScript.remove();
-    }
-    const widget = document.getElementById('botforge-widget');
-    if (widget) {
-      widget.remove();
-    }
-  }
-}
-
-// Usage in template:
-// <app-botforge-widget [chatbotId]="'${chatbotId}'" [config]="widgetConfig"></app-botforge-widget>`;
   };
 
-  const generateSvelteComponent = () => {
-    return `<script>
-  import { onMount, onDestroy } from 'svelte';
-
-  export let chatbotId = '${chatbotId}';
-  export let config = {
-    position: '${config.position}',
-    theme: '${config.theme}',
-    primaryColor: '${config.primaryColor}',
-    size: '${config.size}',
-    greeting: '${config.greeting}',
-    placeholder: '${config.placeholder}'
-  };
-
-  onMount(() => {
-    loadWidget();
-  });
-
-  onDestroy(() => {
-    cleanupWidget();
-  });
-
-  function loadWidget() {
-    // Set global config
-    window.BotForgeConfig = {
-      chatbotId,
-      apiUrl: '${baseUrl}',
-      ...config
-    };
-
-    // Load widget script
-    const script = document.createElement('script');
-    script.src = '${baseUrl}/widget/botforge-widget.js';
-    script.async = true;
-    document.body.appendChild(script);
-  }
-
-  function cleanupWidget() {
-    const existingScript = document.querySelector('script[src*="botforge-widget.js"]');
-    if (existingScript) {
-      existingScript.remove();
-    }
-    const widget = document.getElementById('botforge-widget');
-    if (widget) {
-      widget.remove();
-    }
-  }
-</script>
-
-<div id="botforge-widget"></div>
-
-<!-- Usage Example: -->
-<!-- <BotForgeWidget chatbotId="${chatbotId}" config={{theme: 'dark'}} /> -->`;
-  };
-
-  const generateNPMPackage = () => {
-    return `// Install the package
-npm install @botforge/widget
-
-// ES6 Import
-import BotForgeWidget from '@botforge/widget';
-
-// Initialize the widget
-const widget = new BotForgeWidget({
-  chatbotId: '${chatbotId}',
-  apiUrl: '${baseUrl}',
-  config: {
-    position: '${config.position}',
-    theme: '${config.theme}',
-    primaryColor: '${config.primaryColor}',
-    size: '${config.size}',
-    greeting: '${config.greeting}',
-    placeholder: '${config.placeholder}',
-    showBranding: ${config.showBranding},
-    borderRadius: ${config.borderRadius},
-    shadow: ${config.shadow},
-    animation: '${config.animation}'
-  }
-});
-
-// Mount the widget
-widget.mount();
-
-// Widget API Methods
-widget.open();        // Open the chat
-widget.close();       // Close the chat
-widget.toggle();      // Toggle chat state
-widget.destroy();     // Remove widget
-widget.updateConfig(newConfig); // Update configuration
-
-// Event Listeners
-widget.on('open', () => console.log('Chat opened'));
-widget.on('close', () => console.log('Chat closed'));
-widget.on('message', (data) => console.log('Message sent:', data));
-
-// CommonJS (Node.js)
-const BotForgeWidget = require('@botforge/widget');
-
-// CDN Usage
-<script src="https://unpkg.com/@botforge/widget@latest/dist/botforge-widget.min.js"></script>
+  const generateScriptCode = () => {
+    return `<!-- BotForge Widget -->
 <script>
-  const widget = new BotForgeWidget({
-    chatbotId: '${chatbotId}',
-    apiUrl: '${baseUrl}'
-  });
-  widget.mount();
+  (function() {
+    var script = document.createElement('script');
+    script.src = 'https://unpkg.com/@botforge/widget/dist/botforge-widget.umd.js';
+    script.onload = function() {
+      BotForge.initBotForge({
+        chatbotId: '${chatbot.id}',
+        theme: {
+          primaryColor: '${theme.primaryColor}',
+          backgroundColor: '${theme.backgroundColor}',
+          borderRadius: '${theme.borderRadius}',
+          buttonSize: '${theme.buttonSize}',
+        },
+        position: {
+          ${
+            theme.position === "bottom-right"
+              ? 'bottom: "20px", right: "20px"'
+              : theme.position === "bottom-left"
+              ? 'bottom: "20px", left: "20px"'
+              : theme.position === "top-right"
+              ? 'top: "20px", right: "20px"'
+              : 'top: "20px", left: "20px"'
+          }
+        },
+        autoOpen: false,
+        showBranding: true,
+      });
+    };
+    document.head.appendChild(script);
+  })();
 </script>`;
   };
 
-  const getCodeForTab = () => {
-    switch (activeTab) {
-      case 'embed': return generateEmbedCode();
-      case 'react': return generateReactComponent();
-      case 'vue': return generateVueComponent();
-      case 'angular': return generateAngularComponent();
-      case 'svelte': return generateSvelteComponent();
-      case 'npm': return generateNPMPackage();
-      default: return generateEmbedCode();
-    }
+  const generateIframeCode = () => {
+    const params = new URLSearchParams({
+      chatbotId: chatbot.id,
+      primaryColor: theme.primaryColor,
+      backgroundColor: theme.backgroundColor,
+      borderRadius: theme.borderRadius,
+      position: theme.position,
+      buttonSize: theme.buttonSize,
+    });
+
+    return `<iframe
+  src="https://botforge.site/widget/embed?${params.toString()}"
+  width="100%"
+  height="600"
+  frameborder="0"
+  style="border: none; border-radius: 12px;"
+  title="${chatbot.name} Chat Widget">
+</iframe>`;
   };
 
-  const downloadCode = () => {
-    const code = getCodeForTab();
-    const extensions = {
-      embed: 'html',
-      react: 'tsx',
-      vue: 'vue',
-      angular: 'ts',
-      svelte: 'svelte',
-      npm: 'js'
-    };
-    
-    const blob = new Blob([code], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `botforge-widget.${extensions[activeTab]}`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const downloadPackageFiles = () => {
+    const npmCode = generateNPMCode();
+
+    // Create a zip-like structure with multiple files
+    const files = [
+      {
+        name: "README.md",
+        content: `# ${chatbot.name} Widget Integration\n\n## Installation\n\n\`\`\`bash\n${npmCode.install}\n\`\`\`\n\n## Usage\n\nSee the example files for React, Vue, and Vanilla JS implementations.`,
+      },
+      { name: "react-example.jsx", content: npmCode.react },
+      { name: "vue-example.vue", content: npmCode.vue },
+      { name: "vanilla-example.html", content: npmCode.vanilla },
+      {
+        name: "script-integration.html",
+        content: `<!DOCTYPE html>\n<html>\n<head>\n  <title>Script Integration</title>\n</head>\n<body>\n  <h1>My Website</h1>\n  ${generateScriptCode()}\n</body>\n</html>`,
+      },
+    ];
+
+    // Create and download each file
+    files.forEach((file) => {
+      const blob = new Blob([file.content], { type: "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = file.name;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    toast.success("Integration files downloaded!");
   };
 
-  const tabs = [
-    { id: 'embed', name: 'HTML Embed', icon: Code, description: 'Simple script tag integration' },
-    { id: 'react', name: 'React', icon: FileCode, description: 'React component' },
-    { id: 'vue', name: 'Vue.js', icon: FileCode, description: 'Vue component' },
-    { id: 'angular', name: 'Angular', icon: FileCode, description: 'Angular component' },
-    { id: 'svelte', name: 'Svelte', icon: FileCode, description: 'Svelte component' },
-    { id: 'npm', name: 'NPM Package', icon: Package, description: 'JavaScript package' }
-  ];
-
-  const deviceSizes = {
-    desktop: { width: '100%', height: '600px' },
-    tablet: { width: '768px', height: '500px' },
-    mobile: { width: '375px', height: '400px' }
-  };
+  if (!isOpen) return null;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Website Widget Integration" size="xl">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Website Widget Integration"
+      size="xl"
+    >
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              Deploy {chatbotName} to Your Website
-            </h3>
-            <p className="text-gray-600 dark:text-gray-300">
-              Choose your preferred integration method and customize the widget appearance
-            </p>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowPreview(!showPreview)}
-            >
-              <Eye className="w-4 h-4 mr-2" />
-              {showPreview ? 'Hide' : 'Show'} Preview
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={downloadCode}
-            >
-              <Download className="w-4 h-4 mr-2" />
-              Download
-            </Button>
-          </div>
+        <div className="text-center">
+          <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
+            Add {chatbot.name} to Your Website
+          </h3>
+          <p className="text-gray-600 dark:text-gray-300">
+            Choose your preferred integration method and customize the
+            appearance
+          </p>
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Configuration Panel */}
-          <div className="lg:col-span-1">
-            <Card className="p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-              <h4 className="font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center">
-                <Settings className="w-4 h-4 mr-2" />
-                Widget Configuration
-              </h4>
-              
-              <div className="space-y-4">
-                {/* Position */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Position
-                  </label>
-                  <select
-                    value={config.position}
-                    onChange={(e) => setConfig(prev => ({ ...prev, position: e.target.value as any }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                  >
-                    <option value="bottom-right">Bottom Right</option>
-                    <option value="bottom-left">Bottom Left</option>
-                    <option value="top-right">Top Right</option>
-                    <option value="top-left">Top Left</option>
-                  </select>
+        {/* Integration Method Tabs */}
+        <div className="border-b border-gray-200 dark:border-gray-700">
+          <nav className="-mb-px flex space-x-8">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center ${
+                  activeTab === tab.id
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 hover:border-gray-300"
+                }`}
+              >
+                <tab.icon className="w-4 h-4 mr-2" />
+                <div className="text-left">
+                  <div>{tab.name}</div>
+                  <div className="text-xs opacity-75">{tab.description}</div>
                 </div>
+              </button>
+            ))}
+          </nav>
+        </div>
 
-                {/* Theme */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Theme
-                  </label>
-                  <select
-                    value={config.theme}
-                    onChange={(e) => setConfig(prev => ({ ...prev, theme: e.target.value as any }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                  >
-                    <option value="light">Light</option>
-                    <option value="dark">Dark</option>
-                    <option value="auto">Auto (System)</option>
-                  </select>
-                </div>
-
-                {/* Primary Color */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Primary Color
-                  </label>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="color"
-                      value={config.primaryColor}
-                      onChange={(e) => setConfig(prev => ({ ...prev, primaryColor: e.target.value }))}
-                      className="w-12 h-10 border border-gray-300 dark:border-gray-700 rounded-lg"
-                    />
-                    <input
-                      type="text"
-                      value={config.primaryColor}
-                      onChange={(e) => setConfig(prev => ({ ...prev, primaryColor: e.target.value }))}
-                      className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                    />
-                  </div>
-                </div>
-
-                {/* Size */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Size
-                  </label>
-                  <select
-                    value={config.size}
-                    onChange={(e) => setConfig(prev => ({ ...prev, size: e.target.value as any }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                  >
-                    <option value="small">Small</option>
-                    <option value="medium">Medium</option>
-                    <option value="large">Large</option>
-                  </select>
-                </div>
-
-                {/* Greeting */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Greeting Message
-                  </label>
-                  <input
-                    type="text"
-                    value={config.greeting}
-                    onChange={(e) => setConfig(prev => ({ ...prev, greeting: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                  />
-                </div>
-
-                {/* Animation */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Animation
-                  </label>
-                  <select
-                    value={config.animation}
-                    onChange={(e) => setConfig(prev => ({ ...prev, animation: e.target.value as any }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-                  >
-                    <option value="none">None</option>
-                    <option value="bounce">Bounce</option>
-                    <option value="pulse">Pulse</option>
-                    <option value="slide">Slide</option>
-                  </select>
-                </div>
-
-                {/* Show Branding */}
-                <div className="flex items-center">
-                  <input
-                    type="checkbox"
-                    id="showBranding"
-                    checked={config.showBranding}
-                    onChange={(e) => setConfig(prev => ({ ...prev, showBranding: e.target.checked }))}
-                    className="mr-2"
-                  />
-                  <label htmlFor="showBranding" className="text-sm text-gray-700 dark:text-gray-300">
-                    Show BotForge branding
-                  </label>
-                </div>
-              </div>
-            </Card>
+        {/* Customization Panel */}
+        <Card className="p-4 bg-gray-50 dark:bg-gray-800">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="font-medium text-gray-900 dark:text-gray-100 flex items-center">
+              <Palette className="w-4 h-4 mr-2" />
+              Customize Appearance
+            </h4>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPreview(true)}
+              >
+                <Eye className="w-4 h-4 mr-1" />
+                Preview
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={downloadPackageFiles}
+              >
+                <Download className="w-4 h-4 mr-1" />
+                Download Files
+              </Button>
+            </div>
           </div>
 
-          {/* Code Panel */}
-          <div className="lg:col-span-2">
-            <Card className="p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-              {/* Framework Tabs */}
-              <div className="flex flex-wrap gap-2 mb-6 border-b border-gray-200 dark:border-gray-700 pb-4">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id as any)}
-                    className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      activeTab === tab.id
-                        ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200 border border-blue-200 dark:border-blue-800'
-                        : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    <tab.icon className="w-4 h-4 mr-2" />
-                    <div className="text-left">
-                      <div>{tab.name}</div>
-                      <div className="text-xs opacity-75">{tab.description}</div>
-                    </div>
-                  </button>
-                ))}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Primary Color
+              </label>
+              <input
+                type="color"
+                value={theme.primaryColor}
+                onChange={(e) =>
+                  setTheme((prev) => ({
+                    ...prev,
+                    primaryColor: e.target.value,
+                  }))
+                }
+                className="w-full h-10 rounded border border-gray-300 dark:border-gray-600"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Background
+              </label>
+              <input
+                type="color"
+                value={theme.backgroundColor}
+                onChange={(e) =>
+                  setTheme((prev) => ({
+                    ...prev,
+                    backgroundColor: e.target.value,
+                  }))
+                }
+                className="w-full h-10 rounded border border-gray-300 dark:border-gray-600"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Position
+              </label>
+              <select
+                value={theme.position}
+                onChange={(e) =>
+                  setTheme((prev) => ({ ...prev, position: e.target.value }))
+                }
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              >
+                <option value="bottom-right">Bottom Right</option>
+                <option value="bottom-left">Bottom Left</option>
+                <option value="top-right">Top Right</option>
+                <option value="top-left">Top Left</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Button Size
+              </label>
+              <select
+                value={theme.buttonSize}
+                onChange={(e) =>
+                  setTheme((prev) => ({ ...prev, buttonSize: e.target.value }))
+                }
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              >
+                <option value="small">Small</option>
+                <option value="medium">Medium</option>
+                <option value="large">Large</option>
+              </select>
+            </div>
+          </div>
+        </Card>
+
+        {/* Integration Code */}
+        <div className="space-y-4">
+          {activeTab === "npm" && (
+            <div className="space-y-4">
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Package className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  <h4 className="font-medium text-blue-900 dark:text-blue-200">
+                    NPM Package Integration
+                  </h4>
+                </div>
+                <p className="text-sm text-blue-800 dark:text-blue-300">
+                  Professional integration for React, Vue, Angular, and other
+                  modern frameworks. Includes TypeScript support, event
+                  handling, and full customization options.
+                </p>
               </div>
 
-              {/* Code Display */}
-              <div className="relative">
-                <div className="flex items-center justify-between mb-3">
+              {/* Installation */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
                   <h4 className="font-medium text-gray-900 dark:text-gray-100">
-                    {tabs.find(t => t.id === activeTab)?.name} Integration Code
+                    1. Install the package
                   </h4>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
-                    onClick={() => copyToClipboard(getCodeForTab(), activeTab)}
+                    onClick={() => copyToClipboard(generateNPMCode().install)}
                   >
-                    {copiedCode === activeTab ? (
-                      <Check className="w-4 h-4 mr-2 text-green-600" />
-                    ) : (
-                      <Copy className="w-4 h-4 mr-2" />
-                    )}
-                    {copiedCode === activeTab ? 'Copied!' : 'Copy Code'}
+                    <Copy className="w-4 h-4" />
                   </Button>
                 </div>
-                
-                <div className="bg-gray-900 rounded-lg p-4 overflow-x-auto">
-                  <pre className="text-sm text-gray-100 whitespace-pre-wrap">
-                    <code>{getCodeForTab()}</code>
-                  </pre>
-                </div>
+                <pre className="bg-gray-900 text-green-400 p-4 rounded-lg text-sm overflow-x-auto">
+                  <code>{generateNPMCode().install}</code>
+                </pre>
               </div>
 
-              {/* Integration Instructions */}
-              <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                <h5 className="font-medium text-blue-900 dark:text-blue-200 mb-2">
-                  Integration Instructions
-                </h5>
-                <div className="text-sm text-blue-800 dark:text-blue-300 space-y-2">
-                  {activeTab === 'embed' && (
-                    <div>
-                      <p>1. Copy the code above and paste it into your HTML file</p>
-                      <p>{`2. Place it just before the closing </body> tag`}</p>
-                      <p>3. The widget will automatically load and position itself</p>
+              {/* Framework Examples */}
+              <div className="grid md:grid-cols-3 gap-4">
+                {[
+                  { name: "React", code: generateNPMCode().react, icon: "⚛️" },
+                  { name: "Vue.js", code: generateNPMCode().vue, icon: "💚" },
+                  {
+                    name: "Vanilla JS",
+                    code: generateNPMCode().vanilla,
+                    icon: "🟨",
+                  },
+                ].map((framework) => (
+                  <Card key={framework.name} className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h5 className="font-medium text-gray-900 dark:text-gray-100 flex items-center">
+                        <span className="mr-2">{framework.icon}</span>
+                        {framework.name}
+                      </h5>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => copyToClipboard(framework.code)}
+                      >
+                        <Copy className="w-4 h-4" />
+                      </Button>
                     </div>
-                  )}
-                  {activeTab === 'react' && (
-                    <div>
-                      <p>1. Copy the component code into a new file (e.g., BotForgeWidget.tsx)</p>
-                      <p>2. Import and use the component in your React app</p>
-                      <p>3. Pass your chatbot ID and configuration as props</p>
-                    </div>
-                  )}
-                  {activeTab === 'vue' && (
-                    <div>
-                      <p>1. Create a new Vue component with the code above</p>
-                      <p>2. Register the component in your Vue app</p>
-                      <p>3. Use the component with your chatbot ID and config</p>
-                    </div>
-                  )}
-                  {activeTab === 'angular' && (
-                    <div>
-                      <p>1. Create a new Angular component with the code above</p>
-                      <p>2. Add the component to your module declarations</p>
-                      <p>3. Use the component selector in your templates</p>
-                    </div>
-                  )}
-                  {activeTab === 'svelte' && (
-                    <div>
-                      <p>1. Create a new Svelte component with the code above</p>
-                      <p>2. Import and use the component in your Svelte app</p>
-                      <p>3. Pass props for chatbot ID and configuration</p>
-                    </div>
-                  )}
-                  {activeTab === 'npm' && (
-                    <div>
-                      <p>1. Install the package using npm or yarn</p>
-                      <p>2. Import and initialize the widget in your JavaScript</p>
-                      <p>3. Use the API methods to control the widget behavior</p>
-                    </div>
-                  )}
-                </div>
+                    <pre className="bg-gray-100 dark:bg-gray-800 p-3 rounded text-xs overflow-x-auto max-h-40">
+                      <code>{framework.code}</code>
+                    </pre>
+                  </Card>
+                ))}
               </div>
-            </Card>
+            </div>
+          )}
+
+          {activeTab === "script" && (
+            <div className="space-y-4">
+              <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Code className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  <h4 className="font-medium text-green-900 dark:text-green-200">
+                    Script Tag Integration
+                  </h4>
+                </div>
+                <p className="text-sm text-green-800 dark:text-green-300">
+                  Simple integration for any website. Just add this script tag
+                  to your HTML and the widget will load automatically.
+                </p>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-medium text-gray-900 dark:text-gray-100">
+                    Add this script to your website
+                  </h4>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => copyToClipboard(generateScriptCode())}
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </div>
+                <pre className="bg-gray-900 text-green-400 p-4 rounded-lg text-sm overflow-x-auto">
+                  <code>{generateScriptCode()}</code>
+                </pre>
+              </div>
+
+              <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                <h4 className="font-medium text-yellow-900 dark:text-yellow-200 mb-2">
+                  💡 Pro Tip
+                </h4>
+                <p className="text-sm text-yellow-800 dark:text-yellow-300">
+                  Place this script just before the closing{" "}
+                  <code>&lt;/body&gt;</code> tag for optimal loading
+                  performance.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "iframe" && (
+            <div className="space-y-4">
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg p-4">
+                <div className="flex items-center space-x-2 mb-2">
+                  <Globe className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  <h4 className="font-medium text-purple-900 dark:text-purple-200">
+                    Iframe Embed
+                  </h4>
+                </div>
+                <p className="text-sm text-purple-800 dark:text-purple-300">
+                  Basic embed option for quick testing or when you need a
+                  contained chat interface.
+                </p>
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="font-medium text-gray-900 dark:text-gray-100">
+                    Embed code
+                  </h4>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => copyToClipboard(generateIframeCode())}
+                  >
+                    <Copy className="w-4 h-4" />
+                  </Button>
+                </div>
+                <pre className="bg-gray-900 text-green-400 p-4 rounded-lg text-sm overflow-x-auto">
+                  <code>{generateIframeCode()}</code>
+                </pre>
+              </div>
+
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                <h4 className="font-medium text-blue-900 dark:text-blue-200 mb-2">
+                  📱 Responsive Design
+                </h4>
+                <p className="text-sm text-blue-800 dark:text-blue-300">
+                  The iframe will automatically adapt to different screen sizes.
+                  You can adjust the width and height attributes as needed.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Features Grid */}
+        <div className="grid md:grid-cols-3 gap-4 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <div className="text-center p-4">
+            <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <Smartphone className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+            </div>
+            <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1">
+              Mobile Optimized
+            </h4>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Responsive design that works perfectly on all devices
+            </p>
+          </div>
+
+          <div className="text-center p-4">
+            <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <Zap className="w-6 h-6 text-green-600 dark:text-green-400" />
+            </div>
+            <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1">
+              Lightning Fast
+            </h4>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Optimized for performance with minimal impact on your site
+            </p>
+          </div>
+
+          <div className="text-center p-4">
+            <div className="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center mx-auto mb-3">
+              <Settings className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+            </div>
+            <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-1">
+              Fully Customizable
+            </h4>
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              Match your brand with extensive theming options
+            </p>
           </div>
         </div>
 
-        {/* Preview Modal */}
-        {showPreview && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden"
+        {/* Documentation Links */}
+        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+          <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-3">
+            Need Help?
+          </h4>
+          <div className="grid md:grid-cols-2 gap-3">
+            <a
+              href="/docs"
+              target="_blank"
+              className="flex items-center p-3 bg-white dark:bg-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
             >
-              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                    Widget Preview
-                  </h3>
-                  <div className="flex items-center space-x-4">
-                    <div className="flex items-center space-x-2">
-                      {(['desktop', 'tablet', 'mobile'] as const).map((device) => (
-                        <button
-                          key={device}
-                          onClick={() => setPreviewDevice(device)}
-                          className={`p-2 rounded-lg ${
-                            previewDevice === device
-                              ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-200'
-                              : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                          }`}
-                        >
-                          {device === 'desktop' && <Monitor className="w-4 h-4" />}
-                          {device === 'tablet' && <Tablet className="w-4 h-4" />}
-                          {device === 'mobile' && <Smartphone className="w-4 h-4" />}
-                        </button>
-                      ))}
-                    </div>
-                    <Button variant="ghost" onClick={() => setShowPreview(false)}>
-                      ×
-                    </Button>
-                  </div>
+              <ExternalLink className="w-4 h-4 text-blue-600 dark:text-blue-400 mr-3" />
+              <div>
+                <div className="font-medium text-gray-900 dark:text-gray-100">
+                  Documentation
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">
+                  Complete integration guide
                 </div>
               </div>
-              
-              <div className="p-6 bg-gray-50 dark:bg-gray-800 flex justify-center">
-                <div 
-                  className="bg-white dark:bg-gray-900 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 relative overflow-hidden"
-                  style={deviceSizes[previewDevice]}
-                >
-                  {/* Mock website content */}
-                  <div className="p-8 h-full">
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
-                      Your Website
-                    </h1>
-                    <p className="text-gray-600 dark:text-gray-300 mb-4">
-                      This is a preview of how the chatbot widget will appear on your website.
-                    </p>
-                    <div className="space-y-4">
-                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
-                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
-                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
-                    </div>
-                  </div>
-                  
-                  {/* Widget Preview */}
-                  <div 
-                    className={`absolute ${
-                      config.position.includes('bottom') ? 'bottom-4' : 'top-4'
-                    } ${
-                      config.position.includes('right') ? 'right-4' : 'left-4'
-                    }`}
-                  >
-                    <div 
-                      className={`w-14 h-14 rounded-full flex items-center justify-center cursor-pointer shadow-lg ${
-                        config.animation === 'bounce' ? 'animate-bounce' : 
-                        config.animation === 'pulse' ? 'animate-pulse' : ''
-                      }`}
-                      style={{ 
-                        backgroundColor: config.primaryColor,
-                        borderRadius: `${config.borderRadius}px`
-                      }}
-                    >
-                      <MessageCircle className="w-6 h-6 text-white" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
+            </a>
 
-        {/* Quick Actions */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex items-center space-x-4">
             <a
-              href={`${baseUrl}/widget/docs`}
+              href="https://github.com/botforge/widget"
               target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm flex items-center"
+              className="flex items-center p-3 bg-white dark:bg-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
             >
-              <ExternalLink className="w-4 h-4 mr-1" />
-              View Documentation
+              <Package className="w-4 h-4 text-gray-600 dark:text-gray-400 mr-3" />
+              <div>
+                <div className="font-medium text-gray-900 dark:text-gray-100">
+                  NPM Package
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">
+                  View on GitHub
+                </div>
+              </div>
             </a>
-            <a
-              href={`${baseUrl}/widget/examples`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 text-sm flex items-center"
-            >
-              <Globe className="w-4 h-4 mr-1" />
-              Live Examples
-            </a>
-          </div>
-          
-          <div className="text-sm text-gray-500 dark:text-gray-400">
-            Widget ID: {chatbotId}
           </div>
         </div>
       </div>
+
+      {/* Preview Modal */}
+      {showPreview && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-4xl bg-white dark:bg-gray-900 rounded-xl shadow-2xl overflow-hidden"
+          >
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Widget Preview
+              </h3>
+              <button
+                onClick={() => setShowPreview(false)}
+                className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                ×
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-8 relative min-h-[400px]">
+                <div className="text-center text-gray-600 dark:text-gray-300 mb-4">
+                  <Monitor className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>Widget preview would appear here</p>
+                  <p className="text-sm">
+                    Use the actual integration code to see the live widget
+                  </p>
+                </div>
+
+                {/* Mock widget button */}
+                <div
+                  className="fixed rounded-full shadow-lg flex items-center justify-center text-white text-xl cursor-pointer"
+                  style={{
+                    backgroundColor: theme.primaryColor,
+                    width:
+                      theme.buttonSize === "small"
+                        ? "48px"
+                        : theme.buttonSize === "large"
+                        ? "64px"
+                        : "56px",
+                    height:
+                      theme.buttonSize === "small"
+                        ? "48px"
+                        : theme.buttonSize === "large"
+                        ? "64px"
+                        : "56px",
+                    [theme.position.includes("bottom") ? "bottom" : "top"]:
+                      "20px",
+                    [theme.position.includes("right") ? "right" : "left"]:
+                      "20px",
+                  }}
+                >
+                  💬
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </Modal>
   );
 }

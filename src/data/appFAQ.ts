@@ -1,234 +1,449 @@
-export const appFAQ = [
-  // Getting Started
+export interface FAQQuestion {
+  question: string;
+  answer: string;
+  keywords: string[];
+}
+
+export interface FAQCategory {
+  category: string;
+  questions: FAQQuestion[];
+}
+
+export const appFAQ: FAQCategory[] = [
   {
     category: "Getting Started",
     questions: [
       {
         question: "How do I create my first chatbot?",
-        answer: "To create your first chatbot: 1) Click 'Create New Bot' from the dashboard, 2) Choose a template or start from scratch, 3) Use the drag-and-drop builder to design your conversation flow, 4) Test your bot with the simulator, 5) Publish when ready. The whole process takes just a few minutes!",
-        keywords: ["create", "first", "chatbot", "new", "getting started", "tutorial"]
+        answer:
+          "To create your first chatbot, click the 'New Chatbot' button in your dashboard. You can either start from scratch or choose from our professional templates. Our drag-and-drop builder makes it easy to create sophisticated conversation flows without any coding knowledge.",
+        keywords: [
+          "create",
+          "first",
+          "chatbot",
+          "new",
+          "start",
+          "begin",
+          "build",
+          "make",
+        ],
       },
       {
         question: "What templates are available?",
-        answer: "We offer several professional templates: AI-Powered FAQ Assistant (uses OpenAI for intelligent responses), Personal FAQ Assistant (great for small businesses), Business Information Collector, Lead Capture & Qualification, and Appointment Booking Assistant. Each template is fully customizable.",
-        keywords: ["templates", "available", "types", "ai", "faq", "business", "lead", "appointment"]
+        answer:
+          "We offer several professional templates including Customer Support Bot, Lead Generation Bot, FAQ Assistant, Appointment Booking Bot, and E-commerce Assistant. Each template is fully customizable and includes pre-built conversation flows optimized for specific use cases.",
+        keywords: [
+          "templates",
+          "available",
+          "types",
+          "examples",
+          "pre-built",
+          "ready",
+        ],
       },
       {
-        question: "Do I need coding skills to use this platform?",
-        answer: "No coding skills required! Our platform is designed for non-technical users. You can build sophisticated chatbots using our visual drag-and-drop interface, pre-built templates, and guided setup process.",
-        keywords: ["coding", "skills", "technical", "no-code", "visual", "drag-drop"]
+        question: "Do I need coding skills to use BotForge?",
+        answer:
+          "No coding skills required! BotForge is designed as a no-code platform. Our visual drag-and-drop interface allows you to create sophisticated chatbots using simple point-and-click actions. However, if you're a developer, you can also access advanced features and integrations.",
+        keywords: [
+          "coding",
+          "skills",
+          "programming",
+          "technical",
+          "no-code",
+          "easy",
+        ],
       },
       {
         question: "How long does it take to build a chatbot?",
-        answer: "With our templates, you can have a basic chatbot running in 5-10 minutes. More complex, customized bots typically take 30-60 minutes. The AI-powered features and integrations might add extra time for setup and testing.",
-        keywords: ["time", "build", "duration", "quick", "fast", "minutes"]
-      }
-    ]
+        answer:
+          "With our templates, you can have a basic chatbot running in under 10 minutes. More complex, custom chatbots typically take 30-60 minutes to build. The time depends on the complexity of your conversation flows and the number of integrations you need.",
+        keywords: [
+          "time",
+          "duration",
+          "how long",
+          "quick",
+          "fast",
+          "minutes",
+          "hours",
+        ],
+      },
+    ],
   },
-
-  // Features & Capabilities
   {
-    category: "Features & Capabilities",
+    category: "NPM Package Integration",
+    questions: [
+      {
+        question: "How do I install the BotForge widget package?",
+        answer:
+          "Install the widget using npm: `npm install @botforge/widget`. The package supports React, Vue, Angular, and vanilla JavaScript. It includes TypeScript definitions and works with all modern bundlers like Webpack, Vite, and Rollup.",
+        keywords: [
+          "npm",
+          "install",
+          "package",
+          "widget",
+          "integration",
+          "setup",
+        ],
+      },
+      {
+        question: "Which frameworks are supported by the NPM package?",
+        answer:
+          "The @botforge/widget package supports React 16.8+, Vue 2 & 3, Angular 10+, and vanilla JavaScript. It's framework-agnostic and can be used with any modern web framework or static site generator like Next.js, Nuxt.js, Gatsby, or plain HTML.",
+        keywords: [
+          "frameworks",
+          "react",
+          "vue",
+          "angular",
+          "javascript",
+          "support",
+          "compatibility",
+        ],
+      },
+      {
+        question: "How do I customize the widget appearance?",
+        answer:
+          "The widget is highly customizable through the theme prop. You can change colors, sizes, positioning, fonts, and more. All styling is done through JavaScript configuration - no CSS files needed. The widget also supports custom CSS for advanced styling.",
+        keywords: [
+          "customize",
+          "theme",
+          "styling",
+          "appearance",
+          "colors",
+          "design",
+        ],
+      },
+      {
+        question: "Can I control the widget programmatically?",
+        answer:
+          "Yes! The widget provides a complete API for programmatic control. You can open/close the chat, send messages, update user information, and listen to events. Use React refs or the vanilla JS API to access these methods.",
+        keywords: [
+          "api",
+          "control",
+          "programmatic",
+          "methods",
+          "events",
+          "javascript",
+        ],
+      },
+      {
+        question: "How do I handle widget events?",
+        answer:
+          "The widget supports comprehensive event handling through the events prop. You can listen for onOpen, onClose, onMessage, onUserMessage, onBotMessage, onError, and onReady events. This allows you to integrate the widget with your analytics, logging, or other systems.",
+        keywords: [
+          "events",
+          "callbacks",
+          "listeners",
+          "onMessage",
+          "onOpen",
+          "onClose",
+        ],
+      },
+      {
+        question: "Is the NPM package TypeScript compatible?",
+        answer:
+          "Yes! The package includes full TypeScript definitions out of the box. All interfaces, types, and API methods are properly typed. You get full IntelliSense support and type safety when using the widget in TypeScript projects.",
+        keywords: [
+          "typescript",
+          "types",
+          "definitions",
+          "intellisense",
+          "type safety",
+        ],
+      },
+    ],
+  },
+  {
+    category: "AI Features",
     questions: [
       {
         question: "What AI features are available?",
-        answer: "Our AI features include: OpenAI integration for natural language understanding, intelligent FAQ search and responses, automatic FAQ extraction from documents, semantic search capabilities, intent detection, and confidence scoring. AI features require an OpenAI API key.",
-        keywords: ["ai", "artificial intelligence", "openai", "nlp", "smart", "intelligent", "features"]
+        answer:
+          "BotForge includes OpenAI integration for natural language processing, intelligent FAQ responses, document processing for training data, intent recognition, and context-aware conversations. Pro and Enterprise plans include advanced AI features like custom model training and multi-language support.",
+        keywords: [
+          "ai",
+          "artificial intelligence",
+          "openai",
+          "nlp",
+          "smart",
+          "intelligent",
+        ],
       },
       {
-        question: "Can I upload FAQ documents?",
-        answer: "Yes! You can upload TXT, CSV, and PDF files containing your FAQ content. Our AI will automatically extract questions and answers, generate relevant keywords, and optimize them for intelligent responses. This trains your chatbot on your specific knowledge base.",
-        keywords: ["upload", "faq", "documents", "files", "txt", "csv", "pdf", "knowledge base"]
+        question: "How do I set up OpenAI integration?",
+        answer:
+          "OpenAI integration is handled server-side for security. Simply enable AI features in your chatbot settings, and our system will use OpenAI's models to generate intelligent responses. No API keys needed on your end - we handle all the complexity securely.",
+        keywords: [
+          "openai",
+          "setup",
+          "integration",
+          "api",
+          "gpt",
+          "configuration",
+        ],
       },
       {
-        question: "What types of nodes can I use in my chatbot?",
-        answer: "Available nodes include: Start (conversation beginning), Message (send text), Question (multiple choice), AI Response (OpenAI-powered), Lead Capture (collect info), Conditional Logic (if/then), API/Webhook (external integrations), Survey/Feedback, File Upload, Appointment Booking, and Human Handoff.",
-        keywords: ["nodes", "types", "message", "question", "ai", "lead", "conditional", "api", "survey", "appointment"]
+        question: "Can I upload FAQ documents for training?",
+        answer:
+          "Yes! Pro and Enterprise users can upload FAQ documents in TXT, CSV, or PDF format. Our AI automatically extracts questions and answers, generates relevant keywords, and trains your chatbot to provide accurate responses based on your content.",
+        keywords: [
+          "faq",
+          "upload",
+          "documents",
+          "training",
+          "pdf",
+          "csv",
+          "txt",
+        ],
       },
       {
-        question: "Can my chatbot integrate with other services?",
-        answer: "Yes! You can integrate with external APIs and webhooks, connect to CRM systems, set up WhatsApp Business API, deploy to multiple channels (web, Facebook Messenger, Telegram), and use appointment booking services. Pro plans include advanced integrations.",
-        keywords: ["integrations", "api", "webhook", "crm", "whatsapp", "facebook", "telegram", "external"]
+        question: "How does AI response generation work?",
+        answer:
+          "Our AI system combines your chatbot's conversation flow with uploaded FAQ content and OpenAI's language models. It understands context, maintains conversation history, and generates human-like responses that match your brand voice and knowledge base.",
+        keywords: [
+          "ai response",
+          "generation",
+          "context",
+          "conversation",
+          "natural language",
+        ],
       },
-      {
-        question: "How does the conversation simulator work?",
-        answer: "The simulator lets you test your chatbot before publishing. It shows real-time conversation flow, response times, AI processing, variable substitution, and collects feedback. You can test different conversation paths and see exactly how users will experience your bot.",
-        keywords: ["simulator", "test", "testing", "preview", "conversation", "flow"]
-      }
-    ]
+    ],
   },
-
-  // Deployment & Channels
   {
-    category: "Deployment & Channels",
+    category: "Deployment & Integration",
     questions: [
       {
-        question: "Where can I deploy my chatbot?",
-        answer: "You can deploy to: Your website (embed widget), WhatsApp Business, Facebook Messenger, Telegram, SMS/Text messaging, and custom integrations via API. Each channel can be configured with specific settings and branding.",
-        keywords: ["deploy", "deployment", "website", "whatsapp", "facebook", "telegram", "sms", "channels"]
+        question: "How do I add the chatbot to my website?",
+        answer:
+          "There are three ways to integrate: 1) NPM package (recommended) for modern frameworks, 2) Simple script tag for any website, or 3) Iframe embed for full isolation. The NPM package offers the best performance and customization options.",
+        keywords: [
+          "website",
+          "integration",
+          "embed",
+          "deploy",
+          "install",
+          "add",
+        ],
       },
       {
-        question: "How do I add a chatbot to my website?",
-        answer: "After publishing your chatbot: 1) Go to Multi-Channel Setup, 2) Add a 'Website Widget' channel, 3) Configure the appearance and position, 4) Copy the provided embed code, 5) Paste it into your website's HTML. The widget will appear automatically.",
-        keywords: ["website", "embed", "widget", "html", "code", "integration"]
+        question: "Can I deploy to multiple channels?",
+        answer:
+          "Yes! BotForge supports multi-channel deployment including your website, WhatsApp Business, Facebook Messenger, and more. Pro and Enterprise plans include advanced channel management and unified analytics across all platforms.",
+        keywords: [
+          "multi-channel",
+          "whatsapp",
+          "facebook",
+          "messenger",
+          "channels",
+          "platforms",
+        ],
       },
       {
-        question: "How does WhatsApp integration work?",
-        answer: "We offer seamless WhatsApp Business API integration through Facebook OAuth. Simply connect your Facebook Business account, select your WhatsApp Business number, and we handle all the technical setup including webhooks, tokens, and message routing automatically.",
-        keywords: ["whatsapp", "business", "api", "facebook", "oauth", "integration", "setup"]
+        question: "How do I set up WhatsApp integration?",
+        answer:
+          "WhatsApp integration requires a Facebook Business account and WhatsApp Business API access. Our step-by-step wizard guides you through the setup process, including webhook configuration and phone number verification. This feature is available on Pro and Enterprise plans.",
+        keywords: [
+          "whatsapp",
+          "integration",
+          "facebook",
+          "business",
+          "api",
+          "setup",
+        ],
       },
       {
-        question: "Can I customize the chatbot appearance?",
-        answer: "Yes! You can customize colors, position, welcome messages, placeholder text, branding, and widget styling. Each deployment channel has its own customization options to match your brand and user experience requirements.",
-        keywords: ["customize", "appearance", "colors", "branding", "styling", "design"]
-      }
-    ]
+        question: "Is the widget mobile-responsive?",
+        answer:
+          "Absolutely! The widget is fully responsive and optimized for all devices including mobile phones, tablets, and desktops. It automatically adapts its size and behavior based on the screen size and device capabilities.",
+        keywords: [
+          "mobile",
+          "responsive",
+          "tablet",
+          "desktop",
+          "device",
+          "adaptive",
+        ],
+      },
+    ],
   },
-
-  // Analytics & Monitoring
   {
-    category: "Analytics & Monitoring",
+    category: "Analytics & Performance",
     questions: [
       {
         question: "What analytics are available?",
-        answer: "Analytics include: conversation metrics, user engagement, message volume, response times, satisfaction ratings, conversion tracking, funnel analysis, A/B testing results, and performance insights. Advanced analytics are available on Pro plans.",
-        keywords: ["analytics", "metrics", "tracking", "performance", "insights", "data"]
+        answer:
+          "BotForge provides comprehensive analytics including conversation metrics, user engagement data, goal completion rates, satisfaction scores, and performance insights. Advanced analytics with A/B testing and funnel analysis are available on Pro and Enterprise plans.",
+        keywords: [
+          "analytics",
+          "metrics",
+          "data",
+          "insights",
+          "performance",
+          "tracking",
+        ],
       },
       {
-        question: "Can I see conversation history?",
-        answer: "Yes! The conversation history shows all chatbot interactions with filtering by date, channel, outcome, and satisfaction. You can view full conversation transcripts, export data, and analyze user behavior patterns for quality assurance.",
-        keywords: ["conversation", "history", "transcripts", "logs", "export", "quality"]
+        question: "How do I view conversation history?",
+        answer:
+          "Access detailed conversation logs in the Analytics section. You can view individual conversations, search by user or content, export data for compliance, and analyze conversation patterns. All data is stored securely and can be anonymized for privacy compliance.",
+        keywords: [
+          "conversation",
+          "history",
+          "logs",
+          "view",
+          "search",
+          "export",
+        ],
       },
       {
-        question: "How does A/B testing work?",
-        answer: "A/B testing lets you compare different conversation flows. Create test variants, set traffic split percentages, define success metrics, and track performance. The system automatically routes users to different versions and provides statistical analysis of results.",
-        keywords: ["ab testing", "split testing", "variants", "optimization", "performance"]
+        question: "Can I A/B test different chatbots?",
+        answer:
+          "Yes! Pro and Enterprise plans include A/B testing capabilities. You can test different conversation flows, response styles, or entire chatbot configurations to optimize performance and conversion rates. Our system automatically tracks and reports results.",
+        keywords: [
+          "ab testing",
+          "split testing",
+          "optimization",
+          "conversion",
+          "performance",
+        ],
       },
       {
-        question: "Can I export conversation data?",
-        answer: "Yes! You can export conversation data in CSV or JSON formats with customizable filters. Exports include conversation metadata, user interactions, satisfaction ratings, and performance metrics. Perfect for compliance and analysis.",
-        keywords: ["export", "data", "csv", "json", "download", "backup"]
-      }
-    ]
+        question: "How do I export conversation data?",
+        answer:
+          "Conversation data can be exported in CSV or JSON format from the Analytics dashboard. You can filter by date range, user, or conversation outcome. This is useful for compliance, analysis, or integrating with external systems.",
+        keywords: ["export", "data", "csv", "json", "download", "backup"],
+      },
+    ],
   },
-
-  // Plans & Pricing
   {
-    category: "Plans & Pricing",
+    category: "Pricing & Plans",
     questions: [
       {
         question: "What's included in the Free plan?",
-        answer: "Free plan includes: 1 chatbot, 100 messages/month, basic analytics, website integration, community support, and access to basic templates. Perfect for trying out the platform and small projects.",
-        keywords: ["free", "plan", "included", "limitations", "trial"]
+        answer:
+          "The Free plan includes 1 chatbot, 100 messages per month, basic templates, website deployment, and email support. It's perfect for trying out the platform and small personal projects.",
+        keywords: ["free", "plan", "included", "limitations", "trial", "basic"],
       },
       {
         question: "What are the Pro plan benefits?",
-        answer: "Pro plan ($29/month) includes: 5 chatbots, 5,000 messages/month, advanced analytics, WhatsApp integration, OpenAI integration, priority support, custom branding, A/B testing, and all advanced node types.",
-        keywords: ["pro", "plan", "benefits", "pricing", "features", "upgrade"]
+        answer:
+          "Pro plan ($29/month) includes 5 chatbots, 5,000 messages/month, AI-powered responses, multi-channel deployment, advanced analytics, A/B testing, FAQ upload, and priority support. Perfect for growing businesses.",
+        keywords: ["pro", "plan", "benefits", "features", "pricing", "upgrade"],
       },
       {
-        question: "Is there an Enterprise plan?",
-        answer: "Yes! Enterprise plan ($99/month) includes: unlimited chatbots, unlimited messages, advanced integrations, custom AI training, white-label solution, dedicated support, SLA guarantee, and custom development options.",
-        keywords: ["enterprise", "plan", "unlimited", "custom", "white-label", "sla"]
+        question: "What does Enterprise include?",
+        answer:
+          "Enterprise plan ($99/month) includes unlimited chatbots and messages, advanced AI features, white-label solution, custom integrations, dedicated support, SLA guarantee, and advanced security features. Ideal for large organizations.",
+        keywords: [
+          "enterprise",
+          "unlimited",
+          "white-label",
+          "custom",
+          "dedicated",
+          "sla",
+        ],
       },
       {
-        question: "How does message usage work?",
-        answer: "Each message sent or received by your chatbot counts toward your monthly quota. The counter resets monthly. You can monitor usage in your dashboard. If you exceed your limit, the chatbot will pause until the next billing cycle or you upgrade.",
-        keywords: ["messages", "usage", "quota", "billing", "limit", "counter"]
+        question: "How do I upgrade my plan?",
+        answer:
+          "You can upgrade your plan anytime from the Settings page. Click 'Manage Plan' to view options and upgrade instantly. Billing is prorated, and new features are available immediately after upgrade.",
+        keywords: [
+          "upgrade",
+          "plan",
+          "billing",
+          "payment",
+          "change",
+          "subscription",
+        ],
       },
-      {
-        question: "Can I upgrade or downgrade my plan?",
-        answer: "Yes! You can change your plan anytime from the Settings page. Upgrades take effect immediately, downgrades take effect at the next billing cycle. Your chatbots and data are preserved during plan changes.",
-        keywords: ["upgrade", "downgrade", "change", "plan", "billing", "immediate"]
-      }
-    ]
+    ],
   },
-
-  // Technical Support
   {
     category: "Technical Support",
     questions: [
       {
-        question: "How do I set up OpenAI integration?",
-        answer: "To enable AI features: 1) Get an OpenAI API key from platform.openai.com, 2) Add it to your environment variables as VITE_OPENAI_API_KEY, 3) Restart your application, 4) AI nodes and FAQ processing will now work with intelligent responses.",
-        keywords: ["openai", "api", "key", "setup", "ai", "integration", "environment"]
-      },
-      {
-        question: "Why isn't my chatbot responding?",
-        answer: "Common issues: 1) Check if the chatbot is published, 2) Verify the flow has proper connections between nodes, 3) Ensure there's a start node, 4) Check for conditional logic errors, 5) Review the conversation logs for error messages.",
-        keywords: ["not responding", "troubleshooting", "errors", "published", "connections", "flow"]
-      },
-      {
-        question: "How do I backup my chatbot data?",
-        answer: "Your chatbot data is automatically backed up in our secure database. You can also export conversation data and flow configurations. For additional backup, use the export features in Analytics and save your flow designs.",
-        keywords: ["backup", "data", "export", "save", "security", "recovery"]
-      },
-      {
         question: "What browsers are supported?",
-        answer: "The platform works on all modern browsers: Chrome, Firefox, Safari, and Edge. For the best experience, we recommend using the latest version of Chrome or Firefox. Mobile browsers are also supported for testing and management.",
-        keywords: ["browsers", "supported", "chrome", "firefox", "safari", "edge", "mobile"]
+        answer:
+          "BotForge works on all modern browsers including Chrome 60+, Firefox 60+, Safari 12+, and Edge 79+. The widget is optimized for performance and works on both desktop and mobile browsers.",
+        keywords: [
+          "browsers",
+          "support",
+          "chrome",
+          "firefox",
+          "safari",
+          "edge",
+          "compatibility",
+        ],
       },
       {
-        question: "How do I get help if I'm stuck?",
-        answer: "Help options: 1) Use this AI assistant for instant answers, 2) Check our comprehensive documentation, 3) Contact support via email (Pro+ plans get priority), 4) Join our community forum, 5) Schedule a consultation call (Enterprise plans).",
-        keywords: ["help", "support", "stuck", "assistance", "contact", "documentation"]
-      }
-    ]
+        question: "How do I troubleshoot integration issues?",
+        answer:
+          "Common integration issues include incorrect chatbot ID, CORS errors, or missing dependencies. Check our troubleshooting guide in the documentation, verify your configuration, and ensure your chatbot is published. Contact support if issues persist.",
+        keywords: [
+          "troubleshoot",
+          "issues",
+          "problems",
+          "errors",
+          "debug",
+          "help",
+        ],
+      },
+      {
+        question: "Is there API documentation available?",
+        answer:
+          "Yes! Complete API documentation is available at /widget/docs.html. It includes detailed examples for all frameworks, configuration options, event handling, and troubleshooting guides. The documentation is regularly updated with new features.",
+        keywords: [
+          "api",
+          "documentation",
+          "docs",
+          "reference",
+          "guide",
+          "examples",
+        ],
+      },
+      {
+        question: "How do I get technical support?",
+        answer:
+          "Free users get email support, Pro users get priority email support, and Enterprise users get dedicated support with SLA guarantees. You can also access our help documentation, community forum, and live chat during business hours.",
+        keywords: [
+          "support",
+          "help",
+          "contact",
+          "technical",
+          "assistance",
+          "email",
+        ],
+      },
+    ],
   },
-
-  // Security & Privacy
-  {
-    category: "Security & Privacy",
-    questions: [
-      {
-        question: "How secure is my data?",
-        answer: "We use enterprise-grade security: data encryption in transit and at rest, secure cloud infrastructure, regular security audits, GDPR compliance, and role-based access controls. Your chatbot data and conversations are protected with bank-level security.",
-        keywords: ["security", "data", "encryption", "gdpr", "privacy", "protection"]
-      },
-      {
-        question: "Can I delete conversation data?",
-        answer: "Yes! You have full control over your data. You can delete individual conversations, anonymize user data, set automatic deletion policies, and export data before deletion. We comply with GDPR and other privacy regulations.",
-        keywords: ["delete", "conversation", "data", "privacy", "gdpr", "anonymize"]
-      },
-      {
-        question: "Where is my data stored?",
-        answer: "Data is stored in secure cloud infrastructure with multiple backups and redundancy. We use industry-standard security practices and comply with international data protection regulations. Data centers are located in secure, certified facilities.",
-        keywords: ["data", "storage", "cloud", "location", "backup", "infrastructure"]
-      }
-    ]
-  }
 ];
 
-// Helper functions for FAQ search
-export const searchFAQ = (query: string) => {
+// Helper function to search FAQ
+export function searchFAQ(query: string): FAQQuestion[] {
   const queryLower = query.toLowerCase();
-  const results: any[] = [];
+  const results: FAQQuestion[] = [];
 
-  appFAQ.forEach(category => {
-    category.questions.forEach(faq => {
+  appFAQ.forEach((category) => {
+    category.questions.forEach((faq) => {
       const questionMatch = faq.question.toLowerCase().includes(queryLower);
       const answerMatch = faq.answer.toLowerCase().includes(queryLower);
-      const keywordMatch = faq.keywords.some(keyword => 
-        queryLower.includes(keyword.toLowerCase()) || keyword.toLowerCase().includes(queryLower)
+      const keywordMatch = faq.keywords.some(
+        (keyword) =>
+          keyword.toLowerCase().includes(queryLower) ||
+          queryLower.includes(keyword.toLowerCase())
       );
 
       if (questionMatch || answerMatch || keywordMatch) {
-        results.push({
-          ...faq,
-          category: category.category,
-          relevance: questionMatch ? 3 : (keywordMatch ? 2 : 1)
-        });
+        results.push({ ...faq, category: category.category } as any);
       }
     });
   });
 
-  return results.sort((a, b) => b.relevance - a.relevance);
-};
+  return results;
+}
 
-const getFAQByCategory = (categoryName: string) => {
-  return appFAQ.find(cat => cat.category === categoryName)?.questions || [];
-};
-
-export const getAllCategories = () => {
-  return appFAQ.map(cat => cat.category);
-};
+// Helper function to get all categories
+export function getAllCategories(): string[] {
+  return appFAQ.map((category) => category.category);
+}

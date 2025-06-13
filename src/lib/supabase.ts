@@ -1,9 +1,26 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.warn(
+    "Supabase configuration missing. Please check your environment variables."
+  );
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+  },
+  global: {
+    headers: {
+      "X-Client-Info": "botforge-web",
+    },
+  },
+});
 
 type Database = {
   public: {
@@ -14,7 +31,7 @@ type Database = {
           email: string;
           full_name: string | null;
           avatar_url: string | null;
-          plan: 'free' | 'pro' | 'enterprise';
+          plan: "free" | "pro" | "enterprise";
           subscription_id: string | null;
           subscription_status: string;
           message_quota: number;
@@ -29,7 +46,7 @@ type Database = {
           email: string;
           full_name?: string | null;
           avatar_url?: string | null;
-          plan?: 'free' | 'pro' | 'enterprise';
+          plan?: "free" | "pro" | "enterprise";
           subscription_id?: string | null;
           subscription_status?: string;
           message_quota?: number;
@@ -42,7 +59,7 @@ type Database = {
           email?: string;
           full_name?: string | null;
           avatar_url?: string | null;
-          plan?: 'free' | 'pro' | 'enterprise';
+          plan?: "free" | "pro" | "enterprise";
           subscription_id?: string | null;
           subscription_status?: string;
           message_quota?: number;
@@ -99,8 +116,13 @@ type Database = {
           id: string;
           chatbot_id: string;
           user_identifier: string;
-          platform: 'web' | 'whatsapp';
-          status: 'active' | 'completed' | 'abandoned';
+          platform: "web" | "whatsapp";
+          status:
+            | "active"
+            | "completed"
+            | "abandoned"
+            | "transferred"
+            | "error";
           satisfaction_rating: number | null;
           goal_completed: boolean;
           human_handoff: boolean;
@@ -111,8 +133,13 @@ type Database = {
         Insert: {
           chatbot_id: string;
           user_identifier: string;
-          platform?: 'web' | 'whatsapp';
-          status?: 'active' | 'completed' | 'abandoned';
+          platform?: "web" | "whatsapp";
+          status?:
+            | "active"
+            | "completed"
+            | "abandoned"
+            | "transferred"
+            | "error";
           satisfaction_rating?: number | null;
           goal_completed?: boolean;
           human_handoff?: boolean;
@@ -120,7 +147,12 @@ type Database = {
           ended_at?: string | null;
         };
         Update: {
-          status?: 'active' | 'completed' | 'abandoned';
+          status?:
+            | "active"
+            | "completed"
+            | "abandoned"
+            | "transferred"
+            | "error";
           satisfaction_rating?: number | null;
           goal_completed?: boolean;
           human_handoff?: boolean;
@@ -131,24 +163,24 @@ type Database = {
         Row: {
           id: string;
           conversation_id: string;
-          sender: 'user' | 'bot';
+          sender: "user" | "bot";
           content: string;
-          message_type: 'text' | 'image' | 'file' | 'quick_reply';
+          message_type: "text" | "image" | "file" | "quick_reply";
           node_id: string | null;
           metadata: any;
           created_at: string;
         };
         Insert: {
           conversation_id: string;
-          sender: 'user' | 'bot';
+          sender: "user" | "bot";
           content: string;
-          message_type?: 'text' | 'image' | 'file' | 'quick_reply';
+          message_type?: "text" | "image" | "file" | "quick_reply";
           node_id?: string | null;
           metadata?: any;
         };
         Update: {
           content?: string;
-          message_type?: 'text' | 'image' | 'file' | 'quick_reply';
+          message_type?: "text" | "image" | "file" | "quick_reply";
           node_id?: string | null;
           metadata?: any;
         };
@@ -161,7 +193,7 @@ type Database = {
           file_type: string;
           file_size: number;
           content: string | null;
-          processing_status: 'pending' | 'processing' | 'completed' | 'failed';
+          processing_status: "pending" | "processing" | "completed" | "failed";
           error_message: string | null;
           uploaded_at: string;
           processed_at: string | null;
@@ -172,12 +204,12 @@ type Database = {
           file_type: string;
           file_size: number;
           content?: string | null;
-          processing_status?: 'pending' | 'processing' | 'completed' | 'failed';
+          processing_status?: "pending" | "processing" | "completed" | "failed";
           error_message?: string | null;
         };
         Update: {
           content?: string | null;
-          processing_status?: 'pending' | 'processing' | 'completed' | 'failed';
+          processing_status?: "pending" | "processing" | "completed" | "failed";
           error_message?: string | null;
           processed_at?: string | null;
         };
@@ -254,8 +286,8 @@ type Database = {
           stripe_customer_id: string | null;
           stripe_price_id: string | null;
           stripe_product_id: string | null;
-          plan: 'free' | 'pro' | 'enterprise';
-          status: 'active' | 'canceled' | 'past_due' | 'unpaid';
+          plan: "free" | "pro" | "enterprise";
+          status: "active" | "canceled" | "past_due" | "unpaid";
           current_period_start: string | null;
           current_period_end: string | null;
           trial_start: string | null;
@@ -271,8 +303,8 @@ type Database = {
           stripe_customer_id?: string | null;
           stripe_price_id?: string | null;
           stripe_product_id?: string | null;
-          plan: 'free' | 'pro' | 'enterprise';
-          status: 'active' | 'canceled' | 'past_due' | 'unpaid';
+          plan: "free" | "pro" | "enterprise";
+          status: "active" | "canceled" | "past_due" | "unpaid";
           current_period_start?: string | null;
           current_period_end?: string | null;
           trial_start?: string | null;
@@ -285,14 +317,68 @@ type Database = {
           stripe_customer_id?: string | null;
           stripe_price_id?: string | null;
           stripe_product_id?: string | null;
-          plan?: 'free' | 'pro' | 'enterprise';
-          status?: 'active' | 'canceled' | 'past_due' | 'unpaid';
+          plan?: "free" | "pro" | "enterprise";
+          status?: "active" | "canceled" | "past_due" | "unpaid";
           current_period_start?: string | null;
           current_period_end?: string | null;
           trial_start?: string | null;
           trial_end?: string | null;
           cancel_at_period_end?: boolean;
           canceled_at?: string | null;
+        };
+      };
+      conversation_logs: {
+        Row: {
+          id: string;
+          conversation_id: string;
+          chatbot_id: string;
+          user_identifier: string;
+          channel_type: string;
+          conversation_start: string;
+          conversation_end: string | null;
+          total_messages: number;
+          outcome: "completed" | "abandoned" | "transferred" | "error" | null;
+          satisfaction_score: number | null;
+          nps_score: number | null;
+          feedback_text: string | null;
+          goal_achieved: boolean;
+          conversion_value: number | null;
+          tags: string[] | null;
+          conversation_duration: string | null;
+          metadata: any;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          conversation_id: string;
+          chatbot_id: string;
+          user_identifier: string;
+          channel_type?: string;
+          conversation_start: string;
+          conversation_end?: string | null;
+          total_messages?: number;
+          outcome?: "completed" | "abandoned" | "transferred" | "error" | null;
+          satisfaction_score?: number | null;
+          nps_score?: number | null;
+          feedback_text?: string | null;
+          goal_achieved?: boolean;
+          conversion_value?: number | null;
+          tags?: string[] | null;
+          conversation_duration?: string | null;
+          metadata?: any;
+        };
+        Update: {
+          conversation_end?: string | null;
+          total_messages?: number;
+          outcome?: "completed" | "abandoned" | "transferred" | "error" | null;
+          satisfaction_score?: number | null;
+          nps_score?: number | null;
+          feedback_text?: string | null;
+          goal_achieved?: boolean;
+          conversion_value?: number | null;
+          tags?: string[] | null;
+          conversation_duration?: string | null;
+          metadata?: any;
         };
       };
     };

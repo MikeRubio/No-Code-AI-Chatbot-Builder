@@ -4,8 +4,12 @@ supabase/migrations/*
 src/components/analytic/*
 src/components/auth/*
 src/components/onboarding/*
+src/components/landing/*
+src/components/help/*
 src/components/subscription/*
 src/components/dashboard/*
 src/components/integrations/*
 src/components/ui/*
 src/data/*
+widget-package/dist/*
+widget-package/example/*

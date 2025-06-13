@@ -42,7 +42,7 @@ export function ChatbotSimulator({
   const [conversationHistory, setConversationHistory] = useState<
     Array<{ sender: string; content: string }>
   >([]);
-  const [abTestVariant, setAbTestVariant] = useState<'A' | 'B' | null>(null);
+  const [abTestVariant, setAbTestVariant] = useState<"A" | "B" | null>(null);
   const [activeFlow, setActiveFlow] = useState(flow);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -183,43 +183,47 @@ export function ChatbotSimulator({
     try {
       // Check if there's an active A/B test for this chatbot
       const { data: activeTest, error } = await supabase
-        .from('ab_tests')
-        .select('*')
-        .eq('chatbot_id', chatbot.id)
-        .eq('status', 'running')
-        .single();
+        .from("ab_tests")
+        .select("*")
+        .eq("chatbot_id", chatbot.id)
+        .eq("status", "running")
+        .maybeSingle();
 
-      if (error || !activeTest) {
+      if (error) {
+        console.error("Error checking for A/B test:", error);
+        return null;
+      }
+
+      if (!activeTest) {
         return null;
       }
 
       // Assign user to variant based on traffic split
       const random = Math.random();
-      const variant = random < activeTest.traffic_split ? 'A' : 'B';
-      
+      const variant = random < activeTest.traffic_split ? "A" : "B";
+
       setAbTestVariant(variant);
 
       // Use the appropriate flow variant
-      const flowToUse = variant === 'A' ? activeTest.variant_a_flow : activeTest.variant_b_flow;
-      
+      const flowToUse =
+        variant === "A" ? activeTest.variant_a_flow : activeTest.variant_b_flow;
+
       if (flowToUse && flowToUse.nodes && flowToUse.nodes.length > 0) {
         setActiveFlow(flowToUse);
-        
+
         // Log A/B test assignment
-        await supabase
-          .from('ab_test_results')
-          .insert({
-            test_id: activeTest.id,
-            variant: variant,
-            conversation_id: conversationId,
-            goal_achieved: false,
-            session_duration: 0
-          });
+        await supabase.from("ab_test_results").insert({
+          test_id: activeTest.id,
+          variant: variant,
+          conversation_id: conversationId,
+          goal_achieved: false,
+          session_duration: 0,
+        });
       }
 
       return { test: activeTest, variant };
     } catch (error) {
-      console.error('Error checking for A/B test:', error);
+      console.error("Error checking for A/B test:", error);
       return null;
     }
   };
@@ -234,10 +238,10 @@ export function ChatbotSimulator({
       chatbot.id,
       userIdentifier,
       "web",
-      { 
-        simulator: true, 
+      {
+        simulator: true,
         chatbotName: chatbot.name,
-        abTestVariant: abTestVariant
+        abTestVariant: abTestVariant,
       }
     );
 
@@ -877,14 +881,16 @@ export function ChatbotSimulator({
     if (abTestVariant) {
       try {
         await supabase
-          .from('ab_test_results')
+          .from("ab_test_results")
           .update({
             goal_achieved: rating >= 4,
-            session_duration: Date.now() - new Date(messages[0]?.timestamp || new Date()).getTime()
+            session_duration:
+              Date.now() -
+              new Date(messages[0]?.timestamp || new Date()).getTime(),
           })
-          .eq('conversation_id', conversationId);
+          .eq("conversation_id", conversationId);
       } catch (error) {
-        console.error('Error updating A/B test results:', error);
+        console.error("Error updating A/B test results:", error);
       }
     }
 
@@ -909,9 +915,13 @@ export function ChatbotSimulator({
               <Bot className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 dark:text-gray-100">{chatbot.name}</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                {chatbot.name}
+              </h3>
               <div className="flex items-center space-x-2">
-                <p className="text-sm text-green-600 dark:text-green-400">● Online</p>
+                <p className="text-sm text-green-600 dark:text-green-400">
+                  ● Online
+                </p>
                 {abTestVariant && (
                   <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full">
                     Variant {abTestVariant}
@@ -1115,7 +1125,9 @@ function FeedbackModal({ onSubmit, onClose }: FeedbackModalProps) {
               key={star}
               onClick={() => setRating(star)}
               className={`p-1 ${
-                rating >= star ? "text-yellow-500" : "text-gray-300 dark:text-gray-600"
+                rating >= star
+                  ? "text-yellow-500"
+                  : "text-gray-300 dark:text-gray-600"
               }`}
             >
               <Star className="w-6 h-6 fill-current" />
