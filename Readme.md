@@ -1,3 +1,5 @@
+[![Netlify Status](https://api.netlify.com/api/v1/badges/f8b960e2-00a6-4d16-8ca8-9025317f61b4/deploy-status)](https://app.netlify.com/projects/preeminent-strudel-fb61aa/deploys)
+
 # Epic Task Plan: No-Code AI Chatbot Builder
 
 ## Phase 1: Discovery & Planning
